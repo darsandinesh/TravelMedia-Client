@@ -1,0 +1,196 @@
+/* Ensure the div takes up the full height and width of the viewport */
+.SignupContainer {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f4f8;
+    /* Light grey background */
+}
+
+/* Center the inner div and apply styles */
+.SignupDiv {
+    display: flex;
+    flex-direction: row-reverse;
+    /* Flip the image to the right-hand side */
+    width: 900px;
+    height: 700px;
+    border: 1px solid #001f3f;
+    /* Navy blue border */
+    border-radius: 10px;
+    /* Rounded corners */
+    background-color: #fff;
+    /* White background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Shadow for better visibility */
+    overflow: hidden;
+}
+
+/* Right side image */
+.SignupDiv img {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* Left side form */
+.SignupForm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    padding: 2rem;
+}
+
+.SignupForm h2 {
+    font-size: 2rem;
+    color: #001f3f;
+    /* Navy blue */
+    margin-bottom: 1rem;
+}
+
+.SignupForm form {
+    width: 100%;
+}
+
+.input {
+    position: relative;
+    width: 90%;
+    margin-bottom: 1rem;
+}
+
+.SignupForm label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.SignupForm input {
+    width: 100%;
+    padding: 0.75rem;
+    padding-left: 2.5rem;
+    /* Add padding to the left to make room for the icon */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    /* Rounded corners for input fields */
+    font-size: 1rem;
+}
+
+.icon {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    transform: translateY(-50%);
+    color: #aaa;
+}
+
+.user-icon::before {
+    content: '\f007';
+    /* FontAwesome Unicode for user icon */
+    font-family: 'FontAwesome';
+}
+
+.password-icon::before {
+    content: '\f023';
+    /* FontAwesome Unicode for lock icon */
+    font-family: 'FontAwesome';
+}
+
+.SignupForm a {
+    display: block;
+    text-align: right;
+    color: #007bff;
+    text-decoration: none;
+    margin-top: 1rem;
+    cursor: pointer;
+}
+
+.SignupForm a:hover {
+    text-decoration: underline;
+}
+
+.SignupForm button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px;
+    /* Rounded corners for button */
+    background-color: #001f3f;
+    /* Navy blue */
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.SignupForm button:hover {
+    background-color: #00173a;
+    /* Darker navy blue */
+}
+
+.SignupForm hr {
+    width: 100%;
+    margin: 1rem 0;
+    border: 0;
+    border-top: 1px solid #ccc;
+}
+
+.SignupForm p {
+    margin: 1rem 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.google-button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px;
+    /* Rounded corners for button */
+    background-color: #db4437;
+    /* Google red */
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.google-button:hover {
+    background-color: #c53727;
+    /* Darker Google red */
+}
+
+
+.otp-input {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 10px;
+}
+
+.otp-timer {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #555;
+    text-align: center;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+}

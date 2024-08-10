@@ -1,0 +1,84 @@
+/* OTP.css */
+
+.OtpContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin-left: 40%;
+    width: 800px;
+    /* background-color: #f5f5f5; */
+  }
+  
+  .OtpDiv {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .OtpDiv img {
+    max-width: 400px;
+    object-fit: cover;
+  }
+  
+  .OtpForm {
+    margin-top: 14%;
+    padding: 20px;
+    width: 400px;
+  }
+  
+  .OtpForm h2 {
+    color: #007bff;
+    margin-left: 25%;
+    margin-bottom: 10px;
+  }
+  
+  .OtpForm h6 {
+    color: #007bff;
+    margin-left: 24%;
+    margin-bottom: 20px;
+  }
+  
+  .otp-inputs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+  
+  .otp-input {
+    width: 20%;
+    padding: 10px;
+    font-size: 24px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .OtpForm p {
+    margin-bottom: 15px;
+    color:red;
+  }
+  
+  .OtpForm button {
+    width: 48%;
+    padding: 10px;
+    margin: 5px 1%;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .OtpForm button:disabled {
+    background-color: #ccc;
+  }
+  
+  .OtpForm hr {
+    margin-top: 20px;
+  }
+  
+ 

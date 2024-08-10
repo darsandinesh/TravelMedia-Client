@@ -1,0 +1,127 @@
+/* Ensure the div takes up the full height and width of the viewport */
+.LoginContainer {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f4f8; /* Light grey background */
+}
+
+a{
+    cursor: pointer;
+}
+
+/* Center the inner div and apply styles */
+.LoginDiv {
+    display: flex;
+    flex-direction: row;
+    width: 900px;
+    height: 600px;
+    border: 1px solid #001f3f; /* Navy blue border */
+    border-radius: 10px; /* Rounded corners */
+    background-color: #fff; /* White background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for better visibility */
+    overflow: hidden;
+}
+
+/* Left side image */
+.LoginDiv img {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+/* Right side form */
+.LoginForm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    padding: 2rem;
+}
+
+.LoginForm h2 {
+    font-size: 2rem;
+    color: #014385; /* Navy blue */
+    margin-bottom: 1rem;
+}
+
+.LoginForm form {
+    width: 100%;
+}
+
+.LoginForm label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.LoginForm input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px; /* Rounded corners for input fields */
+    font-size: 1rem;
+}
+
+.LoginForm a {
+    display: block;
+    text-align: right;
+    color: #007bff;
+    text-decoration: none;
+    margin-bottom: 1rem;
+}
+
+.LoginForm a:hover {
+    text-decoration: underline;
+}
+
+.LoginForm button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px; /* Rounded corners for button */
+    background-color: #001f3f; /* Navy blue */
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.LoginForm button:hover {
+    background-color: #00173a; /* Darker navy blue */
+}
+
+.LoginForm hr {
+    width: 100%;
+    margin: 1rem 0;
+    border: 0;
+    border-top: 1px solid #ccc;
+}
+
+.LoginForm p {
+    margin: 1rem 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.google-button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px; /* Rounded corners for button */
+    background-color: #db4437; /* Google red */
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.google-button:hover {
+    background-color: #c53727; /* Darker Google red */
+}
