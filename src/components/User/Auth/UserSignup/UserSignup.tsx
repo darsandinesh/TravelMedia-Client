@@ -52,7 +52,7 @@ const UserSignup = () => {
       if (result.data.data.success) {
         toast.info('Verify you email address')
         localStorage.setItem('otp', result.data.data.otp);
-        localStorage.setItem('user', JSON.stringify(result.data.data.user_data));
+        // localStorage.setItem('user', JSON.stringify(result.data.data.user_data));
         navigate('/otp');
       } else {
         toast.error('email address already found');

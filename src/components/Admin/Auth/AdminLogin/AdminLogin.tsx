@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdminLogin.css'; // Import the CSS file
+import './AdminLogin.css';
+import { toast } from 'sonner';
+import axios from 'axios';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState<string>('');
@@ -8,10 +10,55 @@ const AdminLogin = () => {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Function to validate the email format
+  const validateEmail = (email: string): boolean => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      
+      navigate('/admin/dashboard');
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(email, '---', password);
-    navigate('/admin/dashboard');
+
+    // Check if email and password are filled
+    if (!email || !password) {
+      toast.error('Both email and password are required');
+      return;
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+
+
+    try {
+      const result = await axios.post('http://localhost:4000/admin/login', {
+        email,
+        password,
+      });
+
+      if (result.data.result.success) {
+        toast.success(result.data.result.message);
+        console.log(result.data.result.data);
+        localStorage.setItem('adminToken', result.data.result.token);
+        navigate('/admin/dashboard');
+      } else {
+        toast.error(result.data.result.message);
+      }
+    } catch (error) {
+      toast.error('An error occurred during login');
+      console.error(error);
+    }
   };
 
   return (

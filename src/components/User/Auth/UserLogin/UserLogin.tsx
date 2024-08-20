@@ -2,7 +2,27 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
+import Swal from 'sweetalert2'
 import './UserLogin.css';
+
+interface DecodedToken {
+    iss: string;
+    nbf: number;
+    aud: string;
+    sub: string;
+    email: string;
+    email_verified: boolean;
+    azp: string;
+    name: string;
+    picture: string;
+    given_name: string;
+    family_name: string;
+    iat: number;
+    exp: number;
+    jti: string;
+}
 
 const UserLogin = () => {
     const [email, setEmail] = useState<string>('');
@@ -15,6 +35,43 @@ const UserLogin = () => {
         return re.test(email);
     };
 
+    const handleSuccess = async (credentialResponse: any) => {
+        console.log(credentialResponse);
+
+        if (credentialResponse.credential) {
+            // Decode the JWT token
+            const decoded: DecodedToken = jwtDecode<DecodedToken>(credentialResponse.credential);
+            console.log(decoded);
+
+            const userData = {
+                email: decoded.email,
+                fullname: decoded.name,
+            };
+
+            try {
+                // Send the extracted data to your backend
+                const result = await axios.post('http://localhost:4000/google-login', userData);
+
+                if (result.data.success) {
+                    toast.success(result.data.message);
+                    navigate('/home');
+                } else {
+                    toast.error(result.data.message);
+                }
+            } catch (error) {
+                toast.error('An error occurred during registration');
+                console.error(error);
+            }
+        } else {
+            console.error('Credential response does not contain a valid JWT token');
+        }
+    };
+
+
+    const handleError = () => {
+        toast.info('Login Failed');
+    };
+
     const handelSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log('handelSubmit');
@@ -25,12 +82,18 @@ const UserLogin = () => {
         }
 
         try {
-            const result: any = await axios.get('http://localhost:4000/');
-            // console.log(result);
-            // if (result) {
-                toast.success(`Logged in successfully, message: ${result.data.message}`);
+
+            const result = await axios.post('http://localhost:4000/login', {
+                email,
+                password,
+            });
+            console.log(result)
+            if (result.data.success) {
+                toast.success(result.data.message);
                 navigate('/home')
-            // }
+            } else {
+                toast.error(result.data.message);
+            }
         } catch (error) {
             toast.error('An error occurred during login');
             console.error(error);
@@ -41,6 +104,144 @@ const UserLogin = () => {
         console.log('singUp function called');
         navigate('/Signup');
     };
+
+
+    const forgotPassword = async () => {
+        try {
+            const { value: email } = await Swal.fire({
+                title: "Forgot Password",
+                input: "email",
+                inputLabel: "Enter your email address",
+                inputPlaceholder: "Enter your email address",
+                showCloseButton: true,
+            });
+
+            if (email) {
+                const verifyResponse = await axios.post('http://localhost:4000/verifyEmail', { email });
+                console.log('Full Response:', verifyResponse.data);
+
+                // Check if verifyResponse.data and verifyResponse.data.data exist
+                if (verifyResponse.data.success) {
+                    localStorage.setItem('verifyEmail', verifyResponse.data.user_data.otp);
+
+                    if (verifyResponse.data.success) {
+                        const { value: otp } = await Swal.fire({
+                            title: "OTP Verification",
+                            input: "text",
+                            inputLabel: "Enter the OTP sent to your email",
+                            inputPlaceholder: "OTP",
+                            confirmButtonText: "Verify",
+                            showCancelButton: true,
+                            inputValidator: (value) => {
+                                if (!value) {
+                                    return "You need to enter the OTP!";
+                                }
+                                if (value != verifyResponse.data.user_data.otp) {
+                                    return "Invalid otp"
+                                }
+                            }
+                        });
+
+                        console.log(otp, '------------------otp');
+
+                        if (otp) {
+                            const localOtp = otp.trim(); 
+                            const OTP = localStorage.getItem('verifyEmail')?.trim(); 
+                            localStorage.removeItem('verifyEmail');
+                            console.log(OTP, '---------------------', localOtp);
+
+                            if (OTP === localOtp) {
+                                const { value: formValues } = await Swal.fire({
+                                    title: "Reset Password",
+                                    html:
+                                        '<input id="swal-input1" type="password" class="swal2-input" placeholder="New Password">' +
+                                        '<input id="swal-input2" type="password" class="swal2-input" placeholder="Confirm Password">',
+                                    focusConfirm: false,
+                                    confirmButtonText: "Change Password",
+                                    showCancelButton: true,
+                                    preConfirm: () => {
+                                        const password = (document.getElementById('swal-input1') as HTMLInputElement).value;
+                                        const confirmPassword = (document.getElementById('swal-input2') as HTMLInputElement).value;
+
+                                        if (!password || !confirmPassword) {
+                                            Swal.showValidationMessage('Both fields are required!');
+                                            return;
+                                        }
+
+                                        if (password !== confirmPassword) {
+                                            Swal.showValidationMessage('Passwords do not match!');
+                                            return;
+                                        }
+
+                                        return { password, confirmPassword };
+                                    }
+                                });
+
+                                if (formValues) {
+                                    const { password } = formValues;
+
+                                    const resetResponse = await axios.post('http://localhost:4000/resetPassword', {
+                                        email,
+                                        newPassword: password
+                                    });
+
+                                    if (resetResponse.data.success) {
+                                        Swal.fire({
+                                            title: "Success",
+                                            text: "Your password has been reset!",
+                                            icon: "success",
+                                            confirmButtonText: "OK",
+                                        });
+                                        navigate('/');
+                                    } else {
+                                        toast.error(resetResponse.data.message);
+                                    }
+                                }
+                            } else {
+                                await Swal.fire({
+                                    title: "Invalid OTP",
+                                    text: "The OTP you entered is incorrect. Please try again.",
+                                    icon: "error",
+                                    confirmButtonText: "Retry"
+                                });
+                            }
+
+                        }
+                    } else {
+                        toast.error(verifyResponse.data.message);
+                    }
+                } else {
+                    toast.error(verifyResponse.data.message);
+                }
+            }
+        } catch (error) {
+            toast.error('An error occurred during the process.');
+            console.error(error);
+        }
+    };
+
+
+
+
+    // const forgotPassword = async () => {
+    //     const { value: email } = await Swal.fire({
+    //         title: "Email Address",
+    //         input: "email",
+    //         inputLabel: "Your email address",
+    //         inputPlaceholder: "Enter your email address",
+    //         showCloseButton: true
+    //     });
+    //     if (email) {
+    //         Swal.fire('verifying your email address');
+    //         const result = await axios.post('http://localhost:4000/verifyEmail', {
+    //             email,
+    //         });
+    //         if(result.data.success){
+    //             navigate('/otp')
+    //         }
+    //         console.log(result);
+    //     }
+    // }
 
     return (
         <div className='LoginContainer'>
@@ -59,13 +260,16 @@ const UserLogin = () => {
                             <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" id="password" />
                             <i className="icon password-icon"></i>
                         </div>
-                        <a href="#">Forgot Password?</a>
+                        <a onClick={forgotPassword}>Forgot Password?</a>
                         <button>Login</button>
                         <a onClick={singUp}>New user? SignUp</a>
                     </form>
                     <hr />
                     <p>or login with</p>
-                    <button className="google-button">Google</button>
+                    <GoogleLogin
+                        onSuccess={handleSuccess}
+                        onError={handleError}
+                    />
                 </div>
             </div>
         </div>

@@ -5,32 +5,27 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f0f4f8;
-    /* Light grey background */
+    background-color: #f0f4f8; /* Light grey background */
 }
 
 /* Center the inner div and apply styles */
 .SignupDiv {
     display: flex;
-    flex-direction: row-reverse;
-    /* Flip the image to the right-hand side */
-    width: 900px;
-    height: 700px;
-    border: 1px solid #001f3f;
-    /* Navy blue border */
-    border-radius: 10px;
-    /* Rounded corners */
-    background-color: #fff;
-    /* White background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    /* Shadow for better visibility */
+    flex-direction: row-reverse; /* Flip the image to the right-hand side */
+    width: 90%;
+    max-width: 900px;
+    height: auto;
+    border: 1px solid #001f3f; /* Navy blue border */
+    border-radius: 10px; /* Rounded corners */
+    background-color: #fff; /* White background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for better visibility */
     overflow: hidden;
 }
 
 /* Right side image */
 .SignupDiv img {
     width: 50%;
-    height: 100%;
+    height: 11 0%;
     object-fit: cover;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
@@ -48,8 +43,7 @@
 
 .SignupForm h2 {
     font-size: 2rem;
-    color: #001f3f;
-    /* Navy blue */
+    color: #001f3f; /* Navy blue */
     margin-bottom: 1rem;
 }
 
@@ -73,11 +67,9 @@
 .SignupForm input {
     width: 100%;
     padding: 0.75rem;
-    padding-left: 2.5rem;
-    /* Add padding to the left to make room for the icon */
+    padding-left: 2.5rem; /* Add padding to the left to make room for the icon */
     border: 1px solid #ccc;
-    border-radius: 5px;
-    /* Rounded corners for input fields */
+    border-radius: 5px; /* Rounded corners for input fields */
     font-size: 1rem;
 }
 
@@ -90,14 +82,12 @@
 }
 
 .user-icon::before {
-    content: '\f007';
-    /* FontAwesome Unicode for user icon */
+    content: '\f007'; /* FontAwesome Unicode for user icon */
     font-family: 'FontAwesome';
 }
 
 .password-icon::before {
-    content: '\f023';
-    /* FontAwesome Unicode for lock icon */
+    content: '\f023'; /* FontAwesome Unicode for lock icon */
     font-family: 'FontAwesome';
 }
 
@@ -118,10 +108,8 @@
     width: 100%;
     padding: 0.75rem;
     border: none;
-    border-radius: 5px;
-    /* Rounded corners for button */
-    background-color: #001f3f;
-    /* Navy blue */
+    border-radius: 5px; /* Rounded corners for button */
+    background-color: #001f3f; /* Navy blue */
     color: #fff;
     font-size: 1rem;
     cursor: pointer;
@@ -129,8 +117,7 @@
 }
 
 .SignupForm button:hover {
-    background-color: #00173a;
-    /* Darker navy blue */
+    background-color: #00173a; /* Darker navy blue */
 }
 
 .SignupForm hr {
@@ -150,20 +137,16 @@
     width: 100%;
     padding: 0.75rem;
     border: none;
-    border-radius: 5px;
-    /* Rounded corners for button */
-    background-color: #db4437;
-    /* Google red */
+    border-radius: 5px; /* Rounded corners for button */
+    background-color: #db4437; /* Google red */
     color: #fff;
     font-size: 1rem;
     cursor: pointer;
 }
 
 .google-button:hover {
-    background-color: #c53727;
-    /* Darker Google red */
+    background-color: #c53727; /* Darker Google red */
 }
-
 
 .otp-input {
     display: block;
@@ -193,4 +176,42 @@
 .modal-footer {
     display: flex;
     justify-content: space-between;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+    .SignupDiv {
+        flex-direction: column;
+        width: 90%;
+        height: auto;
+    }
+
+    .SignupDiv img {
+        width: 100%;
+        height: 200px;
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 0;
+    }
+
+    .SignupForm {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .SignupForm h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .SignupForm h2 {
+        font-size: 1.2rem;
+    }
+
+    .SignupForm input,
+    .SignupForm button,
+    .google-button {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
 }

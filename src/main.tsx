@@ -7,13 +7,16 @@ import { BrowserRouter } from 'react-router-dom'
 // import { ToastContainer } from "react-toastify";
 import { Toaster } from 'sonner';
 import "react-toastify/dist/ReactToastify.css";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
     {/* <React.StrictMode> */}
-    <Toaster richColors  position="top-right"/>
+    <GoogleOAuthProvider clientId="710357521790-bsujsi09kgooq8kctm0ohupinj7ko6cc.apps.googleusercontent.com">
+      <Toaster richColors position="top-right" />
       <App />
       {/* <ToastContainer /> */}
-    {/* </React.StrictMode> */}
+      {/* </React.StrictMode> */}
+    </GoogleOAuthProvider>
   </BrowserRouter>,
 )

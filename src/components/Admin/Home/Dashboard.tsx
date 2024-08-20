@@ -1,23 +1,31 @@
-// import React from 'react';
-import Sidebar from './SideBar';
-import Header from './Header';
-import Table from './Table';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import NavBar from './NavBar/NavBar';
+// import Sidebar from './SideBar/SideBar';
+// import Table from './Table';
 
-const Dashboard = () => (
-  <div className="flex h-screen bg-gray-900 text-white">
-    <Sidebar />
-    <div className="flex-1 flex flex-col">
-      <Header />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="container mx-auto">
-          <h2 className="text-2xl font-semibold mb-4">Charts</h2>
-          <div className="overflow-x-auto">
-            <Table />
-          </div>
-        </div>
-      </main>
+const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/admin');
+    }
+  }, [navigate]);
+
+  return (
+    <div className="flex flex-col h-screen">
+      <NavBar />
+      <div className="flex flex-grow">
+        {/* <Sidebar /> */}
+        <main className="flex flex-grow items-center justify-center p-4 ml-[250px]">
+          {/* <Table /> */}
+          <h1>Admin Dashboard</h1>
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Dashboard;

@@ -32,6 +32,7 @@ const OTP = () => {
     console.log(otp);
 
     const OTP = localStorage.getItem('otp');
+    localStorage.removeItem('otp');
     console.log(typeof (OTP), 'backend otp');
     let userOtp = '';
     for (let i = 0; i < otp.length; i++) {
@@ -44,8 +45,10 @@ const OTP = () => {
       const result = await axios.post('http://localhost:4000/verifyOtp', userData);
       console.log(result, '-----------------------------------------otp');
       if (result.data.success) {
-        toast.success(result.data.message);
+        toast.success(result.data.data.message);
         navigate('/');
+      }else{
+        toast.info(result.data.data.message);
       }
 
 

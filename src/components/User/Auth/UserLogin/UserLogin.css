@@ -1,4 +1,4 @@
-/* Ensure the div takes up the full height and width of the viewport */
+/* Container takes up the full height and width of the viewport */
 .LoginContainer {
     height: 100vh;
     width: 100vw;
@@ -8,7 +8,7 @@
     background-color: #f0f4f8; /* Light grey background */
 }
 
-a{
+a {
     cursor: pointer;
 }
 
@@ -16,7 +16,8 @@ a{
 .LoginDiv {
     display: flex;
     flex-direction: row;
-    width: 900px;
+    width: 90%;
+    max-width: 900px;
     height: 600px;
     border: 1px solid #001f3f; /* Navy blue border */
     border-radius: 10px; /* Rounded corners */
@@ -124,4 +125,42 @@ a{
 
 .google-button:hover {
     background-color: #c53727; /* Darker Google red */
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+    .LoginDiv {
+        flex-direction: column;
+        width: 90%;
+        height: auto;
+    }
+
+    .LoginDiv img {
+        width: 100%;
+        height: 200px;
+        border-top-right-radius: 10px;
+        border-bottom-left-radius: 0;
+    }
+
+    .LoginForm {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .LoginForm h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .LoginForm h2 {
+        font-size: 1.2rem;
+    }
+
+    .LoginForm input,
+    .LoginForm button,
+    .google-button {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
 }
