@@ -1,0 +1,55 @@
+/* ErrorPage.css */
+
+.error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  /* background-color: #f7fafc; light gray background */
+  color: #2d3748; /* dark gray text color */
+  background-image: url('https://example.com/your-travel-background.jpg');
+  /* background-size: cover; */
+  background-position: center;
+}
+
+.error-content {
+  text-align: center;
+  width: 100%;
+  margin-left: 250%;
+  background-color: #ffffff; /* white background for the content */
+  padding: 2rem;
+  border-radius: 0.5rem; /* rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* subtle shadow */
+}
+
+.error-title {
+  font-size: 4rem; /* large font size */
+  font-weight: 700; /* bold font */
+}
+
+.error-subtitle {
+  font-size: 1.5rem; /* medium font size */
+  margin-top: 1rem;
+}
+
+.error-message {
+  font-size: 1.125rem; /* slightly larger than normal text */
+  margin-top: 0.5rem;
+}
+
+.error-button {
+  margin-top: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #3182ce; /* blue background */
+  color: #ffffff; /* white text */
+  border: none;
+  border-radius: 0.25rem; /* rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.error-button:hover {
+  background-color: #2b6cb0; /* darker blue on hover */
+}

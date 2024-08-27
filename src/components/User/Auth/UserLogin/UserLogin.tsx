@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
+import Spinner from '../../../Spinner/Spinner';
 import Swal from 'sweetalert2'
 import './UserLogin.css';
 
@@ -27,6 +28,7 @@ interface DecodedToken {
 const UserLogin = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
 
     const navigate = useNavigate();
 
@@ -34,6 +36,11 @@ const UserLogin = () => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     };
+
+    useEffect(() => {
+        const userToken = localStorage.getItem('userToken');
+        if (userToken) navigate('/home')
+    })
 
     const handleSuccess = async (credentialResponse: any) => {
         console.log(credentialResponse);
@@ -54,6 +61,7 @@ const UserLogin = () => {
 
                 if (result.data.success) {
                     toast.success(result.data.message);
+                    localStorage.setItem('userToken', result.data.token);
                     navigate('/home');
                 } else {
                     toast.error(result.data.message);
@@ -90,6 +98,7 @@ const UserLogin = () => {
             console.log(result)
             if (result.data.success) {
                 toast.success(result.data.message);
+                localStorage.setItem('userToken', result.data.token);
                 navigate('/home')
             } else {
                 toast.error(result.data.message);
@@ -117,11 +126,13 @@ const UserLogin = () => {
             });
 
             if (email) {
+                setLoading(true);
                 const verifyResponse = await axios.post('http://localhost:4000/verifyEmail', { email });
                 console.log('Full Response:', verifyResponse.data);
 
                 // Check if verifyResponse.data and verifyResponse.data.data exist
                 if (verifyResponse.data.success) {
+                    setLoading(false);
                     localStorage.setItem('verifyEmail', verifyResponse.data.user_data.otp);
 
                     if (verifyResponse.data.success) {
@@ -145,8 +156,8 @@ const UserLogin = () => {
                         console.log(otp, '------------------otp');
 
                         if (otp) {
-                            const localOtp = otp.trim(); 
-                            const OTP = localStorage.getItem('verifyEmail')?.trim(); 
+                            const localOtp = otp.trim();
+                            const OTP = localStorage.getItem('verifyEmail')?.trim();
                             localStorage.removeItem('verifyEmail');
                             console.log(OTP, '---------------------', localOtp);
 
@@ -179,13 +190,14 @@ const UserLogin = () => {
 
                                 if (formValues) {
                                     const { password } = formValues;
-
+                                    setLoading(true);
                                     const resetResponse = await axios.post('http://localhost:4000/resetPassword', {
                                         email,
                                         newPassword: password
                                     });
 
                                     if (resetResponse.data.success) {
+                                        setLoading(false);
                                         Swal.fire({
                                             title: "Success",
                                             text: "Your password has been reset!",
@@ -244,35 +256,44 @@ const UserLogin = () => {
     // }
 
     return (
-        <div className='LoginContainer'>
-            <div className='LoginDiv'>
-                <img src="https://thumbs.dreamstime.com/b/family-travel-lifestyle-father-hiking-child-mountain-adventures-norway-healthy-outdoor-active-vacations-dad-kid-together-307407296.jpg" alt="image" />
-                <div className='LoginForm'>
-                    <h2>Travel Media</h2>
-                    <form onSubmit={handelSubmit}>
-                        <div className="input-container">
-                            <label htmlFor="email">Email Address</label>
-                            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                            <i className="icon user-icon"></i>
+
+        <>
+            {
+                loading
+                    ?
+                    <Spinner />
+                    :
+                    <div className='LoginContainer'>
+                        <div className='LoginDiv'>
+                            <img src="https://thumbs.dreamstime.com/b/family-travel-lifestyle-father-hiking-child-mountain-adventures-norway-healthy-outdoor-active-vacations-dad-kid-together-307407296.jpg" alt="image" />
+                            <div className='LoginForm'>
+                                <h2>Travel Media</h2>
+                                <form onSubmit={handelSubmit}>
+                                    <div className="input-container">
+                                        <label htmlFor="email">Email Address</label>
+                                        <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                                        <i className="icon user-icon"></i>
+                                    </div>
+                                    <div className="input-container">
+                                        <label htmlFor="password">Password</label>
+                                        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" id="password" />
+                                        <i className="icon password-icon"></i>
+                                    </div>
+                                    <a onClick={forgotPassword}>Forgot Password?</a>
+                                    <button>Login</button>
+                                    <a onClick={singUp}>New user? SignUp</a>
+                                </form>
+                                <hr />
+                                <p>or login with</p>
+                                <GoogleLogin
+                                    onSuccess={handleSuccess}
+                                    onError={handleError}
+                                />
+                            </div>
                         </div>
-                        <div className="input-container">
-                            <label htmlFor="password">Password</label>
-                            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" id="password" />
-                            <i className="icon password-icon"></i>
-                        </div>
-                        <a onClick={forgotPassword}>Forgot Password?</a>
-                        <button>Login</button>
-                        <a onClick={singUp}>New user? SignUp</a>
-                    </form>
-                    <hr />
-                    <p>or login with</p>
-                    <GoogleLogin
-                        onSuccess={handleSuccess}
-                        onError={handleError}
-                    />
-                </div>
-            </div>
-        </div>
+                    </div>
+            }
+        </>
     );
 };
 

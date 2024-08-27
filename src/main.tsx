@@ -1,22 +1,23 @@
-// import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './index.css'
-import { BrowserRouter } from 'react-router-dom'
-// import { ToastContainer } from "react-toastify";
+import './index.css';
+import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import "react-toastify/dist/ReactToastify.css";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+
+// const clientId = process.env.REACT_APP_OAUTH_CLIENTID;
+
+// if (!clientId) {
+//   console.error("Google OAuth client ID is not defined. Please set REACT_APP_OAUTH_CLIENTID in your .env file.");
+// }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
-    {/* <React.StrictMode> */}
-    <GoogleOAuthProvider clientId="710357521790-bsujsi09kgooq8kctm0ohupinj7ko6cc.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={''}>
       <Toaster richColors position="top-right" />
       <App />
-      {/* <ToastContainer /> */}
-      {/* </React.StrictMode> */}
     </GoogleOAuthProvider>
   </BrowserRouter>,
-)
+);

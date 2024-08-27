@@ -8,16 +8,16 @@ const UserManagementPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    // const checkAuth = async () => {
       const token = localStorage.getItem('adminToken');
       if (!token) {
         navigate('/admin');
         return;
       }
-    };
+    // };
 
-    checkAuth();
-  }, [navigate]);
+    // checkAuth();
+  }, []);
 
   return (
     <div className="flex flex-col h-screen">

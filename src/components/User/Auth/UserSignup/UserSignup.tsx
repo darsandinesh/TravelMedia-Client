@@ -1,8 +1,8 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from 'sonner';
 import './UserSignup.css';
 import axios from "axios";
+import Spinner from "../../../Spinner/Spinner";
 
 const UserSignup = () => {
   const navigate = useNavigate();
@@ -12,6 +12,21 @@ const UserSignup = () => {
   const [number, setNumber] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // Error state
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    number?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
+
+  useEffect(() => {
+    const userToken = localStorage.getItem('userToken');
+    if (userToken) navigate('/home')
+  })
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -29,9 +44,7 @@ const UserSignup = () => {
     if (!confirmPassword) newErrors.confirmPassword = 'Confirm Password is required';
     else if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
 
-    Object.keys(newErrors).forEach(key => {
-      toast.error(newErrors[key]);
-    });
+    setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
@@ -46,19 +59,23 @@ const UserSignup = () => {
         number,
         password
       };
-
+      setLoading(true);
       const result = await axios.post('http://localhost:4000/register', userData)
 
       if (result.data.data.success) {
-        toast.info('Verify you email address')
+        setLoading(false);
         localStorage.setItem('otp', result.data.data.otp);
-        // localStorage.setItem('user', JSON.stringify(result.data.data.user_data));
         navigate('/otp');
       } else {
-        toast.error('email address already found');
+        setLoading(false);
+        setErrors({ email: 'Email address already found' });
       }
     }
   };
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <div className='SignupContainer'>
@@ -73,27 +90,27 @@ const UserSignup = () => {
             <div className="input">
               <label htmlFor="name">Name</label>
               <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} />
-
+              {errors.name && <p style={{ color: 'red' }} className="error">{errors.name}</p>}
             </div>
             <div className="input">
               <label htmlFor="email">Email Address</label>
               <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-
+              {errors.email && <p style={{ color: 'red' }} className="error">{errors.email}</p>}
             </div>
             <div className="input">
               <label htmlFor="number">Phone Number</label>
               <input type="number" id="number" value={number} onChange={(e) => setNumber(e.target.value)} />
-
+              {errors.number && <p style={{ color: 'red' }} className="error">{errors.number}</p>}
             </div>
             <div className="input">
               <label htmlFor="password">Password</label>
               <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-
+              {errors.password && <p style={{ color: 'red' }} className="error">{errors.password}</p>}
             </div>
             <div className="input">
               <label htmlFor="confirm-password">Confirm Password</label>
               <input type="password" id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-
+              {errors.confirmPassword && <p style={{ color: 'red' }} className="error">{errors.confirmPassword}</p>}
             </div>
             <button type="submit">Sign Up</button>
             <a onClick={() => navigate('/')}>Already have an account? Login</a>

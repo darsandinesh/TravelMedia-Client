@@ -6,7 +6,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import axios from 'axios';
+// import axios from 'axios';
 import { toast } from 'sonner';
 import axiosInstance from '../Auth/axios';
 

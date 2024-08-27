@@ -1,6 +1,6 @@
 /* Ensure the div takes up the full height and width of the viewport */
 .SignupContainer {
-    height: 100vh;
+    height: auto;
     width: 100vw;
     display: flex;
     justify-content: center;

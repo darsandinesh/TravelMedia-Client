@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Content from '../../components/User/Home/Content/Content';
 import NavBar from '../../components/User/Home/NavBar/NavBar';
 import SideBar from '../../components/User/Home/SideBar/SideBar';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        const userToken = localStorage.getItem('userToken');
+        if (!userToken) navigate('/');
+    })
     return (
         <div className="flex flex-col h-screen">
             <NavBar />
