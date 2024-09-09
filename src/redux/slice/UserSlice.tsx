@@ -1,39 +1,87 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+// import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface UserData {
+// interface UserData {
+//     _id: string | null;
+//     email: string | null;
+//     name: string | null;
+//     avatar?: string | null;
+// }
+
+// interface UserState {
+//     isAuthenticated: boolean;
+//     token: string | null;
+//     userData: UserData | null;
+// }
+
+// const initialState: UserState = {
+//     isAuthenticated: false,
+//     token: null,
+//     userData: null,
+// };
+
+// const userAuthSlice = createSlice({
+//     name: 'UserAuth',
+//     initialState,
+//     reducers: {
+//         login: (state, action: PayloadAction<{ token: string; userData: UserData }>) => {
+//             state.isAuthenticated = true;
+//             state.token = action.payload.token;
+//             state.userData = action.payload.userData;
+//         },
+// logout: (state) => {
+//     state.isAuthenticated = false;
+//     state.token = null;
+//     state.userData = null;
+// },
+//     },
+// });
+
+// export const { login, logout } = userAuthSlice.actions;
+// export default userAuthSlice;
+
+
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+// Define the user data interface
+export interface UserData {
     _id: string | null;
     email: string | null;
     name: string | null;
+    avatar?: string | null;
 }
 
-interface UserState {
+// Define the user state interface
+export interface UserState {
     isAuthenticated: boolean;
     token: string | null;
-    userData: UserData | null
+    userData: UserData | null;
 }
 
+// Set the initial state
 const initialState: UserState = {
     isAuthenticated: false,
     token: null,
-    userData: null
-}
+    userData : null
+};
 
-const userAuthSlice = createSlice({
-    name: 'UserAuth',
+// Create the user slice
+export const userSlice = createSlice({
+    name: 'userAuth',
     initialState,
     reducers: {
         login: (state, action: PayloadAction<{ token: string; userData: UserData }>) => {
             state.isAuthenticated = true;
             state.token = action.payload.token;
-            state.userData = action.payload.userData
+            state.userData = action.payload.userData;
         },
         logout: (state) => {
             state.isAuthenticated = false;
             state.token = null;
             state.userData = null;
-        }
-    }
-})
+        },
+    },
+});
 
-export const { login, logout } = userAuthSlice.actions
-export default userAuthSlice
+// Export the actions and reducer
+export const { login, logout } = userSlice.actions;
+export default userSlice.reducer;

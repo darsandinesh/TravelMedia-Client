@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './AdminLogin.css';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { adminEndpoints } from '../../../../constraints/endpoints/adminEndpoints';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState<string>('');
@@ -42,7 +43,7 @@ const AdminLogin = () => {
 
 
     try {
-      const result = await axios.post('http://localhost:4000/admin/login', {
+      const result = await axios.post(adminEndpoints.login, {
         email,
         password,
       });

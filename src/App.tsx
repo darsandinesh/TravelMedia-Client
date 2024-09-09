@@ -4,10 +4,12 @@ import AdminRoutes from './routes/AdminRoutes';
 
 function App() {
   return (
-    <Routes>
-      <Route path='/admin/*' element={<AdminRoutes />} />
-      <Route path='/*' element={<UserRoutes />} />
-    </Routes>
+    <div className="w-full min-h-screen">
+      <Routes>
+        <Route path='/admin/*' element={<AdminRoutes />} />
+        <Route path='/*' element={<UserRoutes />} />
+      </Routes>
+    </div>
   );
 }
 

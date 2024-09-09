@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 // import axios from 'axios';
 import { toast } from 'sonner';
-import axiosInstance from '../Auth/axios';
+import axiosInstance from '../../../constraints/axios/adminAxios';
 
 interface StatusModalProps {
   open: boolean;

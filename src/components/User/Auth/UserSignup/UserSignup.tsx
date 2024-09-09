@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import './UserSignup.css';
 import axios from "axios";
 import Spinner from "../../../Spinner/Spinner";
+import { userEndpoints } from "../../../../constraints/endpoints/userEndpoints";
 
 const UserSignup = () => {
   const navigate = useNavigate();
@@ -50,6 +51,10 @@ const UserSignup = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const otpTimer = localStorage.getItem('otp-timer');
+    if (otpTimer === '0') {
+      localStorage.removeItem('otp-timer');
+    }
     e.preventDefault();
     if (validateForm()) {
 
@@ -60,7 +65,7 @@ const UserSignup = () => {
         password
       };
       setLoading(true);
-      const result = await axios.post('http://localhost:4000/register', userData)
+      const result = await axios.post(userEndpoints.register, userData)
 
       if (result.data.data.success) {
         setLoading(false);

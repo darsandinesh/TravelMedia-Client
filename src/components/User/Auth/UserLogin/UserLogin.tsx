@@ -5,8 +5,11 @@ import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
 import Spinner from '../../../Spinner/Spinner';
+import { login as userlogin } from '../../../../redux/slice/UserSlice';
+import { useDispatch } from 'react-redux';
 import Swal from 'sweetalert2'
 import './UserLogin.css';
+import { userEndpoints } from '../../../../constraints/endpoints/userEndpoints';
 
 interface DecodedToken {
     iss: string;
@@ -31,6 +34,7 @@ const UserLogin = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const validateEmail = (email: string): boolean => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,7 +44,7 @@ const UserLogin = () => {
     useEffect(() => {
         const userToken = localStorage.getItem('userToken');
         if (userToken) navigate('/home')
-    })
+    }, [])
 
     const handleSuccess = async (credentialResponse: any) => {
         console.log(credentialResponse);
@@ -57,10 +61,17 @@ const UserLogin = () => {
 
             try {
                 // Send the extracted data to your backend
-                const result = await axios.post('http://localhost:4000/google-login', userData);
-
+                const result = await axios.post(userEndpoints.googleLogin, userData);
                 if (result.data.success) {
                     toast.success(result.data.message);
+                    const user = {
+                        _id: result.data.user_data._id,
+                        email: result.data.user_data.email,
+                        name: result.data.user_data.name
+                    }
+                    console.log('Dispatching userlogin action');
+                    dispatch(userlogin({ token: result.data.token, userData: user }));
+                    console.log('Action dispatched',result.data);
                     localStorage.setItem('userToken', result.data.token);
                     navigate('/home');
                 } else {
@@ -91,19 +102,28 @@ const UserLogin = () => {
 
         try {
 
-            const result = await axios.post('http://localhost:4000/login', {
+            const result = await axios.post(userEndpoints.login, {
                 email,
                 password,
             });
-            console.log(result)
+            console.log(result.data)
             if (result.data.success) {
                 toast.success(result.data.message);
+                const user = {
+                    _id: result.data.user_data._id,
+                    email: result.data.user_data.email,
+                    name: result.data.user_data.name
+                }
+                console.log('Dispatching userlogin action');
+                dispatch(userlogin({ token: result.data.token, userData: user }));
+                console.log('Action dispatched');
                 localStorage.setItem('userToken', result.data.token);
                 navigate('/home')
             } else {
                 toast.error(result.data.message);
             }
         } catch (error) {
+            setLoading(false);
             toast.error('An error occurred during login');
             console.error(error);
         }
@@ -127,7 +147,7 @@ const UserLogin = () => {
 
             if (email) {
                 setLoading(true);
-                const verifyResponse = await axios.post('http://localhost:4000/verifyEmail', { email });
+                const verifyResponse = await axios.post(userEndpoints.verifyEmail, { email });
                 console.log('Full Response:', verifyResponse.data);
 
                 // Check if verifyResponse.data and verifyResponse.data.data exist
@@ -191,7 +211,7 @@ const UserLogin = () => {
                                 if (formValues) {
                                     const { password } = formValues;
                                     setLoading(true);
-                                    const resetResponse = await axios.post('http://localhost:4000/resetPassword', {
+                                    const resetResponse = await axios.post(userEndpoints.resetPassword, {
                                         email,
                                         newPassword: password
                                     });
@@ -220,40 +240,21 @@ const UserLogin = () => {
 
                         }
                     } else {
+                        setLoading(false);
                         toast.error(verifyResponse.data.message);
                     }
                 } else {
+                    setLoading(false);
                     toast.error(verifyResponse.data.message);
                 }
             }
         } catch (error) {
+            setLoading(false);
             toast.error('An error occurred during the process.');
             console.error(error);
         }
     };
 
-
-
-
-    // const forgotPassword = async () => {
-    //     const { value: email } = await Swal.fire({
-    //         title: "Email Address",
-    //         input: "email",
-    //         inputLabel: "Your email address",
-    //         inputPlaceholder: "Enter your email address",
-    //         showCloseButton: true
-    //     });
-    //     if (email) {
-    //         Swal.fire('verifying your email address');
-    //         const result = await axios.post('http://localhost:4000/verifyEmail', {
-    //             email,
-    //         });
-    //         if(result.data.success){
-    //             navigate('/otp')
-    //         }
-    //         console.log(result);
-    //     }
-    // }
 
     return (
 

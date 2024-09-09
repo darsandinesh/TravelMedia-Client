@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../../components/Admin/Home/NavBar/NavBar';
 import Table from '../../components/Admin/Home/Table';
-import axiosInstance from '../../components/Admin/Auth/axios';
+// import axiosInstance from '../../components/Admin/Auth/axios';
 
 const UserManagementPage = () => {
   const navigate = useNavigate();

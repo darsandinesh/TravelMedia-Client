@@ -12,7 +12,7 @@ import TablePagination from '@mui/material/TablePagination';
 import IconButton from '@mui/material/IconButton';
 import MoreVertTwoToneIcon from '@mui/icons-material/MoreVertTwoTone';
 import StatusModal from './StatusModal';
-import axiosInstance from '../Auth/axios';
+import axiosInstance from '../../../constraints/axios/adminAxios';
 import Spinner from '../../Spinner/Spinner';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({

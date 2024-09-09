@@ -7,6 +7,11 @@ import Spinner from "../components/Spinner/Spinner"
 import UserProfile from "../pages/User/userProfilePage"
 import ErrorPage from "../components/User/404/ErrorPage"
 import AddNewPost from "../pages/User/AddNewPost"
+import TravelPage from "../pages/User/TravelPage"
+import ChatPage from "../pages/User/ChatPage"
+import ChatSidebar from "../components/User/Chat/SideBar/ChatSidebar"
+import Chat from "../components/User/Chat/Chat"
+
 
 function UserRoutes() {
     return (
@@ -17,7 +22,11 @@ function UserRoutes() {
             <Route path='/home' element={<HomePage />} />
             <Route path='/spinner' element={<Spinner />} />
             <Route path='/userProfile' element={<UserProfile />} />
-            <Route path='/addNewPost' element={<AddNewPost />} />
+            <Route path='/userProfile/:userId' element={<UserProfile />} />
+            <Route path='/add-post' element={<AddNewPost />} />
+            <Route path='/find-buddy' element={<TravelPage />} />
+            <Route path='/chats' element={<Chat />} />
+            <Route path='/chats/:id' element={<Chat />} />
             <Route path='*' element={<ErrorPage />} />
         </Routes>
     )

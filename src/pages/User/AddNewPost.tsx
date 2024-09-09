@@ -1,22 +1,30 @@
 // import React from 'react'd
-import SideBar from '../../components/User/Home/SideBar/SideBar'
-import AddPost from '../../components/User/Post/Addpost'
+
+import { useEffect } from "react"
+import Navbar from "../../components/User/Home/NavBar/NavBar"
+import AddPost from "../../components/User/Post/Addpost"
+import { useNavigate } from "react-router-dom"
+
 // import NavBar from '../../components/User/Home/NavBar/NavBar'
 
 const AddNewPost = () => {
+    console.log('add post function is called')
+    const navigate = useNavigate()
+    useEffect(() => {
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+            navigate('/')
+        }
+    })
     return (
-
-        <AddPost/>
-        // <div className="flex-row min-h-screen bg-gray-100 ">
-        //     {/* Sidebar */}
-        //     <div className="w-1/4 bg-white shadow-lg">
-        //         <SideBar />
-        //     </div>
-        //     {/* User Profile */}
-        //     <div className="flex-grow p-6">
-        //         <AddPost />
-        //     </div>
-        // </div>
+        <div className="flex flex-col h-screen">
+            <Navbar />
+            <div className="flex flex-grow">
+                <main className="flex flex-grow items-center justify-center p-4 ml-[250px]">
+                    <AddPost />
+                </main>
+            </div>
+        </div>
     )
 }
 

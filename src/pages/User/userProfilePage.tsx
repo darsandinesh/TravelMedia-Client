@@ -2,18 +2,17 @@
 
 // import React from 'react';
 import UserProfile from '../../components/User/UserProfile/UserProfile';
-import SideBar from '../../components/User/Home/SideBar/SideBar';
+// import SideBar from '../../components/User/Home/SideBar/SideBar';
+import NavBar from '../../components/User/Home/NavBar/NavBar';
 
 const UserProfilePage = () => {
     return (
-        <div className="flex-row min-h-screen bg-gray-100 ">
-            {/* Sidebar */}
-            <div className="w-1/4 bg-white shadow-lg">
-                <SideBar />
-            </div>
-            {/* User Profile */}
-            <div className="flex-grow p-6">
-                <UserProfile />
+        <div className="flex flex-col h-screen">
+            <NavBar />
+            <div className="flex flex-grow">
+                <main className="flex flex-grow items-center justify-center p-4 ml-[250px]">
+                    <UserProfile />
+                </main>
             </div>
         </div>
     );

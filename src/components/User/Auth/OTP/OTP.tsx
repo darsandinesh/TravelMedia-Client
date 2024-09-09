@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import './Otp.css';
 import axios from "axios";
+import { userEndpoints } from "../../../../constraints/endpoints/userEndpoints";
 
 const OTP = () => {
   const [otp, setOtp] = useState<string[]>(['', '', '', '']);
@@ -16,7 +17,7 @@ const OTP = () => {
 
   useEffect(() => {
     const userToken = localStorage.getItem('userToken');
-    if(userToken) navigate('/home')
+    if (userToken) navigate('/home')
     if (timer > 0) {
       localStorage.setItem('otp-timer', timer.toString());
       const interval = setInterval(() => {
@@ -24,7 +25,7 @@ const OTP = () => {
       }, 1000);
       return () => clearInterval(interval);
     } else {
-      localStorage.removeItem('otp-timer');
+      localStorage.setItem('otp-timer', '0');
     }
   }, [timer]);
 
@@ -54,7 +55,7 @@ const OTP = () => {
     if (OTP === userOtp) {
       if (timer > 0) {
         let userData = localStorage.getItem('user');
-        const result = await axios.post('http://localhost:4000/verifyOtp', userData);
+        const result = await axios.post(userEndpoints.verifyOtp, userData);
         console.log(result, '-----------------------------------------otp');
         localStorage.removeItem('otp');
         localStorage.removeItem('otp-timer');
@@ -76,7 +77,7 @@ const OTP = () => {
 
   const handleResend = async () => {
     let userData = localStorage.getItem('user');
-    const result = await axios.post('http://localhost:4000/resendOtp', userData);
+    const result = await axios.post(userEndpoints.resendOtp, userData);
     if (result.data.success) {
       toast.success(result.data.data.message);
       localStorage.setItem('otp', result.data.data.otp);
