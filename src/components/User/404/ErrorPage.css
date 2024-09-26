@@ -17,7 +17,7 @@
 .error-content {
   text-align: center;
   width: 100%;
-  margin-left: 250%;
+  /* margin-left: 20%; */
   background-color: #ffffff; /* white background for the content */
   padding: 2rem;
   border-radius: 0.5rem; /* rounded corners */

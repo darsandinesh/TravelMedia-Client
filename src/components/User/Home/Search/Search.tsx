@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Button } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { Box, Typography, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Button } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import { toast } from 'sonner';
-import axiosInstance from '../../../constraints/axios/userAxios';
-import { userEndpoints } from '../../../constraints/endpoints/userEndpoints';
+import axiosInstance from '../../../../constraints/axios/userAxios';
+import { userEndpoints } from '../../../../constraints/endpoints/userEndpoints';
 import { useNavigate } from 'react-router-dom';
-import { messageEndpoints } from '../../../constraints/endpoints/messageEndpoints';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../redux/store/sotre';
 
 interface UserData {
     _id: string,
@@ -16,19 +12,13 @@ interface UserData {
     name: string
 }
 
-interface fn {
-    onClose(): void
-}
-
-const SearchUser = ({ onClose }: fn) => {
+const Search = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
     const navigate = useNavigate();
-
-    const userId = useSelector((state: RootState) => state.userAuth.userData?._id)
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -53,7 +43,6 @@ const SearchUser = ({ onClose }: fn) => {
             const result = await axiosInstance.post(userEndpoints.searchUser, {
                 search: debouncedSearchTerm
             });
-            console.log(result.data.data)
             if (result.data.success) {
                 if (result.data.data.length === 0) {
                     toast.info("No user found");
@@ -76,24 +65,9 @@ const SearchUser = ({ onClose }: fn) => {
         }
     };
 
-    const handelClick = async (id: string, avatar: string | undefined, name: string) => {
+    const handelClick = (userId: string) => {
 
-
-        try {
-            const response = await axiosInstance.post(`${messageEndpoints.createChatId}?userId=${userId}&recieverId=${id}`);
-            if (response.data.success) {
-                const chatId = response.data.data._id;
-                console.log("Chat ID from server:", chatId);
-                // navigate(`/message/?chatId=${chatId}&recieverId=${id}`);
-                navigate('/chats', { state: { userId: id, avatar, name, chat: response.data.data } })
-                onClose()
-            }
-        } catch (error) {
-            console.log("Error occurred while navigating message area", error);
-        }
-
-
-
+        navigate(`/userProfile`, { state: { userId: userId } });
     }
 
     return (
@@ -115,12 +89,6 @@ const SearchUser = ({ onClose }: fn) => {
                 alignItems: 'center',
             }}
         >
-            <IconButton
-                sx={{ alignSelf: 'flex-end' }}
-                onClick={onClose}
-            >
-                <CloseIcon sx={{ color: 'white' }} />
-            </IconButton>
             <Typography variant="h6" color="white" sx={{ mb: 2 }}>
                 Search User
             </Typography>
@@ -165,7 +133,7 @@ const SearchUser = ({ onClose }: fn) => {
                                             sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
                                         />
                                     </ListItemAvatar>
-                                    <ListItemText primary={user.name} sx={{ color: 'white', cursor: 'pointer' }} onClick={() => handelClick(user._id, user?.profilePicture, user.name)} />
+                                    <ListItemText primary={user.name} sx={{ color: 'white',cursor:'pointer' }} onClick={() => handelClick(user._id)} />
                                 </ListItem>
                             ))
                         ) : (
@@ -178,4 +146,6 @@ const SearchUser = ({ onClose }: fn) => {
     );
 };
 
-export default SearchUser;
+export default Search;
+
+

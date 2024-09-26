@@ -1,19 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Button, Modal } from '@mui/material';
+import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Modal } from '@mui/material';
 import { VideoCall, AttachFile, Mic, Send, CallEnd } from '@mui/icons-material';
 import Navbar from '../Home/NavBar/NavBar';
 import { HiUserAdd } from "react-icons/hi";
 import { BsChatDots } from "react-icons/bs";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import SearchUser from './SearchUser';
+import { ChatData, ImageData, Message } from '../../../interface/Message/IMessage';
+import axiosInstance from '../../../constraints/axios/userAxios';
+import { messageEndpoints } from '../../../constraints/endpoints/messageEndpoints';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store/sotre';
+import { toast } from 'sonner';
+import socketService from '../../../socket/SocketService';
+// import axios from 'axios';
 
 const Chat = () => {
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState([
-        { text: 'Hello!', user: 'John Doe' },
-        { text: 'Hi there!', user: 'Jane Smith' },
-    ]);
-    const [users, setUsers] = useState([]);
+    // const [users, setUsers] = useState([]);
     const [file, setFile] = useState<File | null>(null);
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
@@ -23,15 +27,225 @@ const Chat = () => {
 
     const location = useLocation();
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const endOfMessagesRef = useRef<HTMLDivElement | null>(null); // Ref for scrolling
+    const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
-    // Function to handle sending message
-    const handleSendMessage = () => {
-        if (message.trim()) {
-            setMessages([...messages, { text: message, user: 'Me' }]);
-            setMessage('');
+    const navigate = useNavigate()
+
+    //socker implementation
+
+    const [chats, setChats] = useState<ChatData[]>([]);
+    const [, setNewMessageChatIds] = useState<Set<string>>(new Set());
+    const [data, setData] = useState<ImageData | null>(null);
+
+    const userId = useSelector((store: RootState) => store.userAuth.userData?._id);
+
+    const loadConversation = async () => {
+        try {
+            const response = await axiosInstance.get(
+                `${messageEndpoints.getConversationData}?userId=${userId}`
+            );
+            console.log(response.data)
+            if (response.data.success) {
+                console.log(response.data.data)
+                const sortedChats = response.data.data.sort(
+                    (a: ChatData, b: ChatData) =>
+                        new Date(b.lastMessage?.createdAt || 0).getTime() -
+                        new Date(a.lastMessage?.createdAt || 0).getTime()
+                );
+                console.log(sortedChats, '--------------c----------')
+                setChats(sortedChats);
+            }
+        } catch (error) {
+            console.log("Error occurred loading conversation users", error);
+            // toast("Error occurred, try later");
         }
     };
+
+    const chat = location.state?.chat;
+    console.log('chat', chat)
+
+    useEffect(() => {
+        loadConversation();
+        socketService.connect();
+
+        if (userId) {
+            socketService.emitUserOnline(userId);
+        }
+
+        socketService.onUserStatusChanged((data) => {
+            setChats((prevChats) =>
+                prevChats.map((chat) => {
+                    const updatedUsers = chat.users.map((user) =>
+                        user.id === data.userId
+                            ? { ...user, isOnline: data.isOnline }
+                            : user
+                    );
+                    return { ...chat, users: updatedUsers };
+                })
+            );
+        });
+
+        socketService.onNewMessage((message) => {
+            setChats((prevChats) => {
+                const updatedChats = prevChats.map((chat) =>
+                    chat._id === message.chatId
+                        ? {
+                            ...chat,
+                            lastMessage: {
+                                ...message,
+                                createdAt: new Date().toISOString(),
+                            },
+                        }
+                        : chat
+                );
+                return updatedChats.sort(
+                    (a, b) =>
+                        new Date(b.lastMessage?.createdAt || 0).getTime() -
+                        new Date(a.lastMessage?.createdAt || 0).getTime()
+                );
+            });
+
+            if (message.receiverId === userId) {
+                setNewMessageChatIds((prev) => new Set(prev).add(message.chatId));
+            }
+        });
+
+        // Clean up the socket connection
+        return () => {
+            socketService.disconnect();
+        };
+    }, [userId]);
+
+
+
+    // message area implementation
+
+
+    async function getMessages() {
+        try {
+            console.log('getMessage function called')
+            if (!userId || !chat) {
+                console.error("Missing userId or chat data");
+                return;
+            }
+
+            const receiverId = location.state.userId;
+
+            if (!receiverId) {
+                console.error("Could not determine receiverId");
+                return;
+            }
+
+
+            const response = await axiosInstance.get(`${messageEndpoints.getMessage}?userId=${userId}&receiverId=${receiverId}`);
+            console.log('message fetched from the backedn', response.data)
+            if (response.data.success) {
+
+                setData(response.data.data);
+            } else {
+                console.error("Error fetching messages:", response.data.message);
+            }
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+        }
+    }
+
+    useEffect(() => {
+        if (location.state?.userId) {
+            getMessages();
+        }
+
+        socketService.connect();
+
+        if (userId) {
+            socketService.emitUserOnline(userId);
+        }
+
+        const otherUser = location.state?.userId
+
+        socketService.onUserStatusChanged((data) => {
+            if (data.userId === otherUser?.id) {
+                // setIsOtherUserOnline(data.isOnline);
+            }
+        });
+
+        return () => {
+            socketService.disconnect();
+        };
+    }, [location.state]);
+
+
+    useEffect(() => {
+        if (chat?._id) {
+            socketService.connect();
+            socketService.joinConversation(chat._id);
+
+            // const receiverId = chat.lastMessage?.receiverId || chat.users.find(user => user.id !== userId)?.id;
+
+            socketService.onNewMessage((message) => {
+                setData(prevData => {
+                    const newMessage: Message = {
+                        _id: message._id || Date.now().toString(),
+                        senderId: message.senderId,
+                        receiverId: message.receiverId,
+                        content: message.content,
+                        chatId: message.chatId,
+                        createdAt: message.createdAt || new Date().toISOString(),
+                        updatedAt: message.updatedAt || new Date().toISOString(),
+                        __v: message.__v || 0
+                    };
+                    return {
+                        ...prevData,
+                        messages: [...(prevData?.messages || []), newMessage]
+                    };
+                });
+            });
+
+            return () => {
+                console.log("Disconnecting socket");
+                socketService.disconnect();
+            };
+        }
+    }, [chat?._id, userId]);
+
+
+    // const getFormattedDate = (date: string) => {
+    //     const today = new Date().toISOString().split('T')[0];
+    //     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    //     if (date === today) return 'Today';
+    //     if (date === yesterday) return 'Yesterday';
+
+    //     return new Date(date).toLocaleDateString();
+    // };
+
+
+    const handleSendMessage = async () => {
+        try {
+            const receiverId = location.state.userId;
+            if ((message.trim()) && chat._id && userId && receiverId) {
+
+                socketService.sendMessage({
+                    chatId: location.state.chat._id,
+                    senderId: userId,
+                    receiverId: receiverId,
+                    content: message,
+                });
+                setMessage('');
+
+
+                // here i am clearing recorded audio and close voice toggle
+
+            } else {
+                toast.error("Error something is missing, try later");
+                console.error("Missing required data for sending message:", { chatId: chat._id, userId, receiverId, message });
+            }
+        } catch (error) {
+            console.log("Error happened sending message", error);
+            toast.error("Error occurred, try later");
+        }
+    };
+
 
     // Function to handle voice messages
     const handleVoiceMessage = () => {
@@ -99,11 +313,28 @@ const Chat = () => {
         if (endOfMessagesRef.current) {
             endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [messages]);
+    }, [message]);
 
-    const basepath = location.pathname === '/chats'; // Corrected variable name
 
-    console.log('basepath:', basepath); // Debugging statement
+    const handelSelectuser = async (id: string, avatar: string, name: string) => {
+        try {
+            const response = await axiosInstance.post(`${messageEndpoints.createChatId}?userId=${userId}&recieverId=${id}`);
+            console.log(response.data.data, 'selet user for chat');
+            navigate('/chats', { state: { userId, avatar, name, chat: response.data.data } })
+        } catch (error) {
+
+        }
+    }
+
+    let basepath = true
+    if (location.state?.userId) {
+        basepath = false;
+    }
+
+
+    console.log('basepath:', basepath);
+    console.log(location.state)
+    // let currentDate = '';
 
     return (
         <div style={{ height: '100vh', backgroundColor: '#2d3748' }}>
@@ -134,27 +365,30 @@ const Chat = () => {
                     <hr />
                     <List>
                         {
-                            users.length === 0
+                            chats.length === 0
                                 ?
                                 <div style={{ padding: '60px' }}>
-                                    Select user
+                                    No chats
                                 </div>
                                 :
                                 <div>
-                                    {
-                                        users.map((user, index) => (
-                                            <ListItem key={index} button>
-                                                <ListItemAvatar>
-                                                    <Avatar
-                                                        src={user.profilePic || 'https://via.placeholder.com/50'}
-                                                        sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
-                                                    />
-                                                </ListItemAvatar>
-                                                <ListItemText primary={user?.name} sx={{ color: 'white' }} />
-                                            </ListItem>
-                                        ))
-                                    }
+                                    {chats.map((chat, chatIndex) => (
+                                        <div key={chatIndex}>
+                                            {chat.users.map((user, userIndex) => (
+                                                <ListItem key={userIndex} onClick={() => handelSelectuser(user.id, user.avatar, user.name)} sx={{cursor:'pointer'}}>
+                                                    <ListItemAvatar>
+                                                        <Avatar
+                                                            src={user.avatar || 'https://via.placeholder.com/50'}
+                                                            sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
+                                                        />
+                                                    </ListItemAvatar>
+                                                    <ListItemText primary={user.name} sx={{ color: 'white' }} />
+                                                </ListItem>
+                                            ))}
+                                        </div>
+                                    ))}
                                 </div>
+
                         }
 
                     </List>
@@ -181,7 +415,7 @@ const Chat = () => {
                                 }}
                             >
                                 <Avatar
-                                    src="https://via.placeholder.com/50"
+                                    src={location.state.avatar}
                                     sx={{
                                         mr: 2,
                                         width: 50,
@@ -191,7 +425,7 @@ const Chat = () => {
                                     }}
                                 />
                                 <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                                    UserName
+                                    {location.state?.name}
                                     <br />
                                     <span style={{ fontSize: '0.8em', color: '#a0aec0' }}>online // offline</span>
                                 </Typography>
@@ -213,28 +447,43 @@ const Chat = () => {
                                     maxHeight: 'calc(100vh - 200px)', // Leave space for input
                                 }}
                             >
-                                {messages.map((msg, index) => (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            mb: 2,
-                                            textAlign: msg.user === 'Me' ? 'right' : 'left',
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="body1"
-                                            sx={{
-                                                display: 'inline-block',
-                                                backgroundColor: msg.user === 'Me' ? '#4a5568' : '#2d3748',
-                                                color: 'white',
-                                                borderRadius: '12px',
-                                                padding: '10px',
-                                            }}
-                                        >
-                                            {msg.text}
-                                        </Typography>
-                                    </Box>
-                                ))}
+                                {
+                                    !data || !data?.messages
+                                        ?
+                                        'no chats'
+                                        :
+                                        data?.messages.map((message, index) => {
+
+                                            // const messageDate = new Date(message.createdAt).toISOString().split('T')[0];
+                                            // const showDate = messageDate !== currentDate;
+                                            // currentDate = messageDate;
+
+                                            return (
+                                                <Box
+                                                    key={index}
+                                                    sx={{
+                                                        mb: 2,
+                                                        textAlign: message.senderId === userId ? 'right' : 'left',
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{
+                                                            display: 'inline-block',
+                                                            backgroundColor: message.senderId === userId ? '#4a5568' : '#2d3748',
+                                                            color: 'white',
+                                                            borderRadius: '12px',
+                                                            padding: '10px',
+                                                        }}
+                                                    >
+                                                        {message.content}
+                                                    </Typography>
+                                                </Box>
+                                            )
+                                        }
+                                        )
+
+                                }
                                 <div ref={endOfMessagesRef} /> {/* For scrolling */}
                             </Box>
 

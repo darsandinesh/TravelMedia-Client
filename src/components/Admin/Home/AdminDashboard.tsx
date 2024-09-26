@@ -14,11 +14,12 @@ import {
 import axiosInstance from '../../../constraints/axios/adminAxios';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { BarChart } from '@mui/x-charts/BarChart'; // Import the BarChart component
 
 interface User {
   id: string;
   name: string;
-  avatarUrl: string;
+  profilePicture: string;
   email: string;
 }
 
@@ -35,7 +36,7 @@ const AdminDashboard = () => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalPosts, setTotalPosts] = useState<number>(0);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,26 +46,51 @@ const AdminDashboard = () => {
           axiosInstance.get('/post/getNewPosts'),
           axiosInstance.get('/admin/getTotalUsers'),
         ]);
-        console.log(usersResponse.status,'--------------------------')
 
         setUsers(usersResponse.data.data);
         setPosts(postsResponse.data.data);
         setTotalUsers(totalUsersResponse.data.count);
         setTotalPosts(postsResponse.data.count);
       } catch (error) {
-        localStorage.removeItem('adminToken')
-        navigate('/admin')
+        localStorage.removeItem('adminToken');
+        navigate('/admin');
         toast.error('Failed to fetch admin dashboard data');
       }
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   return (
-    <Box sx={{ width: '1000px', margin: '0 auto', marginTop: '60px', marginLeft: '25%' }}>
-      {/* Summary Information */}
-      <Paper elevation={3} sx={{ padding: '20px', marginBottom: '20px' }}>
+    <Box
+      sx={{
+        width: '90%',
+        margin: '0 auto',
+        marginTop: '60px',
+        '@media (min-width: 900px)': {
+          width: '80%',
+        },
+        '@media (min-width: 1200px)': {
+          width: '70%',
+        },
+      }}
+    >
+      {/* Summary Information (Total Users and Posts) */}
+      <Paper
+        elevation={3}
+        sx={{
+          padding: '20px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+          '@media (max-width: 600px)': {
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+          },
+        }}
+      >
         <Grid container spacing={3}>
           <Grid item xs={6}>
             <Typography variant="h6">Total Users</Typography>
@@ -81,11 +107,40 @@ const AdminDashboard = () => {
         </Grid>
       </Paper>
 
+      {/* Bar Chart (User and Post Activity) */}
+      <Paper
+        elevation={3}
+        sx={{
+          padding: '20px',
+          marginBottom: '20px',
+          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Typography variant="h6" gutterBottom sx={{marginLeft:'40%'}}>
+          User and Post Activity
+        </Typography>
+        <BarChart
+        sx={{marginLeft:'20%',paddingLeft:'10%'}}
+          xAxis={[{ scaleType: 'band', data: ['Users', 'Posts'] }]}
+          series={[{ data: [totalUsers, totalPosts] }]}
+          width={800}
+          height={300}
+          barLabel="value"
+        />
+      </Paper>
+
       {/* Newly Registered Users and Newly Created Posts */}
       <Grid container spacing={3}>
         {/* Users Section */}
-        <Grid item xs={6}>
-          <Paper elevation={3} sx={{ padding: '20px', marginBottom: '20px' }}>
+        <Grid item xs={12} md={6}>
+          <Paper
+            elevation={3}
+            sx={{
+              padding: '20px',
+              marginBottom: '20px',
+              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+            }}
+          >
             <Typography variant="h6" gutterBottom>
               Newly Registered Users
             </Typography>
@@ -94,10 +149,9 @@ const AdminDashboard = () => {
                 <React.Fragment key={user.id}>
                   <ListItem alignItems="flex-start">
                     <ListItemAvatar>
-                      <Avatar alt={user.name} src={user.avatarUrl} />
+                      <Avatar alt={user.name} src={user.profilePicture} />
                     </ListItemAvatar>
                     <ListItemText
-                    
                       primary={user.name}
                       secondary={
                         <Typography
@@ -118,8 +172,14 @@ const AdminDashboard = () => {
         </Grid>
 
         {/* Posts Section */}
-        <Grid item xs={6}>
-          <Paper elevation={3} sx={{ padding: '20px' }}>
+        <Grid item xs={12} md={6}>
+          <Paper
+            elevation={3}
+            sx={{
+              padding: '20px',
+              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+            }}
+          >
             <Typography variant="h6" gutterBottom>
               Newly Created Posts
             </Typography>
@@ -127,12 +187,11 @@ const AdminDashboard = () => {
               {posts.map((post) => (
                 <React.Fragment key={post.id}>
                   <ListItem alignItems="flex-start">
-                    <ListItemAvatar style={{paddingRight:'20px'}}>
-                      <Avatar variant="square" src={post.imageUrl} sx={{ width: 56, height: 56 }} />
+                    <ListItemAvatar sx={{ paddingRight: '20px' }}>
+                      <Avatar variant="square" src={post.imageUrl[0]} sx={{ width: 56, height: 56 }} />
                     </ListItemAvatar>
-                    
                     <ListItemText
-                      primary= {post.location}
+                      primary={post.location}
                       secondary={
                         <Typography
                           component="span"

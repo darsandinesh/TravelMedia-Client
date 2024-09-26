@@ -122,10 +122,10 @@ export default function CustomizedTables() {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          sx={{ width: '100%', overflowX: 'auto', marginLeft: '40%' }}
+          sx={{ width: '100%', overflowX: 'auto' }}
         >
           <TableContainer component={Paper} sx={{ maxWidth: '100%', mt: 3 }}>
-            <Table sx={{ minWidth: 800 }} aria-label="customized table">
+            <Table sx={{ minWidth: 700 }} aria-label="customized table">
               <TableHead>
                 <TableRow>
                   <StyledTableCell>Sl No.</StyledTableCell>

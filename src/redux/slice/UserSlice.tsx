@@ -61,7 +61,7 @@ export interface UserState {
 const initialState: UserState = {
     isAuthenticated: false,
     token: null,
-    userData : null
+    userData: null
 };
 
 // Create the user slice
@@ -79,9 +79,16 @@ export const userSlice = createSlice({
             state.token = null;
             state.userData = null;
         },
+        updateUser: (state, action:PayloadAction<{name:string,avatar:string}>) => {
+            if (state.userData) {
+                state.userData.name = action.payload.name;
+                state.userData.avatar = action.payload.avatar;
+            }
+
+        }
     },
 });
 
 // Export the actions and reducer
-export const { login, logout } = userSlice.actions;
+export const { login, logout,updateUser } = userSlice.actions;
 export default userSlice.reducer;

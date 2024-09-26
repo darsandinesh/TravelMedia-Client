@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as React from 'react';
 import { useEffect, useState } from 'react';
 import {
   CircularProgress,
@@ -19,12 +20,34 @@ import {
   Box,
   CardContent,
 } from '@mui/material';
+
+// joy component
+import Buttons from '@mui/joy/Button';
+import Modal from '@mui/joy/Modal';
+import ModalClose from '@mui/joy/ModalClose';
+import Typographys from '@mui/joy/Typography';
+import Sheet from '@mui/joy/Sheet';
+import AspectRatio from '@mui/joy/AspectRatio';
+import Avatars from '@mui/joy/Avatar';
+import Boxs from '@mui/joy/Box';
+import Cards from '@mui/joy/Card';
+import CardCover from '@mui/joy/CardCover';
+import Chip from '@mui/joy/Chip';
+import IconButton from '@mui/joy/IconButton';
+import Link from '@mui/joy/Link';
+import Favorite from '@mui/icons-material/Favorite';
+import Visibility from '@mui/icons-material/Visibility';
+import CreateNewFolder from '@mui/icons-material/CreateNewFolder';
+
 import Carousel from 'react-material-ui-carousel';
 import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/userAxios';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store/sotre';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { updateUser } from '../../../redux/slice/UserSlice';
+import ShowFriends from './ShowFriends';
 
 interface User {
   id: string;
@@ -35,18 +58,23 @@ interface User {
   location: string;
   joinedDate: string;
   postsCount: number;
-  followers: number;
-  following: number;
+  followers: string[];
+  following: string[];
 }
 
 interface Post {
   id: string;
   imageUrl: string | string[];
   description: string;
+  comments: string[];
+  likes: string[];
+  location: string;
 }
 
 const UserProfile = () => {
-  const { userId: paramUserId } = useParams<{ userId?: string }>();
+  // const { userId: paramUserId } = useParams<{ userId?: string }>();
+  const location = useLocation();
+  const paramUserId = location.state.userId;
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [savedPosts, setSavedPosts] = useState<Post[]>([]);
@@ -57,7 +85,18 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState<string>('posts');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [open, setOpen] = React.useState<boolean>(false);
+  const [modal, setModal] = useState({
+    description: '',
+    images: [] as string[],
+    likes: 0,
+    comments: 0,
+    location: '',
+  });
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [openFriends, setOpenFriends] = useState<boolean>(false);
 
+  const dispatch = useDispatch();
   const currentUserId = useSelector((state: RootState) => state.userAuth?.userData?._id);
 
   useEffect(() => {
@@ -77,8 +116,8 @@ const UserProfile = () => {
           location: response.data.userData.data.location,
           joinedDate: response.data.userData.data.created_at,
           postsCount: response.data.result.data.length,
-          followers: response.data.userData.data.followers.length,
-          following: response.data.userData.data.followings.length,
+          followers: response.data.userData.data.followers,
+          following: response.data.userData.data.followings,
         };
 
         const userPosts = response.data.result.data;
@@ -88,6 +127,7 @@ const UserProfile = () => {
         setPosts(userPosts);
         setSavedPosts([]); // Set saved posts state with fetched saved posts
         setLoading(false);
+        setIsFollowing(userData.followers.includes(currentUserId));
       } catch (err) {
         setError('Failed to load user profile.');
         setLoading(false);
@@ -100,6 +140,10 @@ const UserProfile = () => {
 
   const handleModalOpen = () => {
     if (!paramUserId && user) {
+      setEditedUser(user);
+      setModalOpen(true);
+    }
+    if (paramUserId === currentUserId) {
       setEditedUser(user);
       setModalOpen(true);
     }
@@ -147,10 +191,13 @@ const UserProfile = () => {
           setUser((prevUser) => ({
             ...prevUser!,
             name: editedUser.name,
-            bio: editedUser.bio,
-            location: editedUser.location,
+            bio: editedUser.bio || 'no bio ',
+            location: editedUser.location || 'no location',
             avatarUrl: result.data.avatarUrl || prevUser!.avatarUrl,
           }));
+          const image = result.data?.avatarUrl;
+          const username = editedUser.name;
+          dispatch(updateUser({ name: username, avatar: image }));
           toast.success('Profile updated successfully');
           handleModalClose();
         }
@@ -167,11 +214,24 @@ const UserProfile = () => {
   const handleFollow = async () => {
     if (user) {
       try {
-        const response = await axiosInstance.post('/user/follow', {
-          followerId: currentUserId,
+        const response = await axiosInstance.post('/follow', {
+          loggeduser: currentUserId,
           followedId: user.id,
         });
         if (response.data.success) {
+          setIsFollowing(true);
+          setUser(prev => {
+            if (prev) {
+              // Create a new array with the new follower added
+              const updatedFollowers = [...prev.followers, currentUserId];
+
+              return {
+                ...prev,
+                followers: updatedFollowers
+              };
+            }
+            return prev;
+          });
           toast.success('Followed successfully');
         } else {
           toast.error(response.data.message);
@@ -179,6 +239,56 @@ const UserProfile = () => {
       } catch (err) {
         toast.error('Failed to follow user');
       }
+    }
+  };
+
+  const handleUnFollow = async () => {
+    if (user) {
+      try {
+        const response = await axiosInstance.post('/unfollow', {
+          loggeduser: currentUserId,
+          followedId: user.id,
+        });
+        if (response.data.success) {
+          setIsFollowing(false);
+          setUser(prev => {
+            if (prev) {
+              // Create a new array without the follower
+              const updatedFollowers = prev.followers.filter(id => id !== currentUserId);
+
+              return {
+                ...prev,
+                followers: updatedFollowers
+              };
+            }
+            return prev;
+          });
+          toast.success('Unfollowed successfully');
+
+        } else {
+          toast.error(response.data.message);
+        }
+      } catch (error) {
+        toast.error('Failed to unfollow the user');
+      }
+    }
+  };
+
+  const postModal = (i: number) => {
+    try {
+      const post = posts[i];
+      const obj = {
+        comments: post.comments.length,
+        likes: post.likes.length,
+        description: post.description,
+        images: Array.isArray(post.imageUrl) ? post.imageUrl : [post.imageUrl],
+        location: post.location,
+      };
+
+      setModal(obj);
+      setOpen(true);
+    } catch (error) {
+      toast.error('Unable to view the post details');
     }
   };
 
@@ -196,8 +306,19 @@ const UserProfile = () => {
       </Typography>
     );
 
+
+
+
+
   return (
-    <div style={{ width: '800px', margin: '0 auto', marginTop: '70px',marginLeft:'25%' }}>
+    <Box
+      sx={{
+        maxWidth: '800px',
+        margin: '0 auto',
+        mt: '70px',
+        ml: { xs: '0', sm: '5%', md: '25%' }, // Adjust margin-left based on screen size
+      }}
+    >
       <Card variant="outlined" style={{ padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -216,73 +337,109 @@ const UserProfile = () => {
                 </Button>
               )}
               {paramUserId && (
-                <Button variant="contained" color="primary" onClick={handleFollow}>
-                  Follow
-                </Button>
+                paramUserId === currentUserId ? (
+                  <Button variant="contained" color="primary" onClick={handleModalOpen}>
+                    Edit Profile
+                  </Button>
+                ) : (
+                  <div>
+
+                    {
+                      isFollowing ?
+                        <Button variant="contained" color="primary" onClick={handleUnFollow}>
+                          Unfollow
+                        </Button>
+                        :
+                        <Button variant="contained" color="primary" onClick={handleFollow}>
+                          Follow
+                        </Button>
+                    }
+                  </div>
+                )
               )}
             </div>
             <div style={{ display: 'flex', marginBottom: 16 }}>
               <Typography variant="body1" style={{ marginRight: 16 }}>
                 <strong>{posts.length}</strong> posts
               </Typography>
-              <Typography variant="body1" style={{ marginRight: 10 }}>
-                <strong>{user?.followers}</strong> followers
+              <Typography variant="body1" style={{ marginRight: 10, cursor: 'pointer' }}>
+                <p onClick={() => setOpenFriends(true)}>
+                  <strong>{user?.followers.length}</strong> followers</p>
               </Typography>
-              <Typography variant="body1">
-                <strong>{user?.following}</strong> following
+              <Typography variant="body1" style={{ cursor: 'pointer' }}>
+                <p onClick={() => setOpenFriends(true)}>
+                  <strong>{user?.following.length}</strong> following</p>
               </Typography>
             </div>
-            <Typography variant="body1">{user?.bio}</Typography>
-            <Typography variant="body1">{user?.location}</Typography>
+            <Typography variant="body1">{user?.bio || ''}</Typography>
           </div>
         </div>
         <Divider style={{ margin: '16px 0' }} />
-
-        {/* Tabs for toggling between Posts and Saved Posts */}
-        <Tabs value={activeTab} onChange={handleTabChange} centered>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <Typography variant="body1">
+            <strong>Location:</strong> {user?.location || ''}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Joined:</strong> {new Date(user?.joinedDate).toLocaleDateString()}
+          </Typography>
+        </div>
+        <Tabs value={activeTab} onChange={handleTabChange} indicatorColor="primary" textColor="primary" centered>
           <Tab label="Posts" value="posts" />
           <Tab label="Saved Posts" value="saved" />
         </Tabs>
-
-        {/* Conditional Rendering Based on Active Tab */}
-        <Box>
-          <Grid container spacing={2}>
-            {(activeTab === 'posts' ? posts : savedPosts).map((post) => (
-              <Grid item xs={12} sm={6} md={4} key={post.id}>
-                {Array.isArray(post.imageUrl) && post.imageUrl.length > 1 ? (
-                  <Carousel>
-                    {post.imageUrl.map((url, index) => (
-                      <CardMedia
-                        component="img"
-                        src={url}
-                        alt={`Post image ${index}`}
-                        key={index}
-                        style={{ height: '250px', objectFit: 'cover' }}
-                      />
-                    ))}
-                  </Carousel>
-                ) : (
-                  <CardMedia
-                    component="img"
-                    src={Array.isArray(post.imageUrl) ? post.imageUrl[0] : post.imageUrl}
-                    alt="Post"
-                    style={{ height: '250px', objectFit: 'cover' }}
-                  />
-                )}
-                <CardContent>
-                  <Typography variant="body2">{post.description}</Typography>
-                </CardContent>
-              </Grid>
-            ))}
-          </Grid>
+        <Divider />
+        <Box style={{ marginTop: 16 }}>
+          {activeTab === 'posts' ? (
+            <Grid container spacing={2}>
+              {posts.map((post, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Card>
+                    {Array.isArray(post.imageUrl) ? (
+                      <Carousel>
+                        {post.imageUrl.map((url, idx) => (
+                          <CardMedia key={idx} component="img" height="200" image={url} alt={`post-image-${idx}`} onClick={() => postModal(index)} />
+                        ))}
+                      </Carousel>
+                    ) : (
+                      <CardMedia component="img" height="200" image={post.imageUrl} alt="post-image" onClick={() => postModal(index)} />
+                    )}
+                    <CardContent>
+                      <Typography variant="body2">{post.description}</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Grid container spacing={2}>
+              {savedPosts.map((post, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Card>
+                    {Array.isArray(post.imageUrl) ? (
+                      <Carousel>
+                        {post.imageUrl.map((url, idx) => (
+                          <CardMedia key={idx} component="img" height="200" image={url} alt={`saved-post-image-${idx}`} />
+                        ))}
+                      </Carousel>
+                    ) : (
+                      <CardMedia component="img" height="200" image={post.imageUrl} alt="saved-post-image" />
+                    )}
+                    <CardContent>
+                      <Typography variant="body2">{post.description}</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Box>
       </Card>
 
-      {/* Edit Profile Modal */}
       <Dialog open={modalOpen} onClose={handleModalClose}>
         <DialogTitle>Edit Profile</DialogTitle>
         <DialogContent>
-          <Grid container direction="column" alignItems="center" spacing={2}>
+
+          <Grid container direction="column" alignItems="center" spacing={2} sx={{ marginBottom: 5 }}>
             <Grid item>
               <Avatar
                 src={previewUrl || editedUser?.avatarUrl || 'https://media.istockphoto.com/id/843408508/photo/photography-camera-lens-concept.jpg?s=612x612&w=0&k=20&c=-tm5TKrPDMakrT1vcOE-4Rlyj-iBVdzKuX4viFkd7Vo='}
@@ -292,38 +449,55 @@ const UserProfile = () => {
                 variant="contained"
                 color="secondary"
                 component="label"
-                style={{ marginTop: 10,marginLeft:-25 }}
+                style={{ marginTop: 10, marginLeft: -25 }}
               >
                 Upload Avatar
                 <input type="file" accept="image/*" hidden onChange={handleFileChange} />
               </Button>
             </Grid>
-            <Grid item xs={12}>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Name"
                 name="name"
                 value={editedUser?.name || ''}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
+                required
               />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Email"
+                name="email"
+                value={editedUser?.email || ''}
+                onChange={handleChange}
+                fullWidth
+                required
+                disabled
+              />
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 label="Bio"
                 name="bio"
                 value={editedUser?.bio || ''}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
                 multiline
-                rows={4}
+                rows={3}
+                required
               />
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 label="Location"
                 name="location"
                 value={editedUser?.location || ''}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
+                required
               />
             </Grid>
           </Grid>
@@ -332,12 +506,20 @@ const UserProfile = () => {
           <Button onClick={handleModalClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleSave} color="primary">
+          <Button onClick={handleSave} color="primary" variant="contained">
             Save
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+
+      {/* post modal */}
+
+      {
+        openFriends && (
+          <ShowFriends onClose={() => setOpenFriends(false)} />
+        )}
+
+    </Box>
   );
 };
 

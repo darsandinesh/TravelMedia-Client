@@ -6,24 +6,29 @@ import StepLabel from "@mui/material/StepLabel";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import axiosInstance from "../../../constraints/axios/userAxios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store/sotre";
 import { postEndpoints } from "../../../constraints/endpoints/postEndpoints";
 
+import {  useJsApiLoader, StandaloneSearchBox } from "@react-google-maps/api";
+import axios from "axios";
+
 const steps = ["Post Details", "Upload Media", "Preview & Save"];
 
 interface PostData {
-  description: string;  
+  description: string;
   place: string;
   files: File[];
   filePreviews: string[];
 }
 
 export default function AddPost() {
+  const inputRef = useRef(null);
   const [activeStep, setActiveStep] = useState(0);
+  const [suggestions, setSuggestions] = useState([]);
   const [postData, setPostData] = useState<PostData>({
     description: "",
     place: "",
@@ -91,9 +96,35 @@ export default function AddPost() {
     });
   };
 
+  const fetchSuggestions = async (input: any) => {
+    try {
+      console.log('fetching data')
+      const response = await axios.get('https://api.olamaps.io/places/v1/autocomplete', {
+        params: {
+          input: input,
+          key: import.meta.env.VITE_OLA_API_KEY, // Make sure to include your API key here
+        },
+        headers: {
+          'X-Request-Id': 'akhsdfj24872fjh3494urncfq39uy', // Replace with your actual request ID
+        },
+      });
+      console.log(response.data, '---------ola data');
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      // Handle the error appropriately
+    }
+  };
+
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setPostData({ ...postData, [name]: value });
+
+    if (value.length > 2) {
+      fetchSuggestions(e.target.value);
+    } else {
+      setSuggestions([]); // Clear suggestions if input is less than 3 characters
+    }
   };
 
   const handleRemoveImage = (index: number) => {
@@ -107,20 +138,19 @@ export default function AddPost() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      const filePreviews = files.map(file => URL.createObjectURL(file));
+      const filePreviews = files.map((file) => URL.createObjectURL(file));
       setPostData({ ...postData, files, filePreviews });
     }
   };
 
-  // Submit form data
   const handleSubmit = async () => {
     const formData = new FormData();
-    formData.append('description', postData.description);
-    formData.append('place', postData.place);
-    formData.append('userId', userId)
+    formData.append("description", postData.description);
+    formData.append("place", postData.place);
+    formData.append("userId", userId);
 
     postData.files.forEach((file) => {
-      formData.append('files', file); // Ensure the field name matches
+      formData.append("files", file); // Ensure the field name matches
     });
 
     try {
@@ -139,6 +169,23 @@ export default function AddPost() {
     }
   };
 
+  // Google Places API Integration
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: ["places"],
+  });
+
+  console.log(isLoaded, 'gmap load')
+
+  const handlePlaceChange = () => {
+    if (inputRef.current) {
+      console.log(inputRef.current, 'ref content')
+      const places = inputRef.current.getPlaces();
+      const place = places && places[0] ? places[0].formatted_address : "";
+      setPostData({ ...postData, place });
+    }
+  };
 
   return (
     <Box
@@ -147,7 +194,7 @@ export default function AddPost() {
         maxWidth: "600px",
         margin: "0 auto",
         mt: 6,
-        marginLeft:'30%',
+        marginLeft: "30%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -181,17 +228,25 @@ export default function AddPost() {
           <Box sx={{ mt: 2, width: "100%", textAlign: "center" }}>
             {activeStep === 0 && (
               <>
-                <TextField
-                  label="Place Visited"
-                  name="place"
-                  value={postData.place}
-                  onChange={handleInputChange}
-                  fullWidth
-                  margin="normal"
-                  variant="outlined"
-                  error={errors.place}
-                  helperText={errors.place ? "Place is required" : ""}
-                />
+                {isLoaded && (
+                  <StandaloneSearchBox
+                    onLoad={(ref) => (inputRef.current = ref)}
+                    onPlacesChanged={handlePlaceChange}
+                  >
+                    <TextField
+                      label="Place Visited"
+                      name="place"
+                      value={postData.place}
+                      onChange={handleInputChange}
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      error={errors.place}
+                      helperText={errors.place ? "Place is required" : ""}
+                    />
+                  </StandaloneSearchBox>
+                )}
+
                 <TextField
                   label="Description"
                   name="description"
@@ -214,10 +269,20 @@ export default function AddPost() {
                   multiple
                   onChange={handleFileChange}
                 />
-                {errors.file && <Typography color="error">At least one file is required</Typography>}
+                {errors.file && (
+                  <Typography color="error">At least one file is required</Typography>
+                )}
                 <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
                   {postData.filePreviews.map((preview, index) => (
-                    <Box key={index} sx={{ position: "relative", width: "100px", height: "100px", overflow: "hidden" }}>
+                    <Box
+                      key={index}
+                      sx={{
+                        position: "relative",
+                        width: "100px",
+                        height: "100px",
+                        overflow: "hidden",
+                      }}
+                    >
                       <img
                         src={preview}
                         alt={`Preview ${index}`}
@@ -228,7 +293,7 @@ export default function AddPost() {
                           cursor: "pointer",
                           transition: "transform 0.3s ease",
                         }}
-                        onClick={() => window.open(preview, '_blank')}
+                        onClick={() => window.open(preview, "_blank")}
                       />
                       <Button
                         sx={{
@@ -242,13 +307,10 @@ export default function AddPost() {
                           minWidth: "0",
                           height: "24px",
                           width: "24px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
                         }}
                         onClick={() => handleRemoveImage(index)}
                       >
-                        ×
+                        X
                       </Button>
                     </Box>
                   ))}
@@ -257,40 +319,50 @@ export default function AddPost() {
             )}
             {activeStep === 2 && (
               <>
-                <Typography variant="h6">Preview Your Post:</Typography>
-                <Typography>Description: {postData.description}</Typography>
-                <Typography>Place: {postData.place}</Typography>
+                <Typography>Preview:</Typography>
+                <Typography variant="h6">Description: {postData.description}</Typography>
+                <Typography variant="h6">Place: {postData.place}</Typography>
+                <Typography variant="h6">Media:</Typography>
                 <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
                   {postData.filePreviews.map((preview, index) => (
-                    <Box key={index} sx={{ position: "relative", width: "100px", height: "100px", overflow: "hidden" }}>
+                    <Box
+                      key={index}
+                      sx={{
+                        position: "relative",
+                        width: "100px",
+                        height: "100px",
+                        overflow: "hidden",
+                      }}
+                    >
                       <img
                         src={preview}
                         alt={`Preview ${index}`}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
                       />
                     </Box>
                   ))}
                 </Box>
-                <Button variant="contained" color="primary" onClick={handleSubmit} sx={{ mt: 2 }}>
-                  Save Post
-                </Button>
               </>
             )}
           </Box>
 
-          {/* Next/Back buttons */}
-          <Box sx={{ display: "flex", flexDirection: "row", pt: 2, justifyContent: "center" }}>
-            <Button
-              color="inherit"
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              sx={{ mr: 1 }}
-            >
+          <Box sx={{ mt: 2, width: "100%", display: "flex", justifyContent: "space-between" }}>
+            <Button disabled={activeStep === 0} onClick={handleBack}>
               Back
             </Button>
-            <Button variant="contained" onClick={handleNext} sx={{ ml: 1 }}>
-              {activeStep === steps.length - 1 ? "Finish" : "Next"}
-            </Button>
+            {activeStep === steps.length - 1 ? (
+              <Button variant="contained" color="primary" onClick={handleSubmit}>
+                Submit
+              </Button>
+            ) : (
+              <Button variant="contained" color="primary" onClick={handleNext}>
+                Next
+              </Button>
+            )}
           </Box>
         </React.Fragment>
       )}

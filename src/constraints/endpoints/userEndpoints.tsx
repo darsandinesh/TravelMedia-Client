@@ -13,6 +13,6 @@ export const userEndpoints = {
     resendOtp: `${API_GATEWAY_BASE_URL}/resendOtp`,
     verifyEmail: `${API_GATEWAY_BASE_URL}/verifyEmail`,
     searchUser: `${API_GATEWAY_BASE_URL}/searchUser`,
-    
+    getFriends: `${API_GATEWAY_BASE_URL}/getFriends`,
     
 }

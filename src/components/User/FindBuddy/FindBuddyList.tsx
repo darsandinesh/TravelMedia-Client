@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Button from '@mui/material/Button';
+import AspectRatio from '@mui/joy/AspectRatio';
+import Box from '@mui/joy/Box';
+import Buttons from '@mui/joy/Button';
+import Card from '@mui/joy/Card';
+import CardContent from '@mui/joy/CardContent';
+import Typography from '@mui/joy/Typography';
+import Sheet from '@mui/joy/Sheet';
+import './TravelPostList.css'; // Import the CSS file
+import axiosInstance from '../../../constraints/axios/userAxios';
+import { postEndpoints } from '../../../constraints/endpoints/postEndpoints';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface TravelBuddy {
   _id: string;
   userId: string;
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
   travelDate: Date;
   travelType: string;
   location: string;
@@ -30,53 +47,24 @@ interface TravelBuddy {
   mediaUrls: string[];
 }
 
+
 const TravelPostList: React.FC = () => {
   const [posts, setPosts] = useState<TravelBuddy[]>([]);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        // Replace this with your actual API call
-        // const response = await axios.get('/api/travel-buddies');
-        // setPosts(response.data);
+        const result = await axiosInstance.get(postEndpoints.getfindBuddy);
+        console.log(result.data.data);
 
-        // Dummy data for demonstration
-        setPosts([
-          {
-            _id: '1',
-            userId: 'User1',
-            travelDate: new Date('2024-05-15'),
-            travelType: 'solo',
-            location: 'Paris, France',
-            description: 'Exploring the Eiffel Tower and the city of lights!',
-            interests: [{ userId: 'User2', interestedOn: new Date() }],
-            participants: [{ userId: 'User3', joinedOn: new Date() }],
-            maxParticipants: 5,
-            created_at: new Date(),
-            isPrivate: false,
-            travelDuration: 5,
-            preferences: { budget: 'medium', accommodation: 'hotel', transportMode: 'flight' },
-            travelStatus: 'upcoming',
-            mediaUrls: [],
-          },
-          {
-            _id: '2',
-            userId: 'User4',
-            travelDate: new Date('2024-06-10'),
-            travelType: 'family',
-            location: 'Tokyo, Japan',
-            description: 'Vibrant culture and sushi in Tokyo!',
-            interests: [{ userId: 'User5', interestedOn: new Date() }],
-            participants: [{ userId: 'User6', joinedOn: new Date() }],
-            maxParticipants: 4,
-            created_at: new Date(),
-            isPrivate: true,
-            travelDuration: 7,
-            preferences: { budget: 'high', accommodation: 'hotel', transportMode: 'train' },
-            travelStatus: 'upcoming',
-            mediaUrls: [],
-          },
-        ]);
+        if (result.data.success) {
+          const postData = result.data.data;  // Array of posts with user data
+          setPosts(postData);
+        } else {
+          toast.error('Something went wrong');
+        }
       } catch (error) {
         console.error('Error fetching travel posts', error);
       }
@@ -86,47 +74,79 @@ const TravelPostList: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-blue-400 py-8 mt-11">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:mx-0">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Travel Posts</h2>
-          <p className="mt-2 text-lg leading-8 text-gray-600">
-            Explore travel posts shared by our community.
-          </p>
+    <div className="travel-post-list">
+      <div className="container">
+        <div className="header">
+          <h2>Travel Posts</h2>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="card-container">
           {posts.map((post) => (
-            <div key={post._id} className="travel-post bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden mb-5 flex flex-col">
-              {/* Image */}
-              <img
-                alt={post.location}
-                src="https://via.placeholder.com/300?text=Traveling"
-                className="w-full h-60 object-cover"
-              />
+            <Card key={post._id} className="travel-post-card">
+              <AspectRatio flex ratio="1" className="aspect-ratio">
+                <img
+                  src={post.mediaUrls[0] || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286'}
+                  srcSet={post.mediaUrls[0] ? `${post.mediaUrls[0]} 2x` : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286&dpr=2 2x'}
+                  loading="lazy"
+                  alt="Travel"
+                />
+              </AspectRatio>
 
-              {/* Content */}
-              <div className="p-5 flex flex-col flex-grow justify-between">
-                <div className="px-4 py-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{post.location}</h3>
-                  <p className="mt-2 text-sm text-gray-600">{post.description}</p>
-                  <p className="mt-2 text-sm text-gray-600">Type: {post.travelType}</p>
-                  <p className="mt-2 text-sm text-gray-600">Status: {post.travelStatus}</p>
-                  <p className="mt-2 text-sm text-gray-600">Participants: {post.participants.length}/{post.maxParticipants}</p>
-                  <p className="mt-2 text-xs text-gray-500">
-                    Travel Date: {new Date(post.travelDate).toLocaleDateString()}
-                  </p>
-                  <p className="mt-2 text-xs text-gray-500">Duration: {post.travelDuration} days</p>
+              <CardContent className="details">
+                <div className="user-info" style={{ display: 'flex', gap: '1.5rem', padding: 5, marginTop: 4 }}>
+                  <img className="user-avatar" src={post.user.avatar} alt={`${post.user.name}'s avatar`} style={{ borderRadius: '50%', height: '50px' }} />
+                  <Typography className="user-name" sx={{ marginTop: '12px' }}>{post.user.name}</Typography>
                 </div>
 
-                {/* Buttons at the bottom */}
-                <div className="flex flex-wrap gap-2 mt-4 px-4 py-4">
-                  <Button variant="contained" className="bg-blue-500 text-white hover:bg-blue-600">Add to Community</Button>
-                  <Button variant="contained" className="bg-blue-500 text-white hover:bg-blue-600">Chat</Button>
-                  <Button variant="contained" className="bg-blue-500 text-white hover:bg-blue-600">Show Details</Button>
-                </div>
-              </div>
-            </div>
+                <Typography className="location">
+                  Location : {post.location}
+                </Typography>
+
+                <Typography className="description" sx={{ fontSize: '500' }}>
+                  Description : {post.description}
+                </Typography>
+
+                <Sheet className="info-sheet">
+                  <div className="info-item">
+                    <Typography className="label">Travel Date</Typography>
+                    <Typography className="value">{new Date(post.travelDate).toDateString()}</Typography>
+                  </div>
+                  <div className="info-item">
+                    <Typography className="label">Duration</Typography>
+                    <Typography className="value">{post.travelDuration} days</Typography>
+                  </div>
+                  <div className="info-item">
+                    <Typography className="label">Status</Typography>
+                    <Typography className="value">{post.travelStatus}</Typography>
+                  </div>
+                  <div className="info-item">
+                    <Typography className="label">Max Participants</Typography>
+                    <Typography className="value">{post.maxParticipants}</Typography>
+                  </div>
+                  <div className="info-item">
+                    <Typography className="label">Budget</Typography>
+                    <Typography className="value">{post.preferences.budget}</Typography>
+                  </div>
+                  <div className="info-item">
+                    <Typography className="label">Accommodation</Typography>
+                    <Typography className="value">{post.preferences.accommodation}</Typography>
+                  </div>
+                  <div className="info-item">
+                    <Typography className="label">Transport Mode</Typography>
+                    <Typography className="value">{post.preferences.transportMode}</Typography>
+                  </div>
+                </Sheet>
+
+                <Box className="button-group">
+                  <Buttons variant="outlined" color="neutral" onClick={() => navigate(`/chats/${post._id}`)}>
+                    Chat
+                  </Buttons>
+                  <Buttons variant="solid" color="primary">
+                    Join
+                  </Buttons>
+                </Box>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

@@ -9,7 +9,7 @@ const SideBar = () => {
 
     return (
         <div className="sidebar">
-            {/* <img src="https://w0.peakpx.com/wallpaper/967/303/HD-wallpaper-navigation-travel-love-nature-traveling-thumbnail.jpg" alt="Logo" className="sidebar-logo" /> */}
+            
             <nav className="nav-links">
                 <a className="nav-link">
                     Home

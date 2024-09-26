@@ -61,18 +61,23 @@ const UserLogin = () => {
 
             try {
                 // Send the extracted data to your backend
+                console.log('requested')
                 const result = await axios.post(userEndpoints.googleLogin, userData);
+                console.log('1331')
+                console.log(result)
                 if (result.data.success) {
                     toast.success(result.data.message);
                     const user = {
                         _id: result.data.user_data._id,
                         email: result.data.user_data.email,
-                        name: result.data.user_data.name
+                        name: result.data.user_data.name,
+                        avatar:result.data.user_data.profilePicture
                     }
                     console.log('Dispatching userlogin action');
                     dispatch(userlogin({ token: result.data.token, userData: user }));
                     console.log('Action dispatched',result.data);
                     localStorage.setItem('userToken', result.data.token);
+                    localStorage.setItem('refreshToken',result.data.refreshToken)
                     navigate('/home');
                 } else {
                     toast.error(result.data.message);
@@ -112,12 +117,14 @@ const UserLogin = () => {
                 const user = {
                     _id: result.data.user_data._id,
                     email: result.data.user_data.email,
-                    name: result.data.user_data.name
+                    name: result.data.user_data.name,
+                    avatar:result.data.user_data.profilePicture,
                 }
-                console.log('Dispatching userlogin action');
+                console.log('Dispatching userlogin action',user);
                 dispatch(userlogin({ token: result.data.token, userData: user }));
                 console.log('Action dispatched');
                 localStorage.setItem('userToken', result.data.token);
+                localStorage.setItem('refreshToken',result.data.refreshToken)
                 navigate('/home')
             } else {
                 toast.error(result.data.message);

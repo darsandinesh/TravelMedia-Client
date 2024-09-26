@@ -3,7 +3,8 @@
     background-color: #2d3748; /* bg-gray-800 */
     color: white;
     width: 16rem; /* w-64 */
-    padding-top: 1.75rem; /* py-7 */
+    margin-top: -10%;
+    /* padding-top: 1.75rem; py-7 */
     padding-left: 0.5rem; /* px-2 */
     padding-right: 0.5rem; /* px-2 */
     border-right: 1px solid #4a5568; /* border-gray-700 */
@@ -11,6 +12,7 @@
     position: fixed;
     flex-direction: column;
     justify-content: space-between;
+    margin-top:0;
 }
 
 .sidebar-logo {
