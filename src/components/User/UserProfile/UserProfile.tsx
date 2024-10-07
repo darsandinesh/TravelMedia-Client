@@ -20,6 +20,7 @@ import {
   Box,
   CardContent,
 } from '@mui/material';
+import { IoSettingsOutline } from "react-icons/io5";
 
 // joy component
 import Buttons from '@mui/joy/Button';
@@ -39,6 +40,22 @@ import Favorite from '@mui/icons-material/Favorite';
 import Visibility from '@mui/icons-material/Visibility';
 import CreateNewFolder from '@mui/icons-material/CreateNewFolder';
 
+// setting imports 
+import List from '@mui/joy/List';
+import ListDivider from '@mui/joy/ListDivider';
+import ListItem from '@mui/joy/ListItem';
+import ListItemContent from '@mui/joy/ListItemContent';
+import ListItemDecorator from '@mui/joy/ListItemDecorator';
+import ListItemButton from '@mui/joy/ListItemButton';
+import Switch, { switchClasses } from '@mui/joy/Switch';
+import { RiGitRepositoryPrivateFill } from "react-icons/ri";
+import { MdOutlineDeleteForever } from "react-icons/md";
+import { FaUserEdit } from "react-icons/fa";
+
+
+
+
+
 import Carousel from 'react-material-ui-carousel';
 import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/userAxios';
@@ -48,6 +65,8 @@ import { useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { updateUser } from '../../../redux/slice/UserSlice';
 import ShowFriends from './ShowFriends';
+import { blue } from '@mui/material/colors';
+import { userEndpoints } from '../../../constraints/endpoints/userEndpoints';
 
 interface User {
   id: string;
@@ -60,7 +79,9 @@ interface User {
   postsCount: number;
   followers: string[];
   following: string[];
+  isPrivate: Boolean;
 }
+
 
 interface Post {
   id: string;
@@ -95,6 +116,7 @@ const UserProfile = () => {
   });
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [openFriends, setOpenFriends] = useState<boolean>(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const dispatch = useDispatch();
   const currentUserId = useSelector((state: RootState) => state.userAuth?.userData?._id);
@@ -106,7 +128,6 @@ const UserProfile = () => {
         const response = await axiosInstance.post('/post/getUserPosts', {
           id: targetUserId,
         });
-
         const userData = {
           id: response.data.userData.data._id,
           name: response.data.userData.data.name,
@@ -115,17 +136,22 @@ const UserProfile = () => {
           avatarUrl: response.data.userData.data.profilePicture,
           location: response.data.userData.data.location,
           joinedDate: response.data.userData.data.created_at,
-          postsCount: response.data.result.data.length,
+          postsCount: response.data?.result?.data?.length || 0,
           followers: response.data.userData.data.followers,
           following: response.data.userData.data.followings,
+          isPrivate: response.data.userData.data.isPrivate,
         };
 
-        const userPosts = response.data.result.data;
+        setIsPrivate(response.data.userData.data.isPrivate)
+
+        const userPosts = response?.data?.result.data || [];
 
         setUser(userData);
         setEditedUser(userData);
-        setPosts(userPosts);
-        setSavedPosts([]); // Set saved posts state with fetched saved posts
+        if (userPosts.length > 0) {
+          setPosts(userPosts);
+        }
+        setSavedPosts([]);
         setLoading(false);
         setIsFollowing(userData.followers.includes(currentUserId));
       } catch (err) {
@@ -294,7 +320,7 @@ const UserProfile = () => {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen" style={{ marginLeft: '50%' }}>
         <CircularProgress />
       </div>
     );
@@ -307,12 +333,47 @@ const UserProfile = () => {
     );
 
 
+  const fromatDate = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so we add 1
+    const day = String(date.getDate()).padStart(2, '0');
+    const formattedDate = `${day}/${month}/${year}`;
+    return formattedDate
+  }
+
+
+  const handleToggle = async () => {
+    // Update the state locally
+    const updatedIsPrivate = !isPrivate;
+    setIsPrivate(updatedIsPrivate);
+
+    try {
+      // Make an API call to update the isPrivate status in the backend
+      const result = await axiosInstance.post(userEndpoints.changeVisibility, {
+        isPrivate: updatedIsPrivate,
+        userId: currentUserId,
+      });
+
+      // Optionally show a success message
+      console.log(result, 'Status updated successfully');
+      if (result.data.success) {
+        toast.success(result.data.message);
+      } else {
+        toast.error(result.data.message)
+      }
+    } catch (error) {
+      // Handle the error, e.g., show a toast message
+      console.error('Error updating status', error);
+    }
+  };
 
 
 
   return (
     <Box
       sx={{
+        bgcolor: '#2d3748',
         maxWidth: '800px',
         margin: '0 auto',
         mt: '70px',
@@ -326,21 +387,232 @@ const UserProfile = () => {
             alt={user?.name}
             style={{ width: 96, height: 96, marginRight: 16, border: '4px solid #1976d2', borderRadius: '50%' }}
           />
+
+
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <Typography variant="h4" gutterBottom>
                 {user?.name}
               </Typography>
               {paramUserId ? null : (
-                <Button variant="contained" color="primary" onClick={handleModalOpen}>
-                  Edit Profile
-                </Button>
-              )}
-              {paramUserId && (
-                paramUserId === currentUserId ? (
+                <>
                   <Button variant="contained" color="primary" onClick={handleModalOpen}>
                     Edit Profile
                   </Button>
+                  <>
+
+                  </>
+
+
+                </>
+              )}
+              {paramUserId && (
+                paramUserId === currentUserId ? (
+                  <>
+                    <Button variant="contained" color="primary" onClick={handleModalOpen}>
+                      Edit Profile
+
+                    </Button>
+                    <React.Fragment>
+
+                      <IoSettingsOutline size={25} style={{ cursor: 'pointer' }} onClick={() => setOpen(true)} />
+                      <Modal
+                        aria-labelledby="modal-title"
+                        aria-describedby="modal-desc"
+                        open={open}
+                        onClose={() => setOpen(false)}
+                        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                      >
+                        <Sheet variant="soft" sx={{ width: 343, p: 2, borderRadius: 'sm' }}>
+                          <Typographys
+                            level="h3"
+                            id="ios-example-demo"
+                            sx={{ fontSize: 'xl2', fontWeight: 'xl', mb: 1 }}
+                          >
+                            Account Settings
+                          </Typographys>
+                          <List
+                            aria-labelledby="ios-example-demo"
+                            sx={(theme) => ({
+                              '& ul': {
+                                '--List-gap': '0px',
+                                bgcolor: 'background.surface',
+                                '& > li:first-child > [role="button"]': {
+                                  borderTopRightRadius: 'var(--List-radius)',
+                                  borderTopLeftRadius: 'var(--List-radius)',
+                                },
+                                '& > li:last-child > [role="button"]': {
+                                  borderBottomRightRadius: 'var(--List-radius)',
+                                  borderBottomLeftRadius: 'var(--List-radius)',
+                                },
+                              },
+                              '--List-radius': '8px',
+                              '--List-gap': '1rem',
+                              '--ListDivider-gap': '0px',
+                              '--ListItem-paddingY': '0.5rem',
+                              // override global variant tokens
+                              '--joy-palette-neutral-plainHoverBg': 'rgba(0 0 0 / 0.08)',
+                              '--joy-palette-neutral-plainActiveBg': 'rgba(0 0 0 / 0.12)',
+                              [theme.getColorSchemeSelector('light')]: {
+                                '--joy-palette-divider': 'rgba(0 0 0 / 0.08)',
+                              },
+                              [theme.getColorSchemeSelector('dark')]: {
+                                '--joy-palette-neutral-plainHoverBg': 'rgba(255 255 255 / 0.1)',
+                                '--joy-palette-neutral-plainActiveBg': 'rgba(255 255 255 / 0.16)',
+                              },
+                            })}
+                          >
+                            <ListItem nested>
+                              <List
+                                aria-label="Personal info"
+                                sx={{ '--ListItemDecorator-size': '72px' }}
+                              >
+                                <ListItem>
+                                  <ListItemDecorator>
+                                    <Avatar sizes='lg' src={user?.avatarUrl} />
+                                    {/* <Avatar size="lg" sx={{ '--Avatar-size': '60px' }}>
+                                      MB
+                                    </Avatar> */}
+                                  </ListItemDecorator>
+                                  <div>
+                                    <Typography sx={{ fontSize: 'xl' }}>{user?.name}</Typography>
+                                    <Typography sx={{ fontSize: 'xs' }}>
+                                      Joined On :
+                                      {
+                                        fromatDate(user?.joinedDate ?? "")
+                                      }
+                                    </Typography>
+                                  </div>
+                                </ListItem>
+                                <ListDivider inset="startContent" />
+                                <ListItem>
+                                  <ListItemButton>
+                                    <ListItemContent>{user?.bio}</ListItemContent>
+                                    {/* <KeyboardArrowRight fontSize="xl3" /> */}
+                                  </ListItemButton>
+                                </ListItem>
+                              </List>
+                            </ListItem>
+                            <ListItem nested>
+                              {/* <ListItem
+                                sx={{
+                                  bgcolor: 'background.surface',
+                                  mb: 1,
+                                  borderRadius: 'var(--List-radius)',
+                                }}
+                              >
+                                <ListItemButton
+                                  aria-describedby="apple-tv-description"
+                                  sx={{ borderRadius: 'var(--List-radius)', cursor:'pointer',bgcolor:'blue',color:'white',alignItems:'center',textAlign:'center' }}
+                                  onClick={handleModalOpen}
+                                >
+                                 Update Your Profile
+                                </ListItemButton>
+                              </ListItem> */}
+                              <Typographys id="apple-tv-description" level="body-xs" aria-hidden>
+                                Manage your account settings here
+                              </Typographys>
+                            </ListItem>
+                            <ListItem nested>
+                              <List
+                                aria-label="Network"
+                                sx={{
+                                  // [`& .${sheetClasses.root}`]: {
+                                  //   p: 0.5,
+                                  //   lineHeight: 0,
+                                  //   borderRadius: 'sm',
+                                  // },
+                                }}
+                              >
+                                <ListItem>
+                                  <ListItemDecorator>
+                                    <Sheet variant="solid" color="warning">
+                                      <RiGitRepositoryPrivateFill size={25} />
+                                    </Sheet>
+                                  </ListItemDecorator>
+                                  <ListItemContent htmlFor="airplane-mode" component="label">
+                                    {
+                                      isPrivate
+                                        ?
+                                        'Private Account'
+                                        :
+                                        'Public Account'
+                                    }
+
+                                  </ListItemContent>
+
+                                  <Switch
+                                    id="airplane-mode"
+                                    size="lg"
+                                    color="success"
+                                    checked={isPrivate} // Bind the state here
+                                    onChange={handleToggle} // Call the toggle handler when the Switch is clicked
+                                    sx={() => ({
+                                      '--Switch-thumbShadow': '0 3px 7px 0 rgba(0 0 0 / 0.12)',
+                                      '--Switch-thumbSize': '27px',
+                                      '--Switch-trackWidth': '51px',
+                                      '--Switch-trackHeight': '31px',
+                                      '--Switch-trackBackground': 'red',
+
+                                      [`& .${switchClasses.thumb}`]: {
+                                        transition: 'width 0.2s, left 0.2s',
+                                      },
+                                      '&:hover': {
+                                        '--Switch-trackBackground': 'red',
+                                      },
+                                      '&:active': {
+                                        '--Switch-thumbWidth': '32px',
+                                      },
+                                      [`&.${switchClasses.checked}`]: {
+                                        '--Switch-trackBackground': 'rgb(48 209 88)',
+                                        '&:hover': {
+                                          '--Switch-trackBackground': 'rgb(48 209 88)',
+                                        },
+                                      },
+                                    })}
+                                  />
+
+                                </ListItem>
+                                <ListDivider inset="startContent" />
+                                <ListItem onClick={handleModalOpen}>
+                                  <ListItemButton>
+                                    <ListItemDecorator>
+                                      <Sheet variant="solid" color="primary">
+                                        {/* <Wifi /> */}
+                                        <FaUserEdit size={25} />
+
+                                      </Sheet>
+
+                                    </ListItemDecorator>
+                                    <ListItemContent>Update Profile</ListItemContent>
+                                  </ListItemButton>
+                                </ListItem>
+
+                                <ListItem>
+                                  <ListItemButton>
+                                    <ListItemDecorator>
+                                      <Sheet variant="solid" color="primary">
+                                        {/* <Wifi /> */}
+                                        <MdOutlineDeleteForever size={25} />
+
+                                      </Sheet>
+
+                                    </ListItemDecorator>
+                                    <ListItemContent sx={{ color: 'red' }}>Delete Account</ListItemContent>
+                                  </ListItemButton>
+                                </ListItem>
+                                <ListDivider inset="startContent" />
+
+                              </List>
+                            </ListItem>
+                          </List>
+                        </Sheet>
+
+                      </Modal>
+                    </React.Fragment>
+                  </>
+
+
                 ) : (
                   <div>
 
@@ -380,7 +652,7 @@ const UserProfile = () => {
             <strong>Location:</strong> {user?.location || ''}
           </Typography>
           <Typography variant="body1">
-            <strong>Joined:</strong> {new Date(user?.joinedDate).toLocaleDateString()}
+            <strong>Joined:</strong> {new Date(user?.joinedDate ?? '').toLocaleDateString()}
           </Typography>
         </div>
         <Tabs value={activeTab} onChange={handleTabChange} indicatorColor="primary" textColor="primary" centered>
@@ -391,25 +663,83 @@ const UserProfile = () => {
         <Box style={{ marginTop: 16 }}>
           {activeTab === 'posts' ? (
             <Grid container spacing={2}>
-              {posts.map((post, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Card>
-                    {Array.isArray(post.imageUrl) ? (
-                      <Carousel>
-                        {post.imageUrl.map((url, idx) => (
-                          <CardMedia key={idx} component="img" height="200" image={url} alt={`post-image-${idx}`} onClick={() => postModal(index)} />
-                        ))}
-                      </Carousel>
-                    ) : (
-                      <CardMedia component="img" height="200" image={post.imageUrl} alt="post-image" onClick={() => postModal(index)} />
-                    )}
-                    <CardContent>
-                      <Typography variant="body2">{post.description}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
+            {
+              user?.isPrivate
+                ? (
+                  user?.following.includes(currentUserId) // If account is private, show posts only to followers
+                    ? posts.map((post, index) => (
+                        <Grid item xs={12} sm={6} md={4} key={index}>
+                          <Card>
+                            {Array.isArray(post.imageUrl) ? (
+                              <Carousel>
+                                {post.imageUrl.map((url, idx) => (
+                                  <CardMedia
+                                    key={idx}
+                                    component="img"
+                                    height="200"
+                                    image={url}
+                                    alt={`post-image-${idx}`}
+                                    onClick={() => postModal(index)}
+                                  />
+                                ))}
+                              </Carousel>
+                            ) : (
+                              <CardMedia
+                                component="img"
+                                height="200"
+                                image={post.imageUrl}
+                                alt="post-image"
+                                onClick={() => postModal(index)}
+                              />
+                            )}
+                            <CardContent>
+                              <Typography variant="body2">{post.description}</Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))
+                    : (
+                      <Grid item xs={12}>
+                        <Typography variant="body1" align="center">This account is private</Typography>
+                      </Grid>
+                    )
+                )
+                : ( // If account is public, show posts to everyone
+                  posts.map((post, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={index}>
+                      <Card>
+                        {Array.isArray(post.imageUrl) ? (
+                          <Carousel>
+                            {post.imageUrl.map((url, idx) => (
+                              <CardMedia
+                                key={idx}
+                                component="img"
+                                height="200"
+                                image={url}
+                                alt={`post-image-${idx}`}
+                                onClick={() => postModal(index)}
+                              />
+                            ))}
+                          </Carousel>
+                        ) : (
+                          <CardMedia
+                            component="img"
+                            height="200"
+                            image={post.imageUrl}
+                            alt="post-image"
+                            onClick={() => postModal(index)}
+                          />
+                        )}
+                        <CardContent>
+                          <Typography variant="body2">{post.description}</Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))
+                )
+            }
+          </Grid>          
+
           ) : (
             <Grid container spacing={2}>
               {savedPosts.map((post, index) => (

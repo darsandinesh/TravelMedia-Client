@@ -11,13 +11,9 @@ import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { red } from '@mui/material/colors';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -41,7 +37,6 @@ import IconButtons from '@mui/joy/IconButton';
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
 import ModeCommentOutlined from '@mui/icons-material/ModeCommentOutlined';
 import SendOutlined from '@mui/icons-material/SendOutlined';
-import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded';
 import Face from '@mui/icons-material/Face';
 import Input from '@mui/joy/Input';
 import CircularProgress from '@mui/joy/CircularProgress';
@@ -52,7 +47,6 @@ import axiosInstance from '../../../../constraints/axios/userAxios';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/sotre';
 import { toast } from 'sonner';
-import ViewPost from '../ViewPost/ViewPost';
 
 interface Like {
     UserId?: string | null | undefined;
@@ -60,20 +54,31 @@ interface Like {
     _id?: string;
 }
 
+
+interface Reply {
+    _id: string;
+    UserId: string | null | undefined;
+    content: string | null | undefined;
+    createdAt: string;
+    avatar: string | null | undefined;
+    userName: string | null | undefined;
+}
+
 interface Comment {
-    UserId?: string | null | undefined,
-    content?: string | null | undefined,
-    createdAt?: string,
-    _id?: string,
-    avatar: string | null | undefined,
-    userName: string | null | undefined
+    _id: string;
+    UserId: string | null | undefined;
+    content: string | null | undefined;
+    createdAt: string;
+    avatar: string | null | undefined;
+    userName: string | null | undefined;
+    replies: Reply[];
 }
 
 interface Post {
     id: number;
     _id: string;
     user?: {
-        id?: number; // Add this field to get the user ID
+        id?: number;
         name?: string;
         avatar?: string;
     };
@@ -90,7 +95,7 @@ interface Post {
 moment.updateLocale('en', {
     relativeTime: {
         future: 'in %s',
-        past: '%s ago',
+        past: '%s ',
         s: 'just now',
         ss: '%d seconds',
         m: 'a minute',
@@ -170,30 +175,6 @@ const SkeletonPlaceholder = () => (
     </Stack>
 );
 
-const Subheader = ({ date, location }: { date?: string; location?: string }) => {
-    const now = moment();
-    const postDate = date ? moment(date) : null;
-
-    let displayDate;
-    if (postDate) {
-        if (postDate.isSame(now, 'day')) {
-            displayDate = 'Just posted';
-        } else if (postDate.isAfter(now.subtract(1, 'week'))) {
-            displayDate = 'Last week';
-        } else {
-            displayDate = postDate.format('MMMM Do YYYY, h:mm:ss a'); // Customize format as needed
-        }
-    } else {
-        displayDate = 'No Date';
-    }
-
-    return (
-        <div>
-            <Typography variant="body2">{displayDate}</Typography>
-            {location && <Typography variant="body2">{location}</Typography>}
-        </div>
-    );
-};
 
 const CarouselContainer = styled('div')({
     position: 'relative',
@@ -243,7 +224,17 @@ export default function Content() {
     const [page, setPage] = useState<number>(1)
     const [loadinPage, setLoadingPage] = useState<boolean>(false)
     const [prevHeight, setPrevHeight] = useState<number>(0);
-    const navigate = useNavigate(); // Initialize navigate
+    const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: boolean }>({});
+
+    const navigate = useNavigate();
+
+
+    const toggleRepliesVisibility = (commentId: string) => {
+        setVisibleReplies(prev => ({
+            ...prev,
+            [commentId]: !prev[commentId], // Toggle visibility for this specific comment
+        }));
+    };
 
     const handleExpandClick = () => {
         setExpanded(!expanded);
@@ -290,12 +281,12 @@ export default function Content() {
         fetchData();
     }, [page])
 
-    useEffect(()=>{
+    useEffect(() => {
         setLoading(true);
-        setTimeout(()=>{
+        setTimeout(() => {
             setLoading(false);
-        },2000)
-    },[]);
+        }, 2000)
+    }, []);
 
     const handleScroll = () => {
         if (window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight) {
@@ -375,58 +366,62 @@ export default function Content() {
 
     const loggedUser = useSelector((state: RootState) => state.userAuth.userData)
 
-    const handelComment = async (postId: string, index: number) => {
+    const handelComment = async (postId: string, parentCommentId?: any, text?: any) => {
         try {
-            console.log(selectedEmoji, '------', postId)
-            const result = await axiosInstance.post('/post/comment', {
-                comment: selectedEmoji,
+            const payload = {
                 postId,
+                content: selectedEmoji, // This can be the emoji or any comment content
                 userId: currentUserId,
                 avatar: loggedUser?.avatar,
-                userName: loggedUser?.name
-            })
+                userName: loggedUser?.name,
+                parentCommentId: null,
+                replayText: ''
+            };
 
-            if (result.data.success) {
-
-                setPostData(prevPosts => prevPosts.map((p, i) =>
-                    i === index ? {
-                        ...p,
-                        comments: [...p.comments, { UserId: currentUserId, content: selectedEmoji, userName: loggedUser?.name, avatar: loggedUser?.avatar }]
-                    } : p
-                ));
-                setSelectedEmoji('')
-                toast.success('You have commented the post');
-            } else {
-                toast.info('Unable to comment the post ')
+            if (parentCommentId) {
+                // If replying to a comment, add parentCommentId
+                payload.parentCommentId = parentCommentId;
+                payload.replayText = text;
             }
-        } catch (error) {
-            toast.error('Something went worong')
-        }
-    }
 
-    const handleDeleteComment = async (commentId: string, postId: string) => {
-        console.log(postId, '-----------', commentId);
-        try {
-            const result = await axiosInstance.put('/post/deleteComment', {
-                postId,
-                commentId,
-            });
+
+
+            const result = await axiosInstance.post('/post/comment', payload);
 
             if (result.data.success) {
-                // After successful deletion, update the state to remove the comment
-                setPostData(prevPosts =>
-                    prevPosts.map(post =>
-                        post._id === postId
+                setPostData((prevPosts) =>
+                    prevPosts.map((p) =>
+                        p._id === postId
                             ? {
-                                ...post,
-                                comments: post.comments.filter(c => c._id !== commentId)
+                                ...p,
+                                comments: p.comments.map((comment) => {
+                                    if (comment._id === parentCommentId) {
+                                        // If it's a reply, update the specific comment's replies array
+                                        return {
+                                            ...comment,
+                                            replies: [
+                                                ...comment.replies,
+                                                {
+                                                    _id: result.data.commentId,
+                                                    UserId: currentUserId,
+                                                    content: text,
+                                                    createdAt: new Date().toISOString(),
+                                                    avatar: loggedUser?.avatar,
+                                                    userName: loggedUser?.name
+                                                }
+                                            ]
+                                        };
+                                    }
+                                    return comment;
+                                }),
                             }
-                            : post
+                            : p
                     )
                 );
-                toast.success('Comment deleted successfully');
+                setSelectedEmoji(''); // Clear the input after posting
+                toast.success('Reply added successfully');
             } else {
-                toast.info('Unable to delete the comment');
+                toast.error('Failed to add comment/reply');
             }
         } catch (error) {
             toast.error('Something went wrong');
@@ -436,13 +431,72 @@ export default function Content() {
 
 
 
+
+    const handleDeleteComment = async (commentId: string, postId: string, parentCommentId?: string) => {
+        console.log(postId, '-----------', commentId, parentCommentId);
+        try {
+            const result = await axiosInstance.put('/post/deleteComment', {
+                postId,
+                commentId,
+                parentCommentId, // Pass parentCommentId if it's a reply
+                userId: loggedUser?._id
+            });
+
+            if (result.data.success) {
+                // After successful deletion, update the state
+                setPostData(prevPosts =>
+                    prevPosts.map(post =>
+                        post._id === postId
+                            ? {
+                                ...post,
+                                comments: post.comments.map(comment => {
+                                    if (parentCommentId && comment._id === parentCommentId) {
+                                        // If deleting a reply, update the replies array of the parent comment
+                                        return {
+                                            ...comment,
+                                            replies: comment.replies.filter(reply => reply._id !== commentId)
+                                        };
+                                    }
+                                    return comment;
+                                }).filter(comment => !parentCommentId && comment._id !== commentId) // Remove comment if no parentCommentId (top-level comment)
+                            }
+                            : post
+                    )
+                );
+                toast.success(parentCommentId ? 'Reply deleted successfully' : 'Comment deleted successfully');
+            } else {
+                toast.info('Unable to delete the comment or reply');
+            }
+        } catch (error) {
+            toast.error('Something went wrong');
+        }
+    };
+
+
+    // replay comment filed
+
+    const [replyTo, setReplyTo] = useState(null);
+    const [replyText, setReplyText] = useState('');
+
+    const handleReplyClick = (commentId: any) => {
+        setReplyTo(commentId);
+        setReplyText('');
+    };
+
+    const handlePostReply = (postId: any, commentId: any) => {
+        handelComment(postId, commentId, replyText);
+        setReplyText('');
+        setReplyTo(null);
+    };
+
+
     return (
         <Container>
             {loading ? (
                 <SkeletonPlaceholder />
             ) : (
                 postData.length > 0 ? (
-                    postData.map((post, index) => (
+                    postData.map((post: any, index) => (
                         <Card key={post.id} sx={{ width: '100%' }}>
                             <CardHeader
                                 avatar={
@@ -483,11 +537,25 @@ export default function Content() {
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
                                                 <MenuItem sx={{ color: '#555' }}>Add to Saved Post</MenuItem>
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
-                                                <MenuItem sx={{ color: '#555' }} onClick={() => navigate('/viewPost', { state: { postId: post._id } })} >View Post</MenuItem>
+                                                <MenuItem sx={{ color: '#555' }} onClick={() => navigate('/viewPost', { state: { postId: post._id, userId: post.user?.id } })} >View Post</MenuItem>
+                                                {
+                                                    <>
+                                                        {
+                                                            loggedUser?._id === post.user?.id
+                                                            &&
+                                                            <>
+                                                                <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
+                                                                <MenuItem sx={{ color: '#d32f2f' }} onClick={() => navigate('/editPost', { state: { data: post } })}>Edit Post</MenuItem>
+                                                            </>
+                                                        }
+
+                                                    </>
+                                                }
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
                                                 <MenuItem sx={{ color: '#d32f2f' }}>Cancel</MenuItem>
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
                                                 <MenuItem sx={{ color: '#d32f2f' }}>Report</MenuItem>
+
                                             </Menu>
                                         </Dropdown>
 
@@ -516,7 +584,7 @@ export default function Content() {
                             <CardMedia>
                                 <CarouselContainer>
                                     <CarouselTrack style={{ transform: `translateX(-${currentImageIndex[index] * 100}%)` }}>
-                                        {post.imageUrl?.map((image, imgIndex) => (
+                                        {post.imageUrl?.map((image: any, imgIndex: any) => (
                                             <CarouselImage key={imgIndex} src={image} alt={`Image ${imgIndex + 1}`} />
                                         ))}
                                     </CarouselTrack>
@@ -580,14 +648,6 @@ export default function Content() {
 
                             <CardActions disableSpacing sx={{ padding: 3, marginTop: -5 }}>
 
-                                {/* <ExpandMore
-                                    expand={expanded}
-                                    onClick={handleExpandClick}
-                                    aria-expanded={expanded}
-                                    aria-label="show more"
-                                >
-                                    <ExpandMoreIcon />
-                                </ExpandMore> */}
                             </CardActions>
                             <Collapse in={expanded} timeout="auto" unmountOnExit key={index + 1}>
 
@@ -595,47 +655,133 @@ export default function Content() {
                                     {post.comments.length > 0 ? (
                                         <>
                                             {post.comments
-                                                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                                                .map((c) => (
-                                                    <Box key={c._id} display="flex" alignItems="flex-start" mb={2}>
-                                                        {/* Avatar */}
-                                                        <Avatar
-                                                            src={c.avatar}
-                                                            alt={c.userName}
-                                                            sx={{ marginRight: 2 }}
-                                                        />
+                                                .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                                                .map((comment: any) => {
+                                                    const isRepliesVisible = visibleReplies[comment._id] || false; // Check if replies are visible for this comment
+                                                    return (
+                                                        <Box key={comment._id} display="flex" flexDirection="column" alignItems="flex-start" mb={2}>
+                                                            {/* Comment Avatar and Details */}
+                                                            <Box display="flex" alignItems="flex-start">
+                                                                <Avatar src={comment.avatar} alt={comment.userName} sx={{ marginRight: 2 }} />
+                                                                <Box flex={1}>
+                                                                    {/* Comment User and Date */}
+                                                                    <Typography variant="body2" color="textSecondary">
+                                                                        <strong>{comment.userName}</strong> • {moment(comment.createdAt).fromNow()}
+                                                                    </Typography>
+                                                                    {/* Comment Content */}
+                                                                    <Typography variant="body1" paragraph>
+                                                                        {comment.content}
+                                                                    </Typography>
 
-                                                        {/* Comment details */}
-                                                        <Box flex={1}>
-                                                            {/* Name and Date */}
-                                                            <Typography variant="body2" color="textSecondary">
-                                                                <strong>{c.userName}</strong> • {moment(c.createdAt).fromNow()}
-                                                            </Typography>
+                                                                    {/* Reply Button and Reply Count */}
+                                                                    <Box display="flex" alignItems="center">
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            color="primary"
+                                                                            sx={{ cursor: 'pointer', mt: 1, mr: 2 }}
+                                                                            onClick={() => handleReplyClick(comment._id)}
+                                                                        >
+                                                                            Reply
+                                                                        </Typography>
 
-                                                            {/* Comment Content */}
-                                                            <Typography variant="body1" paragraph>
-                                                                {c.content}
-                                                            </Typography>
+                                                                        {/* Reply Count */}
+                                                                        {comment.replies.length > 0 && (
+                                                                            <Typography
+                                                                                variant="body2"
+                                                                                color="textSecondary"
+                                                                                sx={{ cursor: 'pointer', mt: 1 }}
+                                                                                onClick={() => toggleRepliesVisibility(comment._id)}
+                                                                            >
+                                                                                {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+                                                                            </Typography>
+                                                                        )}
+                                                                    </Box>
+
+                                                                    {/* Reply Input (conditionally rendered) */}
+                                                                    {replyTo === comment._id && (
+                                                                        <Box mt={2}>
+                                                                            {showEmojiPicker && (
+                                                                                <Box sx={{ position: 'absolute', zIndex: 100 }}>
+                                                                                    <EmojiPicker onEmojiClick={handleEmojiClick} />
+                                                                                </Box>
+                                                                            )}
+                                                                            <CardActions disableSpacing sx={{ padding: 1 }}>
+                                                                                <IconButton
+                                                                                    size="small"
+                                                                                    color="primary"
+                                                                                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                                                                                >
+                                                                                    <Face />
+                                                                                </IconButton>
+                                                                                <Input
+                                                                                    fullWidth
+                                                                                    placeholder="Reply to this comment..."
+                                                                                    value={replyText}
+                                                                                    onChange={(e) => setReplyText(e.target.value)}
+                                                                                />
+                                                                                <button
+                                                                                    style={{ marginLeft: '10px', cursor: 'pointer', color: 'white' }}
+                                                                                    onClick={() => handlePostReply(post._id, comment._id)}
+                                                                                >
+                                                                                    Reply
+                                                                                </button>
+                                                                            </CardActions>
+                                                                        </Box>
+                                                                    )}
+                                                                </Box>
+
+                                                                {/* Delete Comment Icon */}
+                                                                {comment.UserId === currentUserId && (
+                                                                    <IconButton
+                                                                        edge="end"
+                                                                        aria-label="delete"
+                                                                        onClick={() => handleDeleteComment(comment._id, post._id, '')}
+                                                                        sx={{ marginLeft: 'auto' }}
+                                                                    >
+                                                                        <DeleteIcon />
+                                                                    </IconButton>
+                                                                )}
+                                                            </Box>
+
+                                                            {/* Display Replies Conditionally */}
+                                                            {isRepliesVisible && comment.replies.length > 0 && (
+                                                                <Box ml={4} mt={2}>
+                                                                    {comment.replies.map((reply: any) => (
+                                                                        <Box key={reply._id} display="flex" alignItems="flex-start" mb={2}>
+                                                                            {/* Reply Avatar */}
+                                                                            <Avatar src={reply.avatar} alt={reply.userName} sx={{ marginRight: 2 }} />
+                                                                            {/* Reply Content */}
+                                                                            <Box flex={1}>
+                                                                                <Typography variant="body2" color="textSecondary">
+                                                                                    <strong>{reply.userName}</strong> • {moment(reply.createdAt).fromNow()}
+                                                                                </Typography>
+                                                                                <Typography variant="body1" paragraph>
+                                                                                    {reply.content}
+                                                                                </Typography>
+                                                                            </Box>
+                                                                            {reply.UserId === currentUserId && (
+                                                                                <IconButton
+                                                                                    edge="end"
+                                                                                    aria-label="delete"
+                                                                                    onClick={() => handleDeleteComment(reply._id, post._id, comment._id)}
+                                                                                    sx={{ marginLeft: 'auto' }}
+                                                                                >
+                                                                                    <DeleteIcon />
+                                                                                </IconButton>
+                                                                            )}
+                                                                        </Box>
+                                                                    ))}
+                                                                </Box>
+                                                            )}
                                                         </Box>
-
-                                                        {/* Delete Icon */}
-                                                        {c.UserId === currentUserId && ( // Only show delete if the comment belongs to the current user
-                                                            <IconButton
-                                                                edge="end"
-                                                                aria-label="delete"
-                                                                onClick={() => handleDeleteComment(c._id, post._id)}
-                                                                sx={{ marginLeft: 'auto' }} // Align delete icon to the right
-                                                            >
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                        )}
-                                                    </Box>
-                                                ))}
+                                                    );
+                                                })}
                                         </>
                                     ) : (
-                                        <Typography paragraph>no comments yet</Typography>
+                                        <Typography paragraph>You can be the first one to comment!</Typography>
                                     )}
                                 </CardContent>
+
 
 
 
@@ -660,7 +806,7 @@ export default function Content() {
                                         sx={{ flex: 1, px: 0, '--Input-focusedThickness': '0px', padding: 3 }}
                                     />
                                     {/* <Link disabled underline="none" role="button"  > */}
-                                    <button style={{ color: 'white', cursor: 'pointer' }} onClick={() => handelComment(post._id, index)}>
+                                    <button style={{ color: 'white', cursor: 'pointer' }} onClick={() => handelComment(post._id)}>
                                         Post
                                     </button>
                                     {/* </Link> */}
@@ -675,8 +821,6 @@ export default function Content() {
 
             {
                 loadinPage &&
-                // 'loading ....'
-
                 <CircularProgress
                     color="primary"
                     determinate={false}
@@ -685,8 +829,6 @@ export default function Content() {
                     sx={{ marginBottom: 10 }}
                 />
             }
-
-
 
         </Container>
     );

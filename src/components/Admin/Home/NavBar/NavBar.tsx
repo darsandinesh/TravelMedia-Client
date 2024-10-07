@@ -13,7 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom';
 
-const pages: string[] = ['Dashboard', 'UserManagement'];
+const pages: string[] = ['Dashboard', 'UserManagement','Posts'];
 const settings: string[] = ['Account', 'Logout'];
 
 const NavBar: React.FC = () => {
@@ -35,6 +35,8 @@ const NavBar: React.FC = () => {
       navigate('/admin/user-management'); // Adjust the route as needed
     } else if (page === 'Dashboard') {
       navigate('/admin/dashboard'); // Adjust the route as needed
+    }else if(page === 'Posts'){
+      navigate('/admin/posts');
     }
     setAnchorElNav(null);
   };

@@ -147,7 +147,7 @@ export default function AddPost() {
     const formData = new FormData();
     formData.append("description", postData.description);
     formData.append("place", postData.place);
-    formData.append("userId", userId);
+    formData.append("userId", userId ?? "");
 
     postData.files.forEach((file) => {
       formData.append("files", file); // Ensure the field name matches
@@ -176,12 +176,10 @@ export default function AddPost() {
     libraries: ["places"],
   });
 
-  console.log(isLoaded, 'gmap load')
-
   const handlePlaceChange = () => {
     if (inputRef.current) {
       console.log(inputRef.current, 'ref content')
-      const places = inputRef.current.getPlaces();
+      const places = inputRef.current?.getPlaces();
       const place = places && places[0] ? places[0].formatted_address : "";
       setPostData({ ...postData, place });
     }
@@ -210,7 +208,7 @@ export default function AddPost() {
       <Box sx={{ width: "100%", mb: 2 }}>
         <Stepper activeStep={activeStep} sx={{ width: "100%" }}>
           {steps.map((label, index) => (
-            <Step key={label}>
+            <Step key={index}>
               <StepLabel>{label}</StepLabel>
             </Step>
           ))}
@@ -230,7 +228,7 @@ export default function AddPost() {
               <>
                 {isLoaded && (
                   <StandaloneSearchBox
-                    onLoad={(ref) => (inputRef.current = ref)}
+                    onLoad={(ref:any) => (inputRef.current = ref)}
                     onPlacesChanged={handlePlaceChange}
                   >
                     <TextField

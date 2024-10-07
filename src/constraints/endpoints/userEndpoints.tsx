@@ -14,5 +14,7 @@ export const userEndpoints = {
     verifyEmail: `${API_GATEWAY_BASE_URL}/verifyEmail`,
     searchUser: `${API_GATEWAY_BASE_URL}/searchUser`,
     getFriends: `${API_GATEWAY_BASE_URL}/getFriends`,
+    changeVisibility:`${API_GATEWAY_BASE_URL}/changeVisibility`,
+    newUsers:`${API_GATEWAY_BASE_URL}/newUsers`
     
 }

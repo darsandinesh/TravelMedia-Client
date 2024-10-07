@@ -52,7 +52,6 @@ const UserLogin = () => {
         if (credentialResponse.credential) {
             // Decode the JWT token
             const decoded: DecodedToken = jwtDecode<DecodedToken>(credentialResponse.credential);
-            console.log(decoded);
 
             const userData = {
                 email: decoded.email,
@@ -61,30 +60,27 @@ const UserLogin = () => {
 
             try {
                 // Send the extracted data to your backend
-                console.log('requested')
                 const result = await axios.post(userEndpoints.googleLogin, userData);
-                console.log('1331')
-                console.log(result)
+                
                 if (result.data.success) {
                     toast.success(result.data.message);
                     const user = {
                         _id: result.data.user_data._id,
                         email: result.data.user_data.email,
                         name: result.data.user_data.name,
-                        avatar:result.data.user_data.profilePicture
+                        avatar: result.data.user_data.profilePicture
                     }
-                    console.log('Dispatching userlogin action');
+                    
                     dispatch(userlogin({ token: result.data.token, userData: user }));
-                    console.log('Action dispatched',result.data);
+                    
                     localStorage.setItem('userToken', result.data.token);
-                    localStorage.setItem('refreshToken',result.data.refreshToken)
+                    localStorage.setItem('refreshToken', result.data.refreshToken)
                     navigate('/home');
                 } else {
                     toast.error(result.data.message);
                 }
             } catch (error) {
                 toast.error('An error occurred during registration');
-                console.error(error);
             }
         } else {
             console.error('Credential response does not contain a valid JWT token');
@@ -98,7 +94,6 @@ const UserLogin = () => {
 
     const handelSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log('handelSubmit');
 
         if (!validateEmail(email)) {
             toast.error('Please enter a valid email address');
@@ -111,20 +106,19 @@ const UserLogin = () => {
                 email,
                 password,
             });
-            console.log(result.data)
+
             if (result.data.success) {
                 toast.success(result.data.message);
                 const user = {
                     _id: result.data.user_data._id,
                     email: result.data.user_data.email,
                     name: result.data.user_data.name,
-                    avatar:result.data.user_data.profilePicture,
+                    avatar: result.data.user_data.profilePicture,
                 }
-                console.log('Dispatching userlogin action',user);
+
                 dispatch(userlogin({ token: result.data.token, userData: user }));
-                console.log('Action dispatched');
                 localStorage.setItem('userToken', result.data.token);
-                localStorage.setItem('refreshToken',result.data.refreshToken)
+                localStorage.setItem('refreshToken', result.data.refreshToken)
                 navigate('/home')
             } else {
                 toast.error(result.data.message);
@@ -132,7 +126,6 @@ const UserLogin = () => {
         } catch (error) {
             setLoading(false);
             toast.error('An error occurred during login');
-            console.error(error);
         }
     };
 
@@ -155,7 +148,6 @@ const UserLogin = () => {
             if (email) {
                 setLoading(true);
                 const verifyResponse = await axios.post(userEndpoints.verifyEmail, { email });
-                console.log('Full Response:', verifyResponse.data);
 
                 // Check if verifyResponse.data and verifyResponse.data.data exist
                 if (verifyResponse.data.success) {
@@ -186,7 +178,6 @@ const UserLogin = () => {
                             const localOtp = otp.trim();
                             const OTP = localStorage.getItem('verifyEmail')?.trim();
                             localStorage.removeItem('verifyEmail');
-                            console.log(OTP, '---------------------', localOtp);
 
                             if (OTP === localOtp) {
                                 const { value: formValues } = await Swal.fire({

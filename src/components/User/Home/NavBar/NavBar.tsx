@@ -1,14 +1,23 @@
-import React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Box from '@mui/material/Box';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
-import Button from '@mui/material/Button';
+import React, { useEffect, useState } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Box,
+  Avatar,
+  Tooltip,
+  Button,
+  Menu,
+  MenuItem,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Badge,
+  Chip,
+} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
@@ -21,21 +30,11 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../../redux/store/sotre';
 import { logout } from '../../../../redux/slice/UserSlice';
-
-// notification drawer
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Card,
-  CardContent,
-  Chip,
-} from '@mui/material';
 import ModalClose from '@mui/joy/ModalClose';
 import AspectRatio from '@mui/joy/AspectRatio';
-import Link from '@mui/joy/Link';
+import SocketService from '../../../../socket/SocketService';
+import axiosInstance from '../../../../constraints/axios/userAxios';
+import { messageEndpoints } from '../../../../constraints/endpoints/messageEndpoints';
 
 const pages = [
   { name: 'Home', icon: <HomeIcon />, path: '/' },
@@ -43,19 +42,54 @@ const pages = [
   { name: 'Chats', icon: <ChatIcon />, path: { pathname: '/chats', state: { userId: null } } },
   { name: 'Add Post', icon: <AddBoxIcon />, path: '/add-post' },
   { name: 'Find buddy', icon: <PeopleIcon />, path: '/find-buddy' },
-  // { name: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
 ];
 
+
 export default function Navbar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const [open, setOpen] = React.useState(false);
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0); // Track unread notifications
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const avatar = useSelector((state: RootState) => state.userAuth.userData?.avatar);
-  // const userId = userAuth.UserAuth.userData._id;
+  const userId = useSelector((state: RootState) => state.userAuth.userData?._id)
+
+  useEffect(() => {
+
+    // socker connection when the user loges in
+    SocketService.connect();
+    SocketService.emitUserOnline(userId || '')
+    // end of socket connections
+
+    // Listen for new notifications via socket
+    SocketService.onNewNotification((notification) => {
+      console.log(notification);
+      setNotifications((prevNotifications) => [...prevNotifications, notification]);
+      setUnreadNotifications((prevCount) => prevCount + 1);
+    });
+  }, []);
+
+  useEffect(() => {
+    async function fetchNotification() {
+      try {
+        const result = await axiosInstance.get(`${messageEndpoints.getNotification}?id=${userId}`)
+        console.log(result)
+        if(result.data.success && result.data?.data){
+          setNotifications(result.data.data);
+        }else{
+
+        }
+        
+      } catch (error) {
+
+      }
+    }
+    fetchNotification()
+
+  }, []);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -74,140 +108,15 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    console.log('Logout function is called');
     localStorage.removeItem('userToken');
     localStorage.removeItem('refreshToken');
-    dispatch(logout()); // Dispatch the logout action
-    navigate('/'); // Redirect to home page after logout
+    dispatch(logout());
+    navigate('/');
   };
 
-  const notifications = [
-    {
-      id: 1,
-      title: 'New Post',
-      description: 'Check out the latest post on TravelMedia!',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'Yosemite Park, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-    {
-      id: 2,
-      title: 'Friend Request',
-      description: 'You have a new friend request from Jane Doe.',
-      imgSrc: 'https://images.unsplash.com/photo-1507833423370-a126b89d394b?auto=format&fit=crop&w=90',
-      location: 'San Francisco, California',
-    },
-  ];
-
-
   const NotificationDrawer = ({ open, onClose }: any) => (
-    <Drawer open={open} onClose={onClose} >
+    <Drawer open={open} onClose={onClose}>
       <Box sx={{ width: 400, padding: 2 }}>
-        {/* <Typography variant="h6">Notifications</Typography> */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
             <h3>Notifications</h3>
@@ -215,29 +124,50 @@ export default function Navbar() {
           <ModalClose onClick={onClose} />
         </Box>
         <List>
-          {notifications.map((notification) => (
-            <ListItem key={notification.id} sx={{ padding: 1 }}>
-              <ListItemIcon>
-                <AspectRatio ratio="1" sx={{ width: 50 }}>
-                  <img
-                    src={notification.imgSrc}
-                    alt={notification.title}
-                    style={{ borderRadius: '50%' }}
+          {
+            notifications.length === 0
+              ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Typography variant="h6" color="textSecondary" sx={{ textAlign: 'center', mt: 4 }}>
+                    No notifications
+                  </Typography>
+                </Box>
+              )
+              : notifications.map((notification) => (
+                <ListItem key={notification.userId} sx={{ padding: 1 }}>
+                  <ListItemIcon>
+                    <AspectRatio ratio="1" sx={{ width: 50 }}>
+                      {
+                        notification.avatar ? (
+                          <img
+                            src={notification.avatar}
+                            alt={notification.userName}
+                            style={{ borderRadius: '50%', width: '40px', height: '40px' }} 
+                          />
+                        ) : (
+                          <Avatar>{'U'}</Avatar> 
+                        )
+                      }
+                    </AspectRatio>
+                  </ListItemIcon>
+                  <ListItemText primary={notification.message}
+                  
                   />
-                </AspectRatio>
-              </ListItemIcon>
-              <ListItemText
-                primary={notification.title}
-                secondary={notification.description}
-              />
-              <Chip label={notification.location} variant="outlined" color="primary" />
-              <hr />
-            </ListItem>
-          ))}
+                  <Chip label={'View Profile'} variant="outlined" color="primary" />
+                  <hr />
+                </ListItem>
+              ))
+          }
         </List>
+
       </Box>
     </Drawer>
   );
+
+  const handleNotificationsClick = () => {
+    setOpen(true);
+    setUnreadNotifications(0); // Reset unread count when opening the drawer
+  };
 
   return (
     <>
@@ -254,40 +184,19 @@ export default function Navbar() {
             TravelMedia
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-            >
+            <IconButton size="large" onClick={handleOpenNavMenu} color="inherit">
               <MenuIcon />
             </IconButton>
             <Menu
-              id="menu-appbar"
               anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: 'block', md: 'none' } }}
             >
               {pages.map((page) => (
                 <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); navigate(page.path); }}>
-                  <IconButton color="inherit">
-                    {page.icon}
-                  </IconButton>
-                  <Typography textAlign="center">
-                    {page.name}
-                  </Typography>
+                  <IconButton color="inherit">{page.icon}</IconButton>
+                  <Typography textAlign="center">{page.name}</Typography>
                 </MenuItem>
               ))}
             </Menu>
@@ -305,28 +214,22 @@ export default function Navbar() {
                 </Typography>
               </Button>
             ))}
-            <>
-              <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                <Button
-                  onClick={() => setOpen(true)}
-                  sx={{ my: 2, color: 'white', display: 'flex', alignItems: 'center' }}
-                >
-                  <NotificationsIcon />
-                  <Typography variant="body2" sx={{ ml: 1 }}>
-                    Notifications
-                  </Typography>
-                </Button>
-
-                {/* Notification Drawer */}
-                <NotificationDrawer open={open} onClose={() => setOpen(false)} />
-              </Box>
-            </>
           </Box>
           <Box sx={{ flexGrow: 0 }}>
+            <Tooltip title="Notifications">
+              <IconButton onClick={handleNotificationsClick} color="inherit">
+                <Badge badgeContent={unreadNotifications} color="error">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+            <NotificationDrawer open={open} onClose={() => setOpen(false)} />
             <Tooltip title="Profile">
               <IconButton sx={{ p: 0 }}>
-                <Avatar alt="Profile" src={avatar}
-                  onClick={() => { navigate('/userProfile', { state: { userId: '' } }); }}
+                <Avatar
+                  alt="Profile"
+                  src={avatar ?? ''}
+                  onClick={() => { navigate('/userProfile', { state: { userId: userId } }); }}
                 />
               </IconButton>
             </Tooltip>
@@ -336,30 +239,17 @@ export default function Navbar() {
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{ mt: '45px' }}
               anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/userProfile', { state: { userId: '' } }); }}>Profile</MenuItem>
-              <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/settings'); }}>Settings</MenuItem>
-              <MenuItem onClick={() => { handleCloseUserMenu(); handleLogout(); }}>Logout</MenuItem>
+              <MenuItem onClick={() => { navigate('/userProfile', { state: { userId: userId } }); }}>Profile</MenuItem>
+              <MenuItem onClick={() => { navigate('/settings'); }}>Settings</MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </Box>
         </Toolbar>
       </AppBar>
-
-
-
     </>
   );
 }

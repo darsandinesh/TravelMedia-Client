@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Modal } from '@mui/material';
-import { VideoCall, AttachFile, Mic, Send, CallEnd } from '@mui/icons-material';
+import { VideoCall, AttachFile, Mic, Send, CallEnd,VideocamOff,MicOff } from '@mui/icons-material';
 import Navbar from '../Home/NavBar/NavBar';
 import { HiUserAdd } from "react-icons/hi";
 import { BsChatDots } from "react-icons/bs";
@@ -24,6 +24,9 @@ const Chat = () => {
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [openSearchUser, setOpenSearchUser] = useState(false);
+    const [typing, setTyping] = useState(false);
+    const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
+    const [showChat, setShowChat] = useState(false);
 
     const location = useLocation();
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -164,8 +167,9 @@ const Chat = () => {
         const otherUser = location.state?.userId
 
         socketService.onUserStatusChanged((data) => {
+            console.log('user status changed')
             if (data.userId === otherUser?.id) {
-                // setIsOtherUserOnline(data.isOnline);
+                setIsOtherUserOnline(data.isOnline);
             }
         });
 
@@ -174,13 +178,27 @@ const Chat = () => {
         };
     }, [location.state]);
 
+    useEffect(() => {
+        socketService.onTyping(location.state?.userId);
+    }, [message]);
+
+    useEffect(() => {
+        socketService.onUserTyping(() => {
+            setTyping(true)
+        });
+        return () => {
+            setTimeout(() => {
+                setTyping(false)
+            }, 1000)
+
+        }
+    })
+
 
     useEffect(() => {
         if (chat?._id) {
             socketService.connect();
             socketService.joinConversation(chat._id);
-
-            // const receiverId = chat.lastMessage?.receiverId || chat.users.find(user => user.id !== userId)?.id;
 
             socketService.onNewMessage((message) => {
                 setData(prevData => {
@@ -219,10 +237,10 @@ const Chat = () => {
     //     return new Date(date).toLocaleDateString();
     // };
 
-
     const handleSendMessage = async () => {
         try {
-            const receiverId = location.state.userId;
+
+            const receiverId = location.state.userId
             if ((message.trim()) && chat._id && userId && receiverId) {
 
                 socketService.sendMessage({
@@ -232,9 +250,6 @@ const Chat = () => {
                     content: message,
                 });
                 setMessage('');
-
-
-                // here i am clearing recorded audio and close voice toggle
 
             } else {
                 toast.error("Error something is missing, try later");
@@ -320,11 +335,13 @@ const Chat = () => {
         try {
             const response = await axiosInstance.post(`${messageEndpoints.createChatId}?userId=${userId}&recieverId=${id}`);
             console.log(response.data.data, 'selet user for chat');
-            navigate('/chats', { state: { userId, avatar, name, chat: response.data.data } })
+            navigate('/chats', { state: { userId: id, avatar, name, chat: response.data.data } })
         } catch (error) {
 
         }
     }
+
+
 
     let basepath = true
     if (location.state?.userId) {
@@ -334,245 +351,150 @@ const Chat = () => {
 
     console.log('basepath:', basepath);
     console.log(location.state)
-    // let currentDate = '';
 
     return (
         <div style={{ height: '100vh', backgroundColor: '#2d3748' }}>
             <Navbar />
-            <Box sx={{ display: 'flex', height: '90%', width: '100%', marginTop: '70px', position: 'fixed' }}>
+            <Box sx={{ display: 'flex', height: '90%', width: '100%', marginTop: '70px', position: 'fixed', flexDirection: { xs: 'column', sm: 'row' } }}>
                 {/* Sidebar */}
-                <div style={{ width: '70px', height: '100vh', backgroundColor: '#4a5568' }}>
-                    <div title='Chat' style={{ marginLeft: '4px', backgroundColor: '#1a202c', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40px', borderRadius: '12px', marginTop: '10px', width: '60px', cursor: 'pointer' }}>
+                <div style={{ width: '70px', backgroundColor: '#4a5568', display: 'flex', flexDirection: 'column' }}>
+                    <div title='Chat' style={sidebarIconStyle}>
                         <BsChatDots size={20} />
                     </div>
                     <hr />
-                    <div onClick={() => setOpenSearchUser(true)} title='Add Chat' style={{ marginLeft: '4px', backgroundColor: '#1a202c', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40px', borderRadius: '12px', marginTop: '10px', width: '60px', cursor: 'pointer' }}>
+                    <div onClick={() => setOpenSearchUser(true)} title='Add Chat' style={sidebarIconStyle}>
                         <HiUserAdd size={20} />
                     </div>
                 </div>
 
-                <Box
-                    sx={{
-                        width: { xs: '100%', sm: 240 },
-                        bgcolor: '#2d3748',
-                        borderRight: { sm: '1px solid #4a5568' },
-                        overflowY: 'auto',
-                        color: 'white',
-                    }}
-                >
-
+                {/* User List */}
+                <Box sx={{ width: { xs: '100%', sm: 240 }, bgcolor: '#2d3748', borderRight: { sm: '1px solid #4a5568' }, overflowY: 'auto', color: 'white' }}>
                     <Typography variant="h6" sx={{ p: 2, marginLeft: '20%' }}>Users</Typography>
                     <hr />
                     <List>
-                        {
-                            chats.length === 0
-                                ?
-                                <div style={{ padding: '60px' }}>
-                                    No chats
-                                </div>
-                                :
-                                <div>
-                                    {chats.map((chat, chatIndex) => (
-                                        <div key={chatIndex}>
-                                            {chat.users.map((user, userIndex) => (
-                                                <ListItem key={userIndex} onClick={() => handelSelectuser(user.id, user.avatar, user.name)} sx={{cursor:'pointer'}}>
-                                                    <ListItemAvatar>
-                                                        <Avatar
-                                                            src={user.avatar || 'https://via.placeholder.com/50'}
-                                                            sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
-                                                        />
-                                                    </ListItemAvatar>
-                                                    <ListItemText primary={user.name} sx={{ color: 'white' }} />
-                                                </ListItem>
-                                            ))}
-                                        </div>
+                        {chats.length === 0 ? (
+                            <div style={{ padding: '60px' }}>No chats</div>
+                        ) : (
+                            chats.map((chat, chatIndex) => (
+                                <div key={chatIndex}>
+                                    {chat.users.map((user, userIndex) => (
+                                        <ListItem key={userIndex} onClick={() => handelSelectuser(user.id, user.avatar, user.name)} sx={{ cursor: 'pointer' }}>
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    src={user.avatar || 'https://via.placeholder.com/50'}
+                                                    sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
+                                                />
+                                            </ListItemAvatar>
+                                            <ListItemText primary={user.name} sx={{ color: 'white' }} />
+                                        </ListItem>
                                     ))}
                                 </div>
-
-                        }
-
+                            ))
+                        )}
                     </List>
                 </Box>
 
                 {/* Main Chat Area */}
-                {
-                    basepath
-                        ?
-                        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', backgroundColor: '#2d3748' }}>
-                            <Typography variant="h6">Select a chat to start</Typography>
+                {basepath ? (
+                    <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', backgroundColor: '#2d3748' }}>
+                        <Typography variant="h6">Select a chat to start</Typography>
+                    </Box>
+                ) : (
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#2d3748' }}>
+                        {/* Header */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', p: 2, borderBottom: '1px solid #4a5568', bgcolor: '#2d3748', color: 'white' }}>
+                            <Avatar src={location.state.avatar} sx={{ mr: 2, width: 50, height: 50, bgcolor: '#4a5568' }} />
+                            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                                {location.state?.name}
+                                <br />
+                                <span style={{ fontSize: '0.8em', color: '#a0aec0' }}>
+                                    {isOtherUserOnline ? (typing ? 'typing....' : 'online') : 'offline'}
+                                </span>
+                            </Typography>
+                            <IconButton sx={{ color: 'white' }} onClick={handleVideoCall}>
+                                <VideoCall />
+                            </IconButton>
                         </Box>
-                        :
-                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#2d3748' }}>
-                            {/* Header */}
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    p: 2,
-                                    borderBottom: '1px solid #4a5568',
-                                    bgcolor: '#2d3748',
-                                    color: 'white',
-                                }}
-                            >
-                                <Avatar
-                                    src={location.state.avatar}
-                                    sx={{
-                                        mr: 2,
-                                        width: 50,
-                                        height: 50,
-                                        bgcolor: '#4a5568',
-                                        backgroundImage: 'url(https://via.placeholder.com/150)',
-                                    }}
-                                />
-                                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                                    {location.state?.name}
-                                    <br />
-                                    <span style={{ fontSize: '0.8em', color: '#a0aec0' }}>online // offline</span>
-                                </Typography>
-                                <IconButton sx={{ color: 'white' }} onClick={handleVideoCall}>
-                                    <VideoCall />
-                                </IconButton>
-                            </Box>
 
-                            {/* Chat Area */}
-                            <Box
-                                sx={{
-                                    flex: 1,
-                                    p: 2,
-                                    overflowY: 'auto',
-                                    backgroundColor: '#1a202c',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'flex-end',
-                                    maxHeight: 'calc(100vh - 200px)', // Leave space for input
-                                }}
-                            >
-                                {
-                                    !data || !data?.messages
-                                        ?
-                                        'no chats'
-                                        :
-                                        data?.messages.map((message, index) => {
+                        {/* Chat Area */}
+                        <Box sx={{ flex: 1, p: 2, overflowY: 'auto', backgroundColor: '#1a202c', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
 
-                                            // const messageDate = new Date(message.createdAt).toISOString().split('T')[0];
-                                            // const showDate = messageDate !== currentDate;
-                                            // currentDate = messageDate;
-
-                                            return (
-                                                <Box
-                                                    key={index}
-                                                    sx={{
-                                                        mb: 2,
-                                                        textAlign: message.senderId === userId ? 'right' : 'left',
-                                                    }}
-                                                >
-                                                    <Typography
-                                                        variant="body1"
-                                                        sx={{
-                                                            display: 'inline-block',
-                                                            backgroundColor: message.senderId === userId ? '#4a5568' : '#2d3748',
-                                                            color: 'white',
-                                                            borderRadius: '12px',
-                                                            padding: '10px',
-                                                        }}
-                                                    >
-                                                        {message.content}
-                                                    </Typography>
-                                                </Box>
-                                            )
-                                        }
-                                        )
-
-                                }
-                                <div ref={endOfMessagesRef} /> {/* For scrolling */}
-                            </Box>
-
-                            {/* Input Area */}
-                            <Box
-                                sx={{
-                                    p: 2,
-                                    borderTop: '1px solid #4a5568',
-                                    bgcolor: '#2d3748',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                }}
-                            >
-                                <IconButton color="inherit" component="label">
-                                    <input type="file" hidden onChange={handleFileUpload} />
-                                    <AttachFile />
-                                </IconButton>
-                                <InputBase
-                                    sx={{
-                                        flex: 1,
-                                        ml: 1,
-                                        bgcolor: '#4a5568',
-                                        borderRadius: '4px',
-                                        color: 'white',
-                                        p: '4px 8px',
-                                    }}
-                                    placeholder="Type a message"
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                />
-                                <IconButton color="inherit" onClick={handleVoiceMessage}>
-                                    <Mic />
-                                </IconButton>
-                                <IconButton color="inherit" onClick={handleSendMessage}>
-                                    <Send />
-                                </IconButton>
-                            </Box>
+                           
+                            {!data || !data?.messages ? (
+                                'No chats'
+                            ) : (
+                                data?.messages.map((message, index) => (
+                                    <Box key={index} sx={{ mb: 2, textAlign: message.senderId === userId ? 'right' : 'left' }}>
+                                        <Typography sx={{ display: 'inline-block', backgroundColor: message.senderId === userId ? '#4a5568' : '#2d3748', color: 'white', borderRadius: '12px', padding: '10px' }}>
+                                            {message.content}
+                                        </Typography>
+                                    </Box>
+                                ))
+                            )}
+                            <div ref={endOfMessagesRef} /> {/* For scrolling */}
                         </Box>
-                }
+
+                        {/* Input Area */}
+                        <Box sx={{ p: 2, borderTop: '1px solid #4a5568', bgcolor: '#2d3748', display: 'flex', alignItems: 'center' }}>
+                            <IconButton color="inherit" component="label">
+                                <input type="file" hidden onChange={handleFileUpload} />
+                                <AttachFile />
+                            </IconButton>
+                            <InputBase
+                                sx={{ flex: 1, ml: 1, bgcolor: '#4a5568', borderRadius: '4px', color: 'white', p: '4px 8px' }}
+                                placeholder="Type a message"
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                            />
+                            <IconButton color="inherit" onClick={handleVoiceMessage}>
+                                <Mic />
+                            </IconButton>
+                            <IconButton color="inherit" onClick={handleSendMessage}>
+                                <Send />
+                            </IconButton>
+                        </Box>
+                    </Box>
+                )}
             </Box>
 
             {/* Video Call Modal */}
-            <Modal
-                open={isVideoModalOpen}
-                onClose={closeVideoModal}
-                sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-            >
-                <Box
-                    sx={{
-                        width: '80%',
-                        height: '80%',
-                        bgcolor: '#1a202c',
-                        borderRadius: '8px',
-                        p: 2,
-                        position: 'relative',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        color: 'white',
-                    }}
-                >
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        muted
-                        style={{ width: '100%', height: '80%', objectFit: 'cover', borderRadius: '8px' }}
-                    />
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', mt: 2 }}>
-                        <IconButton onClick={toggleAudio} color="inherit">
-                            {isAudioEnabled ? <Mic /> : <Mic />}
+            <Modal open={isVideoModalOpen} onClose={closeVideoModal} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Box sx={{ width: { xs: '90%', sm: '80%' }, height: { xs: '90%', sm: '80%' }, bgcolor: '#1a202c', borderRadius: '8px', p: 2, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* Add video call implementation */}
+                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#4a5568', borderRadius: '8px' }}>
+                        <Typography sx={{ color: 'white' }}>Video Call Area</Typography>
+                    </Box>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                        <IconButton sx={{ color: 'white' }} onClick={toggleAudio}>
+                            {isAudioEnabled ? <Mic /> : <MicOff />}
                         </IconButton>
-                        <IconButton onClick={toggleVideo} color="inherit">
-                            {isVideoEnabled ? <VideoCall /> : <VideoCall />}
+                        <IconButton sx={{ color: 'white' }} onClick={toggleVideo}>
+                            {isVideoEnabled ? <VideoCall /> : <VideocamOff />}
                         </IconButton>
-                        <IconButton onClick={closeVideoModal} color="inherit">
+                        <IconButton sx={{ color: 'white' }} onClick={closeVideoModal}>
                             <CallEnd />
                         </IconButton>
                     </Box>
                 </Box>
             </Modal>
 
-            {/** search user modal */}
-
+            {/* Search User Modal */}
             {openSearchUser && (
                 <SearchUser onClose={() => setOpenSearchUser(false)} />
             )}
         </div>
+
     );
 };
 
 export default Chat;
+
+const sidebarIconStyle = {
+    height: '50px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    color: 'white'
+};

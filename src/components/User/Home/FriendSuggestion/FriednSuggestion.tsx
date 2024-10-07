@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/sotre';
 import List from '@mui/material/List';
@@ -7,56 +7,93 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import ImageIcon from '@mui/icons-material/Image';
-// import Stack from '@mui/material/Stack';
-// import WorkIcon from '@mui/icons-material/Work';
-// import BeachAccessIcon from '@mui/icons-material/BeachAccess';
+import axiosInstance from '../../../../constraints/axios/userAxios';
+import { userEndpoints } from '../../../../constraints/endpoints/userEndpoints';
+import { toast } from 'sonner';
+import moment from 'moment';
+import { useNavigate } from 'react-router-dom';
 
 const FriednSuggestion = () => {
 
+    const [users, setUsers] = useState<any[]>([]);
+    const navigate = useNavigate();
     const useData = useSelector((state: RootState) => state.userAuth.userData);
-    console.log(useData)
+
+    useEffect(() => {
+        async function newUsers() {
+            try {
+                const result = await axiosInstance.get(userEndpoints.newUsers);
+                if (result.data.success) {
+                    setUsers(result.data.data);
+                } else {
+                    toast.info('Unable to find new users');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        newUsers();
+    }, []);
+
+    const handelClick = (userId:string) =>{
+        navigate(`/userProfile`, { state: { userId: userId } });
+    }
+
     return (
-        <div style={{ backgroundColor: '#2d3748', height: '520px', width: '300px', margin: 10,marginTop:'-80%', borderRadius: '20px' }}>
-            <div style={{ height: '80px', width: 'full', paddingTop: '20px', display: 'flex', flexDirection: 'row' }}>
+        <div style={{
+            backgroundColor: '#2d3748',
+            height: '450px',
+            width: '280px',
+            margin: 10,
+            borderRadius: '20px',
+            padding: '15px',
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+            marginTop:'-90%',
+        }}>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                paddingBottom: '10px',
+                borderBottom: '1px solid #4A5568'
+            }}>
                 <Avatar
-                    alt="Remy Sharp"
-                    src={useData?.avatar}
-                    sx={{ width: 56, height: 56, marginLeft: '10%', }}
+                    alt={useData?.name || 'U'}
+                    src={useData?.avatar ?? ""}
+                    sx={{ width: 56, height: 56, marginRight: '10px' }}
                 />
-                <p style={{marginLeft:'10%',marginTop:'10px',color:'white'}}>{useData?.name}</p>
-            </div>
-            <hr style={{ color: 'black' }} />
-
-            <h6 style={{ color: 'white', textAlign: 'center', }}>New to TravelMedia</h6>
-
-            <div>
-                <List sx={{ width: '100%', maxWidth: 360, }}>
-                    {
-                        [1, 2, 3, 4].map((val,index) => {
-                            return (
-                                <ListItem key={index} sx={{ paddingLeft: 6, gap: 2 }}>
-                                    <ListItemAvatar>
-                                        <Avatar>
-                                            <ImageIcon />
-                                        </Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText sx={{ color: 'white', overflow: 'hidden',cursor:'pointer' }} primary="usernames" secondary="Jan 9, 2014" tabIndex={val} />
-                                    <ListItemText primary='follow' sx={{ color: 'blue', marginTop: '-5px',cursor:'pointer' }} />
-                                </ListItem>
-                            )
-                        })
-                    }
-
-
-                </List>
-            </div>
-            <hr style={{ color: 'black' }} />
-            <div style={{textAlign:'center'}}>
-                <p style={{color:'darkbrown', cursor:'pointer'}}>@All rights reserved</p>
+                <p style={{ color: 'white', fontSize: '18px' }}>{useData?.name}</p>
             </div>
 
+            <h6 style={{ color: 'white', textAlign: 'center', marginTop: '15px' }}>New to TravelMedia</h6>
+
+            <List sx={{ width: '100%', maxWidth: '100%', overflowY: 'auto', marginTop: '10px',height:'63%' }}>
+                {users.map((val, index) => (
+                    <ListItem key={index} sx={{ gap: 2 }}>
+                        <ListItemAvatar>
+                            <Avatar>
+                                {val.profilePicture
+                                    ? <img src={val.profilePicture} alt={val.name} />
+                                    : <ImageIcon />}
+                            </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                            onClick={()=>handelClick(val._id)}
+                            sx={{ color: 'white',cursor:'pointer' }}
+                            primary={val.name}
+                            secondary={`${moment(val.created_at).fromNow()} ago`}
+                            tabIndex={val._id}
+                        />
+                    </ListItem>
+                ))}
+            </List>
+
+            <div style={{ textAlign: 'center', marginTop: 'auto', paddingTop: '0px' }}>
+                <hr />
+                <p style={{ color: '#A0AEC0', fontSize: '12px', cursor: 'pointer' }}>@All rights reserved</p>
+            </div>
         </div>
-    )
-}
+    );
+};
 
-export default FriednSuggestion
+export default FriednSuggestion;
