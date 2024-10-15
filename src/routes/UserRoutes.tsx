@@ -32,6 +32,7 @@ function UserRoutes() {
             <Route path='/chats' element={<Chat />} />
             {/* <Route path='/chats/:id' element={<Chat />} /> */}
             <Route path="/viewPost" element={<ViewPost />} />
+            <Route path="/viewPost/:id/:uId" element={<ViewPost />} />
             <Route path='/editPost' element={<EditPost />} />
             <Route path='*' element={<ErrorPage />} />
         </Routes>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import './AddTravelModal.css'; // Import the CSS file
 import { IoMdClose } from "react-icons/io";
@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store/sotre';
 import axiosInstance from '../../../constraints/axios/userAxios';
 import { postEndpoints } from '../../../constraints/endpoints/postEndpoints';
+import axios from 'axios';
 
 interface AddTravelModalProps {
   open: boolean;
@@ -19,6 +20,8 @@ interface AddTravelModalProps {
 const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState<boolean>(false)
+  const [places, setPlaces] = useState<{ description: string }[]>([]);
+  const [error, setError] = useState('');
 
   const user = useSelector((state: RootState) => state.userAuth.userData?._id);
   const [formData, setFormData] = useState({
@@ -94,7 +97,8 @@ const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose 
     setFormData({ ...formData, files, mediaUrls: urls });
   }
 
-  const handleSubmit = async (data: typeof formData) => {
+
+  const handleSubmit = async () => {
 
     setLoading(true)
     const formDataToSend = new FormData();
@@ -105,7 +109,7 @@ const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose 
     formDataToSend.append('isPrivate', formData.isPrivate.toString());
     formDataToSend.append('travelDuration', formData.travelDuration.toString());
     formDataToSend.append('preferences', JSON.stringify(formData.preferences));
-    formDataToSend.append('userId', user);
+    formDataToSend.append('userId', user || '');
 
     // Append files
     formData.files.forEach(file => {
@@ -156,6 +160,39 @@ const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose 
     setStep(1);
   };
 
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (formData.location) {
+        fetchPlaces(formData.location);
+      }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [formData.location]);
+
+  const fetchPlaces = async (searchQuery: string) => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${searchQuery}&api_key=${import.meta.env.VITE_OLA_API_KEY}`);
+      if (response.data) {
+        setPlaces(response.data.predictions);
+      } else {
+        setPlaces([]);
+      }
+    } catch (err) {
+      setError('Error fetching places');
+    }
+
+    setLoading(false);
+  };
+
+  const handlePlaceSelect = (placeDescription: string) => {
+    setFormData({ ...formData, location: placeDescription });
+    setPlaces([]);
+  };
+
   if (!open) return null;
 
   return (
@@ -200,6 +237,17 @@ const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose 
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   />
+                  {loading && <p style={{ color: 'white' }}>Loading...</p>}
+                        {error && <p style={{ color: 'red' }}>{error}</p>}
+
+                        <ul style={{ listStyleType: 'none', padding: 0, maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#1f2937' }}>
+                            {places.length > 0 &&
+                                places.map((place, index) => (
+                                    <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: 'pointer', color: 'white', marginBottom: '5px', padding: '8px', borderBottom: '1px solid #ccc', transition: 'background-color 0.3s', ':hover': { backgroundColor: '#2a2e35' } }}>
+                                        {place.description}
+                                    </li>
+                                ))}
+                        </ul>
                   <label>Duration</label>
                   <input
                     type="number"
@@ -328,7 +376,7 @@ const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose 
                 ) : (
                   <button
                     className="submit-button"
-                    onClick={() => handleSubmit(formData)}
+                    onClick={() => handleSubmit()}
                   >
                     Submit
                   </button>

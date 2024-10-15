@@ -46,8 +46,12 @@ class SocketService {
     this.socket.emit('userTyping', id)
   }
 
-  sendMessage(message: { chatId: string, senderId: string, receiverId: string, content: string, images?: string[], video?: string, record?: string, recordDuration?: number }) {
+  sendMessage(message: { chatId: string, senderId: string, receiverId: string, content: string }) {
     this.socket.emit('sendMessage', message);
+  }
+
+  sendMedia(message: { chatId: string, senderId: string, receiverId: string, image: string[], video: string[] }) {
+    this.socket.emit('newImages', message)
   }
 
   emitUserOnline(userId: string) {
@@ -71,6 +75,13 @@ class SocketService {
   onNewMessage(callback: (message: any) => void) {
     this.socket.on('newMessage', callback);
   }
+
+  // video call
+
+  joinRoom(userId: string) {
+    this.socket.emit('joinRoom', userId);
+  }
+  
 }
 
 export default new SocketService();

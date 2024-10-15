@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../Home/NavBar/NavBar';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import LinearProgress from '@mui/joy/LinearProgress';
 import Typography from '@mui/joy/Typography';
 import Box from '@mui/joy/Box';
+import Button from '@mui/joy/Button';
 import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/userAxios';
 import { postEndpoints } from '../../../constraints/endpoints/postEndpoints';
+import axios from 'axios';
 
 interface ImageData {
     file: File | null;
@@ -15,22 +17,22 @@ interface ImageData {
 
 const EditPost = () => {
     const location = useLocation();
-    const [address, setAddress] = useState('');
     const [description, setDescription] = useState('');
     const [serverImages, setServerImages] = useState<ImageData[]>([]);
     const [newImages, setNewImages] = useState<ImageData[]>([]);
-    const fileInputRef = useRef<HTMLInputElement | null>(null); // File input ref
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [query, setQuery] = useState('');
+    const [places, setPlaces] = useState<{ description: string }[]>([]);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const postData = location.state.data;
-        console.log(postData)
-        setAddress(postData.location);
+        setQuery(postData.location);
         setDescription(postData.description);
 
-        // If there are images already, add them to the state
         if (postData.imageUrl) {
             const initialImages = postData.imageUrl.map((url: string) => ({
-                file: null, // These are server-loaded images, so no file
+                file: null,
                 previewUrl: url,
             }));
             setServerImages(initialImages);
@@ -39,101 +41,109 @@ const EditPost = () => {
 
     const [progress, setProgress] = React.useState(0);
     const [loading, setLoading] = useState<boolean>(false);
-
-    React.useEffect(() => {
-        const timer = setInterval(() => {
-            setProgress((prevProgress) => (prevProgress >= 100 ? 0 : prevProgress + 10));
-        }, 1000);
-
-        return () => {
-            clearInterval(timer);
-        };
-    }, []);
-
-    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAddress(e.target.value);
-    };
+    const [saveData, setSave] = useState<boolean>(false);
+    const navigate = useNavigate();
 
     const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setDescription(e.target.value);
     };
 
-    // Handle new image uploads
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const newImages = Array.from(e.target.files).map((file) => ({
                 file,
-                previewUrl: URL.createObjectURL(file), // Create preview URL
+                previewUrl: URL.createObjectURL(file),
             }));
             setNewImages([...newImages]);
         }
     };
 
-    // Remove an image
     const handleRemoveImage = async (index: number, type: 'server' | 'new') => {
         if (type === 'server') {
             const result = await axiosInstance.put(postEndpoints.deleteImage, {
                 index: index,
-                postId: location.state.data._id
-            })
-            console.log(result);
+                postId: location.state.data._id,
+            });
             if (result.data.success) {
                 const updatedImages = serverImages.filter((_, i) => i !== index);
                 setServerImages(updatedImages);
             } else {
-                toast.info('Something went Wrong, try again')
+                toast.info('Something went wrong, try again');
             }
-
         } else {
             const updatedImages = newImages.filter((_, i) => i !== index);
             setNewImages(updatedImages);
-
             if (fileInputRef.current) {
-                fileInputRef.current.value = ''; // Reset input if needed
+                fileInputRef.current.value = '';
             }
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // setLoading(true);
+        setSave(true);
 
         const formData = new FormData();
-        formData.append('address', address);
+        formData.append('place', query);
         formData.append('description', description);
         formData.append('userId', location.state.data.userId);
-        formData.append('postId', location.state.data._id)
+        formData.append('postId', location.state.data._id);
 
-        // Append newly uploaded images (those with files)
         newImages.forEach((imageData) => {
             if (imageData.file) {
                 formData.append('images', imageData.file);
             }
         });
 
-        console.log('Updated Post:', {
-            address,
-            description,
-            images: newImages.map((img) => img.previewUrl),
-        });
+        try {
+            const result = await axiosInstance.put(postEndpoints.editPost, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (result.data.success) {
+                navigate('/home');
+                toast.success('Post edit successful');
+            }
+            setSave(false);
+        } catch (error) {
+            console.error('Error in updating', error);
+            toast.error('Unable to update, try again');
+        }
+    };
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (query) {
+                fetchPlaces(query);
+            }
+        }, 1000);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [query]);
+
+    const fetchPlaces = async (searchQuery: string) => {
+        setLoading(true);
+        setError('');
 
         try {
-            const result = await axiosInstance.put(postEndpoints.editPost,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    }
-                }
-            )
-
-            console.log(result, 'after the updation ');
-        } catch (error) {
-            console.log('Error in updation', error);
-            toast.error('Unable to update, try again')
+            const response = await axios.get(`https://api.olamaps.io/places/v1/autocomplete?input=${searchQuery}&api_key=${import.meta.env.VITE_OLA_API_KEY}`);
+            if (response.data) {
+                setPlaces(response.data.predictions);
+            } else {
+                setPlaces([]);
+            }
+        } catch (err) {
+            setError('Error fetching places');
         }
 
+        setLoading(false);
+    };
 
+    const handlePlaceSelect = (placeDescription: string) => {
+        setQuery(placeDescription);
+        setPlaces([]);
     };
 
     return (
@@ -161,8 +171,8 @@ const EditPost = () => {
                         <input
                             type="text"
                             id="address"
-                            value={address}
-                            onChange={handleAddressChange}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
                             style={{
                                 width: '100%',
                                 padding: '10px',
@@ -173,6 +183,17 @@ const EditPost = () => {
                                 color: 'white',
                             }}
                         />
+                        {loading && <p style={{ color: 'white' }}>Loading...</p>}
+                        {error && <p style={{ color: 'red' }}>{error}</p>}
+
+                        <ul style={{ listStyleType: 'none', padding: 0, maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#1f2937' }}>
+                            {places.length > 0 &&
+                                places.map((place, index) => (
+                                    <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: 'pointer', color: 'white', marginBottom: '5px', padding: '8px', borderBottom: '1px solid #ccc', transition: 'background-color 0.3s', ':hover': { backgroundColor: '#2a2e35' } }}>
+                                        {place.description}
+                                    </li>
+                                ))}
+                        </ul>
                     </div>
 
                     {/* Description */}
@@ -229,49 +250,39 @@ const EditPost = () => {
                                             position: 'absolute',
                                             top: '5px',
                                             right: '5px',
-                                            backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                                            backgroundColor: 'red',
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '50%',
+                                            width: '20px',
+                                            height: '20px',
                                             cursor: 'pointer',
-                                            width: '25px',
-                                            height: '25px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '16px',
                                         }}
                                     >
-                                        &times;
+                                        ×
                                     </button>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Upload New Images */}
-                    <div style={{ marginBottom: '20px' }}>
+                    {/* New Image Upload */}
+                    <div style={{ marginBottom: '15px' }}>
                         <label style={{ fontWeight: 'bold' }}>Upload New Images:</label>
                         <input
                             type="file"
+                            accept="image/*"
                             multiple
                             ref={fileInputRef}
                             onChange={handleImageUpload}
-                            style={{
-                                display: 'block',
-                                marginTop: '8px',
-                                marginBottom: '15px',
-                                color: 'white',
-                            }}
+                            style={{ marginTop: '8px' }}
                         />
-
-                        {/* Preview of Newly Added Images */}
                         <div
                             style={{
                                 display: 'flex',
                                 flexWrap: 'wrap',
                                 gap: '10px',
-                                justifyContent: 'center',
+                                marginTop: '10px',
                             }}
                         >
                             {newImages.map((imgData, index) => (
@@ -294,20 +305,16 @@ const EditPost = () => {
                                             position: 'absolute',
                                             top: '5px',
                                             right: '5px',
-                                            backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                                            backgroundColor: 'red',
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '50%',
+                                            width: '20px',
+                                            height: '20px',
                                             cursor: 'pointer',
-                                            width: '25px',
-                                            height: '25px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '16px',
                                         }}
                                     >
-                                        &times;
+                                        ×
                                     </button>
                                 </div>
                             ))}
@@ -315,61 +322,11 @@ const EditPost = () => {
                     </div>
 
                     {/* Submit Button */}
-                    {
-                        loading
-                            ?
-                            <Box sx={{ bgcolor: 'white', width: '100%' }}>
-                                <LinearProgress
-                                    determinate
-                                    variant="outlined"
-                                    color="success"
-                                    size="sm"
-                                    thickness={32}
-                                    value={progress}
-                                    sx={{
-                                        '--LinearProgress-radius': '0px',
-                                        '--LinearProgress-progressThickness': '24px',
-                                        boxShadow: 'sm',
-                                        borderColor: 'neutral.500',
-                                    }}
-                                >
-                                    <Typography
-                                        level="body-xs"
-                                        textColor="common.white"
-                                        sx={{ fontWeight: 'xl', mixBlendMode: 'difference' }}
-                                    >
-                                        {
-                                            Math.round(progress) == 100
-                                                ?
-                                                'Completed'
-                                                :
-                                                `UPLOADING… {${Math.round(progress)}%}`
-                                        }
-
-                                    </Typography>
-                                </LinearProgress>
-                            </Box>
-                            :
-                            <button
-                                type="submit"
-                                style={{
-                                    width: '100%',
-                                    padding: '12px 0',
-                                    backgroundColor: '#28a745',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    fontSize: '16px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                Save Changes
-                            </button>
-                    }
-
-
-
-
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <Button type="submit" disabled={saveData} color="primary">
+                            {saveData ? <LinearProgress style={{ width: '100%', height: '5px' }} /> : 'Save'}
+                        </Button>
+                    </div>
                 </form>
             </div>
         </>

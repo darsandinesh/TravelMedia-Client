@@ -4,7 +4,8 @@ export interface Message {
   receiverId: string;
   content: string;
   imagesUrl?: string[];
-  videoUrl?: string;
+  videoUrl?: string[];
+  // media?: string[];
   recordUrl?: string;
   totalDuriation?: number;
   chatId: string;

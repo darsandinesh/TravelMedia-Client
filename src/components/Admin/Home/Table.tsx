@@ -14,6 +14,7 @@ import MoreVertTwoToneIcon from '@mui/icons-material/MoreVertTwoTone';
 import StatusModal from './StatusModal';
 import axiosInstance from '../../../constraints/axios/adminAxios';
 import Spinner from '../../Spinner/Spinner';
+import TextField from '@mui/material/TextField';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -49,6 +50,7 @@ export default function CustomizedTables() {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [spinner, setSpinner] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(''); // Add search state
 
   useEffect(() => {
     const fetchData = async () => {
@@ -111,7 +113,13 @@ export default function CustomizedTables() {
     }
   };
 
-  const displayedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  // Filter rows based on the search query
+  const filteredRows = rows.filter((row) =>
+    row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    row.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const displayedRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <>
@@ -122,8 +130,17 @@ export default function CustomizedTables() {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          sx={{ width: '100%', overflowX: 'auto' }}
+          sx={{ width: '100%', overflowX: 'auto', flexDirection: 'column' }}
         >
+          {/* Search Input */}
+          <TextField
+            label="Search by Name or Email"
+            variant="outlined"
+            sx={{ width: '50%', mt: 2 }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
           <TableContainer component={Paper} sx={{ maxWidth: '100%', mt: 3 }}>
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
               <TableHead>
@@ -154,7 +171,7 @@ export default function CustomizedTables() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={rows.length}
+              count={filteredRows.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}

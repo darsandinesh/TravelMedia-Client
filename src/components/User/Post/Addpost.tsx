@@ -15,6 +15,7 @@ import { postEndpoints } from "../../../constraints/endpoints/postEndpoints";
 
 import {  useJsApiLoader, StandaloneSearchBox } from "@react-google-maps/api";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const steps = ["Post Details", "Upload Media", "Preview & Save"];
 
@@ -41,6 +42,8 @@ export default function AddPost() {
     place: false,
     file: false,
   });
+
+  const navigate = useNavigate();
 
   const isStepSkipped = (step: number) => {
     return skipped.has(step);
@@ -162,6 +165,7 @@ export default function AddPost() {
       if (response.status === 200) {
         toast.success("Post uploaded successfully!");
         handleReset();
+        navigate('/home')
       }
     } catch (error) {
       console.error("Error uploading post:", error);

@@ -47,11 +47,9 @@ interface TravelBuddy {
   mediaUrls: string[];
 }
 
-
 const TravelPostList: React.FC = () => {
   const [posts, setPosts] = useState<TravelBuddy[]>([]);
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -85,12 +83,14 @@ const TravelPostList: React.FC = () => {
             <Card key={post._id} className="travel-post-card">
               <AspectRatio flex ratio="1" className="aspect-ratio">
                 <img
-                  src={post.mediaUrls[0] || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286'}
-                  srcSet={post.mediaUrls[0] ? `${post.mediaUrls[0]} 2x` : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286&dpr=2 2x'}
+                  src={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? post.mediaUrls[0] : 'https://example.com/path/to/user-icon.png'} // User icon URL
                   loading="lazy"
-                  alt="Travel"
+                  alt={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? "Travel" : "User Icon"} // Alt text based on image presence
+                  style={{ objectFit: 'cover' }} // Ensures the image fits nicely within the AspectRatio box
                 />
               </AspectRatio>
+
+
 
               <CardContent className="details">
                 <div className="user-info" style={{ display: 'flex', gap: '1.5rem', padding: 5, marginTop: 4 }}>
@@ -98,54 +98,45 @@ const TravelPostList: React.FC = () => {
                   <Typography className="user-name" sx={{ marginTop: '12px' }}>{post.user.name}</Typography>
                 </div>
 
-                <Typography className="location">
-                  Location : {post.location}
+                <Typography className="location" sx={{ fontWeight: 'bold' }}>
+                  Location: {post.location.split(',')[0]}
                 </Typography>
 
+
                 <Typography className="description" sx={{ fontSize: '500' }}>
-                  Description : {post.description}
+                  Description: {post.description}
                 </Typography>
 
                 <Sheet className="info-sheet">
-                  <div className="info-item">
+                  {/* Info Items with Flexbox */}
+                  <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
                     <Typography className="label">Travel Date</Typography>
                     <Typography className="value">{new Date(post.travelDate).toDateString()}</Typography>
                   </div>
-                  <div className="info-item">
-                    <Typography className="label">Duration</Typography>
-                    <Typography className="value">{post.travelDuration} days</Typography>
-                  </div>
-                  <div className="info-item">
-                    <Typography className="label">Status</Typography>
-                    <Typography className="value">{post.travelStatus}</Typography>
-                  </div>
-                  <div className="info-item">
-                    <Typography className="label">Max Participants</Typography>
-                    <Typography className="value">{post.maxParticipants}</Typography>
-                  </div>
-                  <div className="info-item">
+                  <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
                     <Typography className="label">Budget</Typography>
                     <Typography className="value">{post.preferences.budget}</Typography>
                   </div>
-                  <div className="info-item">
+                  <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
                     <Typography className="label">Accommodation</Typography>
                     <Typography className="value">{post.preferences.accommodation}</Typography>
                   </div>
-                  <div className="info-item">
+                  <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
                     <Typography className="label">Transport Mode</Typography>
                     <Typography className="value">{post.preferences.transportMode}</Typography>
                   </div>
                 </Sheet>
 
-                <Box className="button-group">
+                <Box className="button-group" sx={{ display: 'flex', gap: 1, marginTop: 2 }}>
                   <Buttons variant="outlined" color="neutral" onClick={() => navigate(`/chats/${post._id}`)}>
                     Chat
                   </Buttons>
                   <Buttons variant="solid" color="primary">
-                    Join
+                    Direction
                   </Buttons>
                 </Box>
               </CardContent>
+
             </Card>
           ))}
         </div>

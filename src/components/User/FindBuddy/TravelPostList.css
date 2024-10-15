@@ -1,90 +1,56 @@
 .travel-post-list {
-    padding-top: 2rem; /* Equivalent to py-8 */
-    margin-top: 2.75rem; /* Equivalent to mt-11 */
-  }
-  
-  .container {
-    margin: 0 auto;
-    max-width: 1200px; /* Equivalent to max-w-7xl */
-    padding-left: 3.5rem; /* Equivalent to px-6 */
-    padding-right: 1.5rem; /* Equivalent to px-6 */
-  }
-  
-  .header {
-    margin: 0 auto;
-    max-width: 40rem; /* Equivalent to max-w-2xl */
-  }
-  
-  .header h2 {
-    font-size: 2rem; /* Equivalent to text-3xl */
-    font-weight: bold; /* Equivalent to font-bold */
-    color: #1f2937; /* Equivalent to text-gray-900 */
-    margin-bottom: 1rem; /* Equivalent to mb-4 */
-    margin-left: 30%;
-  }
-  
-  .card-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5.5rem; 
-    margin-left: 80px;
-  }
-  
-  .travel-post-card {
-    width: 300px; /* Ensure 3 cards per row with spacing */
-    min-width: 200px; /* Adjust as needed */
-  }
-  
-  .aspect-ratio {
-    max-height: 182px;
-  }
+  background-color: #f4f4f4; /* Light background for contrast */
+  padding: 20px;
+}
 
-  .details{
-    margin-top: 70px;
-  }
-  
-  .user-id {
-    font-size: 1.25rem; /* Equivalent to fontSize: 'xl' */
-    font-weight: bold; /* Equivalent to fontWeight: 'lg' */
-  }
-  
-  .location {
-    color: #9ca3af; /* Equivalent to text.tertiary */
-    /* font-weight: bold;  */
-  }
-  
-  .description {
-    margin-top: 0.75rem; /* Add margin for spacing */
-    /* font-weight: bold */
-  }
-  
-  .info-sheet {
-    background-color: #f3f4f6; /* Equivalent to background.level1 */
-    border-radius: 0.375rem; /* Equivalent to borderRadius: 'sm' */
-    padding: 0.75rem; /* Equivalent to p: 1.5 */
-    margin-top: 0.75rem; /* Equivalent to my: 1.5 */
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem; /* Equivalent to gap: 2 */
-  }
-  
-  .info-item {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .label {
-    font-size: 0.75rem; /* Equivalent to body-xs */
-    font-weight: bold; /* Equivalent to fontWeight: 'lg' */
-  }
-  
-  .value {
-    font-weight: bold; /* Equivalent to fontWeight: 'lg' */
-  }
-  
-  .button-group {
-    display: flex;
-    gap: 8.5rem; /* Equivalent to gap: 1.5 */
-    margin-top: 1rem; /* Space between button group and other elements */
-  }
-  
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsive grid */
+  gap: 20px; /* Space between cards */
+  padding: 20px;
+}
+
+.travel-post-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  transition: transform 0.2s; /* Animation */
+}
+
+.travel-post-card:hover {
+  transform: translateY(-5px); /* Lift effect on hover */
+}
+
+.details {
+  padding: 16px; /* Padding for card content */
+}
+
+.user-info {
+  display: flex;
+  align-items: center; /* Center avatar and name */
+}
+
+.user-avatar {
+  border: 2px solid #007aff; /* Accent border around the avatar */
+}
+
+.location {
+  color: #555; /* Slightly muted color for location */
+}
+
+.info-sheet {
+  margin-top: 10px; /* Margin above the info sheet */
+  padding: 10px; /* Padding for the sheet */
+  background-color: #f9f9f9; /* Light background for info section */
+  border-radius: 8px; /* Rounded corners */
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between; /* Space between buttons */
+  margin-top: 10px; /* Margin above button group */
+}

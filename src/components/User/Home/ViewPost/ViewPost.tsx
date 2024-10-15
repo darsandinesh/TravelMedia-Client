@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import Divider from '@mui/joy/Divider';
 import Avatar from '@mui/joy/Avatar';
 import { IoThumbsUpOutline, IoShareSocialOutline, IoBookmarkOutline } from "react-icons/io5";
@@ -108,7 +108,8 @@ const ViewPost = () => {
     const [message, setMessage] = useState<boolean>(false);
 
     const location = useLocation();
-    const postId = location.state?.postId;
+    const {id,uId} = useParams();
+    const postId = location.state?.postId || id;
 
     const loggeduser = useSelector((state: RootState) => state.userAuth.userData);
 
@@ -116,7 +117,9 @@ const ViewPost = () => {
         setLoading(true);
         const fetchData = async () => {
             try {
-                const result = await axiosInstance.get(`${postEndpoints.getPost}?postId=${postId}&userId=${location.state.userId}`);
+                const userId = location.state.userId || uId
+                console.log(userId,'------------',id,'----------',uId)
+                const result = await axiosInstance.get(`${postEndpoints.getPost}?postId=${postId || id}&userId=${userId || uId}`);
                 if (result.data.post.success) {
                     setPostData(result.data.post.data);
                     setUserData(result.data.user);
@@ -124,13 +127,13 @@ const ViewPost = () => {
                 setTimeout(() => {
                     setLoading(false);
                 }, 2000)
-            } catch (error) {
+            } catch (error:any) {
                 setLoading(false);
-                toast.error('Something went wrong');
+                toast.error('Something went wrong',error);
             }
         };
         fetchData();
-    }, [postId, location.state.userId]);
+    }, [postId]);
 
     const handleLikeClick = async () => {
         if (!postData) return;
@@ -319,6 +322,21 @@ const ViewPost = () => {
         }
     };
 
+
+
+    const copyToClipboard = () => {
+        const currentUrl = window.location.href;
+        const postId = location.state?.postId;
+        const userId = location.state?.userId
+        const urlToShare = `${currentUrl}/${postId}/${userId}`;
+        navigator.clipboard.writeText(urlToShare)
+            .then(() => {
+                toast.success('URL copied to clipboard!')
+            })
+            .catch(err => {
+                console.error('Failed to copy the URL: ', err);
+            });
+    };
 
     return (
         <>
@@ -559,7 +577,7 @@ const ViewPost = () => {
                                     <Divider />
                                     <br />
 
-                                    {postData?.comments.length > 0 ? (
+                                    {postData && postData?.comments.length > 0 ? (
                                         postData?.comments.map((comment) => {
                                             const isRepliesVisible = visibleReplies[comment._id] || false;
                                             return (
@@ -638,7 +656,7 @@ const ViewPost = () => {
                                         value={comment}
                                         onChange={(e) => setComment(e.target.value)}
                                     />
-                                    <button onClick={() => handelComment(postData?._id)} style={{ backgroundColor: '#2d3748', color: 'white' }}>
+                                    <button onClick={() => handelComment(postData?._id || '')} style={{ backgroundColor: '#2d3748', color: 'white' }}>
                                         Post
                                     </button>
                                 </div>
@@ -657,7 +675,7 @@ const ViewPost = () => {
                                                 <IoThumbsUpOutline className="action-icon" title="Like" onClick={handleLikeClick} />
 
                                         }
-                                        <IoShareSocialOutline className="action-icon" title="Share" />
+                                        <IoShareSocialOutline onClick={()=>copyToClipboard()} className="action-icon" title="Share" />
                                         <IoBookmarkOutline className="action-icon" title="Save" />
                                     </div>
                                 </div>

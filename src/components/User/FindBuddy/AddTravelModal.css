@@ -95,4 +95,10 @@
   .submit-button {
     background: #4caf50;
   }
+  .map {
+    height: 400px; /* Adjust as needed */
+    width: 100%;
+    border: 1px solid #ccc; /* Optional styling */
+  }
+  
   

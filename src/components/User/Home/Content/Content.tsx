@@ -17,6 +17,8 @@ import { useEffect, useState } from 'react';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import DeleteIcon from '@mui/icons-material/Delete';
+import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded';
+
 
 import Dropdown from '@mui/joy/Dropdown';
 import Menu from '@mui/joy/Menu';
@@ -225,6 +227,7 @@ export default function Content() {
     const [loadinPage, setLoadingPage] = useState<boolean>(false)
     const [prevHeight, setPrevHeight] = useState<number>(0);
     const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: boolean }>({});
+    const [isCopied, setIsCopied] = useState(false);
 
     const navigate = useNavigate();
 
@@ -490,6 +493,20 @@ export default function Content() {
     };
 
 
+    const copyToClipboard = () => {
+        const currentUrl = window.location.href; // Full URL including query parameters and hash
+        navigator.clipboard.writeText(currentUrl) // Copy to clipboard
+          .then(() => {
+            setIsCopied(true); // Update state to show feedback
+            setTimeout(() => setIsCopied(false), 2000); // Reset feedback after 2 seconds
+          })
+          .catch(err => {
+            console.error('Failed to copy the URL: ', err);
+          });
+      };
+
+
+
     return (
         <Container>
             {loading ? (
@@ -624,10 +641,17 @@ export default function Content() {
                                         </ExpandMore>
                                     </IconButtons>
                                     <IconButtons variant="plain" color="neutral" size="sm">
-                                        <SendOutlined />
+                                        <SendOutlined onClick={copyToClipboard} />
+                                        
+                                        {isCopied && <p>URL copied to clipboard!</p>}
+                                    </IconButtons>
+                                    <IconButtons sx={{marginLeft:"auto"}} variant="plain" color="neutral" size="sm">
+                                        <BookmarkBorderRoundedIcon />
                                     </IconButtons>
                                 </Box>
+
                             </CardContents>
+
 
 
                             <CardContent >
@@ -639,6 +663,9 @@ export default function Content() {
                                 >
                                     {post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}
                                 </Link>
+                                <Typography sx={{ fontSize: 'sm' }}>
+                                    {post.location.split(',')[0]}
+                                </Typography>
                                 <Typography sx={{ fontSize: 'sm' }}>
                                     {post.description}
                                 </Typography>

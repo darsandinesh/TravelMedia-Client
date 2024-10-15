@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Modal } from '@mui/material';
-import { VideoCall, AttachFile, Mic, Send, CallEnd,VideocamOff,MicOff } from '@mui/icons-material';
+import { VideoCall, AttachFile, Mic, Send, CallEnd, VideocamOff, MicOff } from '@mui/icons-material';
 import Navbar from '../Home/NavBar/NavBar';
 import { HiUserAdd } from "react-icons/hi";
 import { BsChatDots } from "react-icons/bs";
@@ -13,7 +13,10 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store/sotre';
 import { toast } from 'sonner';
 import socketService from '../../../socket/SocketService';
+import Button from "@mui/material/Button";
 // import axios from 'axios';
+// video call 
+import { useWebRTC } from "../../../context/ProviderWebRTC";
 
 const Chat = () => {
     const [message, setMessage] = useState('');
@@ -28,11 +31,21 @@ const Chat = () => {
     const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
     const [showChat, setShowChat] = useState(false);
 
+    // Define the necessary states
+    const [selectedFile, setSelectedFile] = React.useState<File | null>(null); // URL of the selected fill
+    const [selectedFileType, setSelectedFileType] = React.useState<string>(''); // MIME type of the selected file
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState<boolean>(false); // Modal open/close state
+
+
     const location = useLocation();
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
     const navigate = useNavigate()
+
+    // calling functionla
+
+    const { startCall } = useWebRTC();
 
     //socker implementation
 
@@ -50,12 +63,12 @@ const Chat = () => {
             console.log(response.data)
             if (response.data.success) {
                 console.log(response.data.data)
-                const sortedChats = response.data.data.sort(
-                    (a: ChatData, b: ChatData) =>
-                        new Date(b.lastMessage?.createdAt || 0).getTime() -
-                        new Date(a.lastMessage?.createdAt || 0).getTime()
-                );
-                console.log(sortedChats, '--------------c----------')
+                const sortedChats = response.data.data.
+                    sort(
+                        (a: ChatData, b: ChatData) =>
+                            new Date(b.lastMessage?.createdAt || 0).getTime() -
+                            new Date(a.lastMessage?.createdAt || 0).getTime()
+                    );
                 setChats(sortedChats);
             }
         } catch (error) {
@@ -76,8 +89,10 @@ const Chat = () => {
         }
 
         socketService.onUserStatusChanged((data) => {
+            console.log('---------------------------------', data, '------------------data online users')
             setChats((prevChats) =>
                 prevChats.map((chat) => {
+
                     const updatedUsers = chat.users.map((user) =>
                         user.id === data.userId
                             ? { ...user, isOnline: data.isOnline }
@@ -201,12 +216,16 @@ const Chat = () => {
             socketService.joinConversation(chat._id);
 
             socketService.onNewMessage((message) => {
+
+                console.log(message, '-new message live')
                 setData(prevData => {
                     const newMessage: Message = {
                         _id: message._id || Date.now().toString(),
                         senderId: message.senderId,
                         receiverId: message.receiverId,
-                        content: message.content,
+                        content: message.content || null,
+                        imagesUrl: message?.image,
+                        videoUrl: message?.video,
                         chatId: message.chatId,
                         createdAt: message.createdAt || new Date().toISOString(),
                         updatedAt: message.updatedAt || new Date().toISOString(),
@@ -237,11 +256,61 @@ const Chat = () => {
     //     return new Date(date).toLocaleDateString();
     // };
 
+
+    const uploadMedia = async () => {
+        const receiverId = location.state?.userId;
+        if (!selectedFile) {
+            return;
+        }
+        let response;
+        let image=[]
+        if (selectedFileType?.includes('image')) {
+            const formData = new FormData();
+            formData.append('images', selectedFile);
+            console.log(selectedFile, '--------------', formData)
+            response = await axiosInstance.post(`${messageEndpoints.sendImages}?chatId=${chat._id}&senderId=${userId}&receiverId=${receiverId}`, formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    }
+                }
+            );
+            image = response.data.data
+        }
+        let video=[]
+        if (selectedFileType?.includes('video')) {
+            const formData = new FormData();
+            formData.append('images', selectedFile);
+            response = await axiosInstance.post(`${messageEndpoints.sendVideo}?chatId=${chat._id}&senderId=${userId}&receiverId=${receiverId}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    }
+                }
+            );
+            video = response.data.data
+        }
+
+        console.log(response, '------------response after ')
+        if (response?.data.success && userId) {
+            socketService.sendMedia({
+                chatId: location.state.chat._id,
+                senderId: userId,
+                receiverId: receiverId,
+                image,
+                video,
+            });
+        }
+        return [];
+    };
+
     const handleSendMessage = async () => {
         try {
 
             const receiverId = location.state.userId
             if ((message.trim()) && chat._id && userId && receiverId) {
+
 
                 socketService.sendMessage({
                     chatId: location.state.chat._id,
@@ -268,67 +337,37 @@ const Chat = () => {
     };
 
     // Function to handle file upload
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files ? e.target.files[0] : null;
-        setFile(selectedFile);
-        if (selectedFile) {
-            console.log('Uploaded file:', selectedFile);
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            const file = event.target.files[0];
+
+            setSelectedFile(file);  // Store the file URL for preview
+            setSelectedFileType(file.type);  // Store the file MIME type
+            setIsPreviewModalOpen(true);  // Open the preview modal
         }
     };
+
+
+
+    const closePreviewModal = () => {
+        setSelectedFile(null);  // Clear the file URL
+        setSelectedFileType('');  // Clear the file type
+        setIsPreviewModalOpen(false);  // Close the modal
+    };
+
 
     // Function to open the video modal and ask for camera access
     const handleVideoCall = () => {
-        setIsVideoModalOpen(true);
-        navigator.mediaDevices.getUserMedia({ video: isVideoEnabled, audio: isAudioEnabled })
-            .then(stream => {
-                setCameraStream(stream);
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                }
-            })
-            .catch(error => {
-                console.error('Error accessing camera:', error);
-                // Optional: Show an error message to the user
-            });
+
     };
 
-    // Function to toggle video
-    const toggleVideo = () => {
-        if (cameraStream) {
-            cameraStream.getVideoTracks().forEach(track => {
-                track.enabled = !track.enabled;
-                setIsVideoEnabled(track.enabled);
-            });
-        }
-    };
-
-    // Function to toggle audio
-    const toggleAudio = () => {
-        if (cameraStream) {
-            cameraStream.getAudioTracks().forEach(track => {
-                track.enabled = !track.enabled;
-                setIsAudioEnabled(track.enabled);
-            });
-        }
-    };
-
-    // Clean up camera stream when modal closes
-    const closeVideoModal = () => {
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-        }
-        setCameraStream(null);
-        setIsVideoEnabled(true);
-        setIsAudioEnabled(true);
-        setIsVideoModalOpen(false);
-    };
 
     // Scroll to the bottom when messages change
     useEffect(() => {
         if (endOfMessagesRef.current) {
-            endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
+          endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [message]);
+      }, [data?.messages]);
 
 
     const handelSelectuser = async (id: string, avatar: string, name: string) => {
@@ -347,10 +386,6 @@ const Chat = () => {
     if (location.state?.userId) {
         basepath = false;
     }
-
-
-    console.log('basepath:', basepath);
-    console.log(location.state)
 
     return (
         <div style={{ height: '100vh', backgroundColor: '#2d3748' }}>
@@ -408,36 +443,94 @@ const Chat = () => {
                                 {location.state?.name}
                                 <br />
                                 <span style={{ fontSize: '0.8em', color: '#a0aec0' }}>
-                                    {isOtherUserOnline ? (typing ? 'typing....' : 'online') : 'offline'}
+                                    {typing ? 'typing....' : 'online'}
                                 </span>
                             </Typography>
-                            <IconButton sx={{ color: 'white' }} onClick={handleVideoCall}>
+                            <IconButton sx={{ color: 'white' }} onClick={() => location.state.userId && startCall(location.state.userId)}>
                                 <VideoCall />
                             </IconButton>
                         </Box>
 
                         {/* Chat Area */}
-                        <Box sx={{ flex: 1, p: 2, overflowY: 'auto', backgroundColor: '#1a202c', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-
-                           
+                        <Box
+                            sx={{
+                                flex: 1,
+                                p: 2,
+                                overflowY: 'auto',
+                                backgroundColor: '#1a202c',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                maxHeight: '600px',
+                                minHeight: '400px',
+                                '&::-webkit-scrollbar': {
+                                    display: 'none',
+                                },
+                                scrollbarWidth: 'none',
+                            }}
+                        >
                             {!data || !data?.messages ? (
                                 'No chats'
                             ) : (
                                 data?.messages.map((message, index) => (
-                                    <Box key={index} sx={{ mb: 2, textAlign: message.senderId === userId ? 'right' : 'left' }}>
-                                        <Typography sx={{ display: 'inline-block', backgroundColor: message.senderId === userId ? '#4a5568' : '#2d3748', color: 'white', borderRadius: '12px', padding: '10px' }}>
-                                            {message.content}
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            mb: 2,
+                                            textAlign: message.senderId === userId ? 'right' : 'left',
+                                            maxWidth: '100%', // Set max width for messages
+                                        }}
+                                    >
+                                        <Typography
+                                            sx={{
+                                                display: 'inline-block',
+                                                backgroundColor: message.senderId === userId ? '#4a5568' : '#2d3748',
+                                                color: 'white',
+                                                borderRadius: '12px',
+                                                padding: '10px',
+                                            }}
+                                        >
+                                            {/* Display text content if available */}
+                                            {message.content && <div style={{ marginBottom: '10px' }}>{message.content}</div>}
+
+                                            {/* Display images if available */}
+                                            {message.imagesUrl && message.imagesUrl.length === 1 && (
+                                                <img
+                                                    src={message.imagesUrl[0]}
+                                                    alt="media"
+                                                    style={{
+                                                        maxWidth: '100%',
+                                                        maxHeight: '200px',
+                                                        borderRadius: '12px',
+                                                        marginBottom: '10px',
+                                                    }}
+                                                />
+                                            )}
+
+                                            {/* Display video if available */}
+                                            {message.videoUrl && message.videoUrl.length === 1 && (
+                                                <video
+                                                    controls
+                                                    style={{
+                                                        maxWidth: '100%',
+                                                        maxHeight: '200px',
+                                                        borderRadius: '12px',
+                                                    }}
+                                                >
+                                                    <source src={message.videoUrl[0]} type="video/mp4" />
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                            )}
                                         </Typography>
                                     </Box>
                                 ))
                             )}
-                            <div ref={endOfMessagesRef} /> {/* For scrolling */}
+                            <div ref={endOfMessagesRef} />
                         </Box>
 
                         {/* Input Area */}
                         <Box sx={{ p: 2, borderTop: '1px solid #4a5568', bgcolor: '#2d3748', display: 'flex', alignItems: 'center' }}>
                             <IconButton color="inherit" component="label">
-                                <input type="file" hidden onChange={handleFileUpload} />
+                                <input type="file" hidden onChange={handleFileUpload} accept="image/*,video/*" />
                                 <AttachFile />
                             </IconButton>
                             <InputBase
@@ -458,32 +551,122 @@ const Chat = () => {
                 )}
             </Box>
 
-            {/* Video Call Modal */}
-            <Modal open={isVideoModalOpen} onClose={closeVideoModal} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Box sx={{ width: { xs: '90%', sm: '80%' }, height: { xs: '90%', sm: '80%' }, bgcolor: '#1a202c', borderRadius: '8px', p: 2, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                    {/* Add video call implementation */}
-                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#4a5568', borderRadius: '8px' }}>
-                        <Typography sx={{ color: 'white' }}>Video Call Area</Typography>
-                    </Box>
-                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-                        <IconButton sx={{ color: 'white' }} onClick={toggleAudio}>
-                            {isAudioEnabled ? <Mic /> : <MicOff />}
-                        </IconButton>
-                        <IconButton sx={{ color: 'white' }} onClick={toggleVideo}>
-                            {isVideoEnabled ? <VideoCall /> : <VideocamOff />}
-                        </IconButton>
-                        <IconButton sx={{ color: 'white' }} onClick={closeVideoModal}>
-                            <CallEnd />
-                        </IconButton>
-                    </Box>
+            {/* Modal for Previewing the Selected File */}
+            <Modal
+                open={isPreviewModalOpen}
+                onClose={closePreviewModal}
+                sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+            >
+                <Box
+                    sx={{
+                        width: { xs: '80%', sm: '40%' }, // Responsive width
+                        bgcolor: '#1a202c', // Dark background
+                        borderRadius: '8px', // Rounded corners
+                        p: 2,
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)', // Subtle shadow for depth
+                        position: 'relative', // For close button placement
+                    }}
+                >
+                    {/* Modal Title */}
+                    <Typography
+                        variant="h6"
+                        sx={{ color: 'white', textAlign: 'center', mb: 2, fontWeight: 'bold' }}
+                    >
+                        File Preview
+                    </Typography>
+
+                    {/* Close Button */}
+                    <IconButton
+                        sx={{
+                            color: 'white',
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            bgcolor: '#ff4757', // Red close button
+                            '&:hover': { bgcolor: '#e84118' }, // Hover effect
+                            borderRadius: '50%', // Circular button
+                            width: 30,
+                            height: 30,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            fontSize: 16, // Adjust font size for 'X'
+                        }}
+                        onClick={closePreviewModal}
+                    >
+                        X
+                    </IconButton>
+
+                    {/* File Preview (Image or Video) */}
+                    {selectedFile && (
+                        <Box
+                            sx={{
+                                mt: 2,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                            }}
+                        >
+                            {/* Conditionally render an image or video based on file type */}
+                            {selectedFileType?.includes('image') ? (
+                                <img
+                                    src={URL.createObjectURL(selectedFile)}
+                                    alt="Preview"
+                                    style={{
+                                        width: '100%',
+                                        maxHeight: '300px',
+                                        borderRadius: '8px',
+                                        objectFit: 'contain',
+                                    }}
+                                />
+                            ) : selectedFileType?.includes('video') ? (
+                                <video
+                                    controls
+                                    src={URL.createObjectURL(selectedFile)}
+                                    style={{
+                                        width: '100%',
+                                        maxHeight: '300px',
+                                        borderRadius: '8px',
+                                        objectFit: 'contain',
+                                    }}
+                                />
+                            ) : (
+                                <Typography sx={{ color: 'white' }}>
+                                    Unsupported file type
+                                </Typography>
+                            )}
+
+                            {/* Send Button */}
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    mt: 2,
+                                    bgcolor: '#38a169', // Green button
+                                    '&:hover': { bgcolor: '#2f855a' }, // Hover effect
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    borderRadius: '8px',
+                                    width: '100%',
+                                    maxWidth: 200,
+                                    py: 1,
+                                }}
+                                onClick={uploadMedia}
+                            >
+                                Send
+                            </Button>
+                        </Box>
+                    )}
                 </Box>
             </Modal>
 
             {/* Search User Modal */}
-            {openSearchUser && (
-                <SearchUser onClose={() => setOpenSearchUser(false)} />
-            )}
-        </div>
+            {
+                openSearchUser && (
+                    <SearchUser onClose={() => setOpenSearchUser(false)} />
+                )
+            }
+        </div >
 
     );
 };
