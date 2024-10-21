@@ -268,12 +268,6 @@ const ViewPost = () => {
         }
     };
 
-
-    // const handleEmojiClick = (emojiData: EmojiClickData) => {
-    //     setComment(comment + emojiData.emoji);
-    //     setShowEmoji(false);
-    // };
-
     const handelDelete = async () => {
         try {
             const result = await axiosInstance.put(postEndpoints.deletePost, {

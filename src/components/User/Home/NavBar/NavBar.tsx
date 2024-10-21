@@ -1,22 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  Box,
-  Avatar,
-  Tooltip,
-  Button,
-  Menu,
-  MenuItem,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Badge,
-  Chip,
+import { AppBar, Toolbar, IconButton, Typography, Box, Avatar, Tooltip, Button, Menu, MenuItem, Drawer, List, ListItem, ListItemText, ListItemIcon, Badge, Chip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
@@ -35,6 +18,7 @@ import AspectRatio from '@mui/joy/AspectRatio';
 import SocketService from '../../../../socket/SocketService';
 import axiosInstance from '../../../../constraints/axios/userAxios';
 import { messageEndpoints } from '../../../../constraints/endpoints/messageEndpoints';
+import { toast } from 'sonner';
 
 const pages = [
   { name: 'Home', icon: <HomeIcon />, path: '/' },
@@ -50,7 +34,7 @@ export default function Navbar() {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadNotifications, setUnreadNotifications] = useState(0); // Track unread notifications
+  const [unreadNotifications, setUnreadNotifications] = useState(0); 
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -87,12 +71,9 @@ export default function Navbar() {
           }, 0);
           setUnreadNotifications(count)
           console.log(result.data.data, 'data for notification')
-        } else {
-
-        }
-
+        } 
       } catch (error) {
-
+        toast.error('Something went wrong')
       }
     }
     fetchNotification()
