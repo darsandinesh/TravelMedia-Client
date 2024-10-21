@@ -61,7 +61,7 @@ import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/userAxios';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store/sotre';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { updateUser } from '../../../redux/slice/UserSlice';
 import ShowFriends from './ShowFriends';
@@ -84,7 +84,9 @@ interface User {
 
 
 interface Post {
+  _id?: string
   id: string;
+  userId?: string,
   imageUrl: string | string[];
   description: string;
   comments: string[];
@@ -118,6 +120,8 @@ const UserProfile = () => {
   const [openFriends, setOpenFriends] = useState<boolean>(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
+  const navigate = useNavigate()
+
   const dispatch = useDispatch();
   const currentUserId = useSelector((state: RootState) => state.userAuth?.userData?._id);
 
@@ -143,15 +147,28 @@ const UserProfile = () => {
         };
 
         setIsPrivate(response.data.userData.data.isPrivate)
-
+        console.log("1")
         const userPosts = response?.data?.result.data || [];
+        console.log("11", response?.data?.savedPosts[0])
+
+        // const savedPost = response?.data?.savedPosts[0].data
+
+        console.log("2")
 
         setUser(userData);
         setEditedUser(userData);
         if (userPosts.length > 0) {
           setPosts(userPosts);
         }
-        setSavedPosts([]);
+        console.log("3")
+
+        if (response?.data?.savedPosts[0] == undefined ) {
+          setSavedPosts([]);
+        }else{
+          // setSavedPosts([]);
+          setSavedPosts(response?.data?.savedPosts[0].data);
+
+        }
         setLoading(false);
         setIsFollowing(userData.followers.includes(currentUserId));
       } catch (err) {
@@ -336,7 +353,7 @@ const UserProfile = () => {
   const fromatDate = (timestamp: string) => {
     const date = new Date(timestamp);
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so we add 1
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const formattedDate = `${day}/${month}/${year}`;
     return formattedDate
@@ -377,7 +394,7 @@ const UserProfile = () => {
         maxWidth: '800px',
         margin: '0 auto',
         mt: '70px',
-        ml: { xs: '0', sm: '5%', md: '25%' }, // Adjust margin-left based on screen size
+        ml: { xs: '0', sm: '5%', md: '25%' },
       }}
     >
       <Card variant="outlined" style={{ padding: 16 }}>
@@ -399,11 +416,6 @@ const UserProfile = () => {
                   <Button variant="contained" color="primary" onClick={handleModalOpen}>
                     Edit Profile
                   </Button>
-                  <>
-
-                  </>
-
-
                 </>
               )}
               {paramUserId && (
@@ -494,21 +506,6 @@ const UserProfile = () => {
                               </List>
                             </ListItem>
                             <ListItem nested>
-                              {/* <ListItem
-                                sx={{
-                                  bgcolor: 'background.surface',
-                                  mb: 1,
-                                  borderRadius: 'var(--List-radius)',
-                                }}
-                              >
-                                <ListItemButton
-                                  aria-describedby="apple-tv-description"
-                                  sx={{ borderRadius: 'var(--List-radius)', cursor:'pointer',bgcolor:'blue',color:'white',alignItems:'center',textAlign:'center' }}
-                                  onClick={handleModalOpen}
-                                >
-                                 Update Your Profile
-                                </ListItemButton>
-                              </ListItem> */}
                               <Typographys id="apple-tv-description" level="body-xs" aria-hidden>
                                 Manage your account settings here
                               </Typographys>
@@ -545,8 +542,8 @@ const UserProfile = () => {
                                     id="airplane-mode"
                                     size="lg"
                                     color="success"
-                                    checked={isPrivate} // Bind the state here
-                                    onChange={handleToggle} // Call the toggle handler when the Switch is clicked
+                                    checked={isPrivate}
+                                    onChange={handleToggle}
                                     sx={() => ({
                                       '--Switch-thumbShadow': '0 3px 7px 0 rgba(0 0 0 / 0.12)',
                                       '--Switch-thumbSize': '27px',
@@ -611,8 +608,6 @@ const UserProfile = () => {
                       </Modal>
                     </React.Fragment>
                   </>
-
-
                 ) : (
                   <div>
 
@@ -663,11 +658,11 @@ const UserProfile = () => {
         <Box style={{ marginTop: 16 }}>
           {activeTab === 'posts' ? (
             <Grid container spacing={2}>
-            {
-              user?.isPrivate
-                ? (
-                  user?.following.includes(currentUserId) // If account is private, show posts only to followers
-                    ? posts.map((post, index) => (
+              {
+                user?.isPrivate && user.id != currentUserId
+                  ? (
+                    user?.following.includes(currentUserId || '')
+                      ? posts.map((post, index) => (
                         <Grid item xs={12} sm={6} md={4} key={index}>
                           <Card>
                             {Array.isArray(post.imageUrl) ? (
@@ -698,47 +693,47 @@ const UserProfile = () => {
                           </Card>
                         </Grid>
                       ))
-                    : (
-                      <Grid item xs={12}>
-                        <Typography variant="body1" align="center">This account is private</Typography>
+                      : (
+                        <Grid item xs={12}>
+                          <Typography variant="body1" align="center">This account is private</Typography>
+                        </Grid>
+                      )
+                  )
+                  : ( // If account is public, show posts to everyone
+                    posts.map((post, index) => (
+                      <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Card>
+                          {Array.isArray(post.imageUrl) ? (
+                            <Carousel>
+                              {post.imageUrl.map((url, idx) => (
+                                <CardMedia
+                                  key={idx}
+                                  component="img"
+                                  height="200"
+                                  image={url}
+                                  alt={`post-image-${idx}`}
+                                  onClick={() => navigate('/viewPost', { state: { postId: post?._id, userId: currentUserId } })}
+                                />
+                              ))}
+                            </Carousel>
+                          ) : (
+                            <CardMedia
+                              component="img"
+                              height="200"
+                              image={post.imageUrl}
+                              alt="post-image"
+                              onClick={() => navigate('/viewPost', { state: { postId: post._id, userId: currentUserId } })}
+                            />
+                          )}
+                          <CardContent>
+                            <Typography variant="body2">{post.description}</Typography>
+                          </CardContent>
+                        </Card>
                       </Grid>
-                    )
-                )
-                : ( // If account is public, show posts to everyone
-                  posts.map((post, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={index}>
-                      <Card>
-                        {Array.isArray(post.imageUrl) ? (
-                          <Carousel>
-                            {post.imageUrl.map((url, idx) => (
-                              <CardMedia
-                                key={idx}
-                                component="img"
-                                height="200"
-                                image={url}
-                                alt={`post-image-${idx}`}
-                                onClick={() => postModal(index)}
-                              />
-                            ))}
-                          </Carousel>
-                        ) : (
-                          <CardMedia
-                            component="img"
-                            height="200"
-                            image={post.imageUrl}
-                            alt="post-image"
-                            onClick={() => postModal(index)}
-                          />
-                        )}
-                        <CardContent>
-                          <Typography variant="body2">{post.description}</Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))
-                )
-            }
-          </Grid>          
+                    ))
+                  )
+              }
+            </Grid>
 
           ) : (
             <Grid container spacing={2}>
@@ -748,11 +743,15 @@ const UserProfile = () => {
                     {Array.isArray(post.imageUrl) ? (
                       <Carousel>
                         {post.imageUrl.map((url, idx) => (
-                          <CardMedia key={idx} component="img" height="200" image={url} alt={`saved-post-image-${idx}`} />
+                          <CardMedia key={idx} component="img" height="200" image={url} alt={`saved-post-image-${idx}`}
+                            onClick={() => navigate('/viewPost', { state: { postId: post._id, userId: post.userId } })}
+                          />
                         ))}
                       </Carousel>
                     ) : (
-                      <CardMedia component="img" height="200" image={post.imageUrl} alt="saved-post-image" />
+                      <CardMedia component="img" height="200" image={post.imageUrl} alt="saved-post-image"
+                        onClick={() => navigate('/viewPost', { state: { postId: post._id, userId: post.userId } })}
+                      />
                     )}
                     <CardContent>
                       <Typography variant="body2">{post.description}</Typography>

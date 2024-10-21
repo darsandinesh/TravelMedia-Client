@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Modal } from '@mui/material';
-import { VideoCall, AttachFile, Mic, Send, CallEnd, VideocamOff, MicOff } from '@mui/icons-material';
+import { VideoCall, AttachFile, Mic, Send } from '@mui/icons-material';
 import Navbar from '../Home/NavBar/NavBar';
 import { HiUserAdd } from "react-icons/hi";
 import { BsChatDots } from "react-icons/bs";
@@ -14,22 +14,16 @@ import { RootState } from '../../../redux/store/sotre';
 import { toast } from 'sonner';
 import socketService from '../../../socket/SocketService';
 import Button from "@mui/material/Button";
+import moment from 'moment';
 // import axios from 'axios';
 // video call 
 import { useWebRTC } from "../../../context/ProviderWebRTC";
 
 const Chat = () => {
     const [message, setMessage] = useState('');
-    // const [users, setUsers] = useState([]);
-    const [file, setFile] = useState<File | null>(null);
-    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-    const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [openSearchUser, setOpenSearchUser] = useState(false);
     const [typing, setTyping] = useState(false);
     const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
-    const [showChat, setShowChat] = useState(false);
 
     // Define the necessary states
     const [selectedFile, setSelectedFile] = React.useState<File | null>(null); // URL of the selected fill
@@ -38,7 +32,6 @@ const Chat = () => {
 
 
     const location = useLocation();
-    const videoRef = useRef<HTMLVideoElement | null>(null);
     const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
     const navigate = useNavigate()
@@ -256,6 +249,19 @@ const Chat = () => {
     //     return new Date(date).toLocaleDateString();
     // };
 
+    const formatMessageDate = (dateString: string) => {
+        const date = moment(dateString);
+        if (moment().isSame(date, 'day')) {
+            return 'Today';
+        } else if (moment().subtract(1, 'days').isSame(date, 'day')) {
+            return 'Yesterday';
+        } else if (moment().subtract(7, 'days').isBefore(date)) {
+            return date.format('dddd'); // Display the day of the week (e.g., Monday, Tuesday)
+        } else {
+            return date.format('MMM D, YYYY'); // Display the full date (e.g., Oct 12, 2023)
+        }
+    };
+
 
     const uploadMedia = async () => {
         const receiverId = location.state?.userId;
@@ -263,7 +269,7 @@ const Chat = () => {
             return;
         }
         let response;
-        let image=[]
+        let image = []
         if (selectedFileType?.includes('image')) {
             const formData = new FormData();
             formData.append('images', selectedFile);
@@ -277,7 +283,7 @@ const Chat = () => {
             );
             image = response.data.data
         }
-        let video=[]
+        let video = []
         if (selectedFileType?.includes('video')) {
             const formData = new FormData();
             formData.append('images', selectedFile);
@@ -356,18 +362,12 @@ const Chat = () => {
     };
 
 
-    // Function to open the video modal and ask for camera access
-    const handleVideoCall = () => {
-
-    };
-
-
     // Scroll to the bottom when messages change
     useEffect(() => {
         if (endOfMessagesRef.current) {
-          endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
+            endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-      }, [data?.messages]);
+    }, [data?.messages]);
 
 
     const handelSelectuser = async (id: string, avatar: string, name: string) => {
@@ -380,12 +380,14 @@ const Chat = () => {
         }
     }
 
-
-
     let basepath = true
     if (location.state?.userId) {
         basepath = false;
     }
+
+    const formatMessageTime = (dateString: string) => {
+        return moment(dateString).format('hh:mm A'); // Format time as hh:mm AM/PM
+    };
 
     return (
         <div style={{ height: '100vh', backgroundColor: '#2d3748' }}>
@@ -443,7 +445,7 @@ const Chat = () => {
                                 {location.state?.name}
                                 <br />
                                 <span style={{ fontSize: '0.8em', color: '#a0aec0' }}>
-                                    {typing ? 'typing....' : 'online'}
+                                    {typing ? 'typing....' : ''}
                                 </span>
                             </Typography>
                             <IconButton sx={{ color: 'white' }} onClick={() => location.state.userId && startCall(location.state.userId)}>
@@ -477,7 +479,7 @@ const Chat = () => {
                                         sx={{
                                             mb: 2,
                                             textAlign: message.senderId === userId ? 'right' : 'left',
-                                            maxWidth: '100%', // Set max width for messages
+                                            maxWidth: '100%',
                                         }}
                                     >
                                         <Typography
@@ -489,36 +491,56 @@ const Chat = () => {
                                                 padding: '10px',
                                             }}
                                         >
+
+
                                             {/* Display text content if available */}
-                                            {message.content && <div style={{ marginBottom: '10px' }}>{message.content}</div>}
+                                            {message.content && <div style={{ marginBottom: '10px' }}>
+                                                {message.content}
+                                                <span style={{ fontSize: '12px', color: '#a0aec0', marginLeft: '10px' }}>
+                                                    {formatMessageTime(message.createdAt)}
+                                                </span>
+                                            </div>}
 
                                             {/* Display images if available */}
                                             {message.imagesUrl && message.imagesUrl.length === 1 && (
-                                                <img
-                                                    src={message.imagesUrl[0]}
-                                                    alt="media"
-                                                    style={{
-                                                        maxWidth: '100%',
-                                                        maxHeight: '200px',
-                                                        borderRadius: '12px',
-                                                        marginBottom: '10px',
-                                                    }}
-                                                />
+                                                <>
+                                                    <img
+                                                        src={message.imagesUrl[0]}
+                                                        alt="media"
+                                                        style={{
+                                                            maxWidth: '100%',
+                                                            maxHeight: '200px',
+                                                            borderRadius: '12px',
+                                                            marginBottom: '10px',
+                                                        }}
+                                                    />
+                                                    <span style={{ fontSize: '12px', color: '#a0aec0', marginLeft: '10px' }}>
+                                                        {formatMessageTime(message.createdAt)}
+                                                    </span>
+                                                </>
+
+
                                             )}
 
                                             {/* Display video if available */}
                                             {message.videoUrl && message.videoUrl.length === 1 && (
-                                                <video
-                                                    controls
-                                                    style={{
-                                                        maxWidth: '100%',
-                                                        maxHeight: '200px',
-                                                        borderRadius: '12px',
-                                                    }}
-                                                >
-                                                    <source src={message.videoUrl[0]} type="video/mp4" />
-                                                    Your browser does not support the video tag.
-                                                </video>
+                                                <>
+                                                    <video
+                                                        controls
+                                                        style={{
+                                                            maxWidth: '100%',
+                                                            maxHeight: '200px',
+                                                            borderRadius: '12px',
+                                                        }}
+                                                    >
+                                                        <source src={message.videoUrl[0]} type="video/mp4" />
+                                                        Your browser does not support the video tag.
+                                                    </video>
+                                                    <span style={{ fontSize: '12px', color: '#a0aec0', marginLeft: '10px' }}>
+                                                        {formatMessageTime(message.createdAt)}
+                                                    </span>
+                                                </>
+
                                             )}
                                         </Typography>
                                     </Box>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/sotre';
 import List from '@mui/material/List';
@@ -72,7 +72,7 @@ const FriednSuggestion = () => {
                     <ListItem key={index} sx={{ gap: 2 }}>
                         <ListItemAvatar>
                             <Avatar>
-                                {val.profilePicture
+                                {val.profilePicture != ''
                                     ? <img src={val.profilePicture} alt={val.name} />
                                     : <ImageIcon />}
                             </Avatar>

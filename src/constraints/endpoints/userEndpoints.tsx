@@ -15,6 +15,9 @@ export const userEndpoints = {
     searchUser: `${API_GATEWAY_BASE_URL}/searchUser`,
     getFriends: `${API_GATEWAY_BASE_URL}/getFriends`,
     changeVisibility:`${API_GATEWAY_BASE_URL}/changeVisibility`,
-    newUsers:`${API_GATEWAY_BASE_URL}/newUsers`
+    newUsers:`${API_GATEWAY_BASE_URL}/newUsers`,
+    savePost:`${API_GATEWAY_BASE_URL}/savePost`,
+    membership:`${API_GATEWAY_BASE_URL}/membership`,
+    savePayment:`${API_GATEWAY_BASE_URL}/savePayment`
     
 }

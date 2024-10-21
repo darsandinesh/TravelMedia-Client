@@ -61,18 +61,19 @@ const UserLogin = () => {
             try {
                 // Send the extracted data to your backend
                 const result = await axios.post(userEndpoints.googleLogin, userData);
-                
+
                 if (result.data.success) {
                     toast.success(result.data.message);
                     const user = {
                         _id: result.data.user_data._id,
                         email: result.data.user_data.email,
                         name: result.data.user_data.name,
-                        avatar: result.data.user_data.profilePicture
+                        avatar: result.data.user_data.profilePicture,
+                        prime: result.data.user_data.isMember || false,
                     }
-                    
+
                     dispatch(userlogin({ token: result.data.token, userData: user }));
-                    
+
                     localStorage.setItem('userToken', result.data.token);
                     localStorage.setItem('refreshToken', result.data.refreshToken)
                     navigate('/home');
@@ -114,6 +115,7 @@ const UserLogin = () => {
                     email: result.data.user_data.email,
                     name: result.data.user_data.name,
                     avatar: result.data.user_data.profilePicture,
+                    prime: result.data.user_data.isMember || false,
                 }
 
                 dispatch(userlogin({ token: result.data.token, userData: user }));

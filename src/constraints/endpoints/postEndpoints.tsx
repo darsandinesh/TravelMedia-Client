@@ -12,6 +12,8 @@ export const postEndpoints = {
     getPost: `${API_GATEWAY_BASE_URL}/getPost`,
     editPost: `${API_GATEWAY_BASE_URL}/editPost`,
     deletePost: `${API_GATEWAY_BASE_URL}/deletePost`,
+    deletePostAdmin: `${API_GATEWAY_BASE_URL}/deletePostAdmin`,
     reportPost: `${API_GATEWAY_BASE_URL}/reportPost`,
     deleteImage:`${API_GATEWAY_BASE_URL}/deleteImage`,
+    getNewPosts:`${API_GATEWAY_BASE_URL}/getNewPosts`,
 }

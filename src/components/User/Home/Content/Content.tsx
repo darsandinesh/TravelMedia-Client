@@ -49,6 +49,7 @@ import axiosInstance from '../../../../constraints/axios/userAxios';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store/sotre';
 import { toast } from 'sonner';
+import { userEndpoints } from '../../../../constraints/endpoints/userEndpoints';
 
 interface Like {
     UserId?: string | null | undefined;
@@ -220,7 +221,6 @@ export default function Content() {
     const [loading, setLoading] = useState<boolean>(false);
     const [postData, setPostData] = useState<Post[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState<number[]>([]);
-    const [likes, setLikes] = useState<boolean>();
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
     const [page, setPage] = useState<number>(1)
@@ -477,7 +477,6 @@ export default function Content() {
 
 
     // replay comment filed
-
     const [replyTo, setReplyTo] = useState(null);
     const [replyText, setReplyText] = useState('');
 
@@ -494,18 +493,35 @@ export default function Content() {
 
 
     const copyToClipboard = () => {
-        const currentUrl = window.location.href; // Full URL including query parameters and hash
-        navigator.clipboard.writeText(currentUrl) // Copy to clipboard
-          .then(() => {
-            setIsCopied(true); // Update state to show feedback
-            setTimeout(() => setIsCopied(false), 2000); // Reset feedback after 2 seconds
-          })
-          .catch(err => {
-            console.error('Failed to copy the URL: ', err);
-          });
-      };
+        const currentUrl = window.location.href;
+        navigator.clipboard.writeText(currentUrl)
+            .then(() => {
+                // setIsCopied(true); 
+                // setTimeout(() => setIsCopied(false), 2000); 
+                toast.success('URL copied to clipboard')
+            })
+            .catch(err => {
+                console.error('Failed to copy the URL: ', err);
+            });
+    };
 
-
+    const savePost = async (id: string) => {
+        try {
+            const result = await axiosInstance.post(userEndpoints.savePost,
+                {
+                    userId: currentUserId,
+                    postId: id
+                }
+            );
+            if(result.data.success){
+                toast.success('Post saved successful');
+            }else{
+                toast.info('Unable to save the post')
+            }
+        } catch (error) {
+            console.log('Failed to save the post -->', error);
+        }
+    }
 
     return (
         <Container>
@@ -552,7 +568,7 @@ export default function Content() {
                                                     onClick={() => navigate(`/userProfile`, { state: { userId: post.user?.id } })}
                                                 >View Profile</MenuItem>
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
-                                                <MenuItem sx={{ color: '#555' }}>Add to Saved Post</MenuItem>
+                                                <MenuItem sx={{ color: '#555' }} onClick={() => savePost(post._id)}>Add to Saved Post</MenuItem>
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
                                                 <MenuItem sx={{ color: '#555' }} onClick={() => navigate('/viewPost', { state: { postId: post._id, userId: post.user?.id } })} >View Post</MenuItem>
                                                 {
@@ -571,7 +587,7 @@ export default function Content() {
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
                                                 <MenuItem sx={{ color: '#d32f2f' }}>Cancel</MenuItem>
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
-                                                <MenuItem sx={{ color: '#d32f2f' }}>Report</MenuItem>
+                                                <MenuItem sx={{ color: '#d32f2f' }} onClick={() => navigate('/viewPost', { state: { postId: post._id, userId: post.user?.id } })} >Report</MenuItem>
 
                                             </Menu>
                                         </Dropdown>
@@ -642,10 +658,10 @@ export default function Content() {
                                     </IconButtons>
                                     <IconButtons variant="plain" color="neutral" size="sm">
                                         <SendOutlined onClick={copyToClipboard} />
-                                        
+
                                         {isCopied && <p>URL copied to clipboard!</p>}
                                     </IconButtons>
-                                    <IconButtons sx={{marginLeft:"auto"}} variant="plain" color="neutral" size="sm">
+                                    <IconButtons sx={{ marginLeft: "auto" }} variant="plain" color="neutral" size="sm" onClick={() => savePost(post._id)}>
                                         <BookmarkBorderRoundedIcon />
                                     </IconButtons>
                                 </Box>

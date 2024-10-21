@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Divider from '@mui/joy/Divider';
 import Avatar from '@mui/joy/Avatar';
 import { IoThumbsUpOutline, IoShareSocialOutline, IoBookmarkOutline } from "react-icons/io5";
@@ -44,13 +44,9 @@ import DeleteForever from '@mui/icons-material/DeleteForever';
 import MenuButton from '@mui/joy/MenuButton';
 import Dropdown from '@mui/joy/Dropdown';
 import { MdOutlineReportGmailerrorred } from "react-icons/md";
-import InfoIcon from '@mui/icons-material/Info';
-import WarningIcon from '@mui/icons-material/Warning';
-import ReportIcon from '@mui/icons-material/Report';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Alert from '@mui/joy/Alert';
-import { ColorPaletteProp } from '@mui/joy/styles';
 
 interface Like {
     UserId?: string | null | undefined;
@@ -107,8 +103,10 @@ const ViewPost = () => {
     const [snackbar, setSnackbar] = React.useState(false);
     const [message, setMessage] = useState<boolean>(false);
 
+    const navigate = useNavigate();
+
     const location = useLocation();
-    const {id,uId} = useParams();
+    const { id, uId } = useParams();
     const postId = location.state?.postId || id;
 
     const loggeduser = useSelector((state: RootState) => state.userAuth.userData);
@@ -118,7 +116,6 @@ const ViewPost = () => {
         const fetchData = async () => {
             try {
                 const userId = location.state.userId || uId
-                console.log(userId,'------------',id,'----------',uId)
                 const result = await axiosInstance.get(`${postEndpoints.getPost}?postId=${postId || id}&userId=${userId || uId}`);
                 if (result.data.post.success) {
                     setPostData(result.data.post.data);
@@ -127,9 +124,9 @@ const ViewPost = () => {
                 setTimeout(() => {
                     setLoading(false);
                 }, 2000)
-            } catch (error:any) {
+            } catch (error: any) {
                 setLoading(false);
-                toast.error('Something went wrong',error);
+                toast.error('Something went wrong', error);
             }
         };
         fetchData();
@@ -254,7 +251,6 @@ const ViewPost = () => {
                             }),
                         };
                     } else {
-                        // Handle new comment
                         return {
                             ...prevPost!,
                             comments: [...prevPost!.comments, newComment],
@@ -262,7 +258,7 @@ const ViewPost = () => {
                     }
                 });
 
-                setComment(''); // Clear the comment input field
+                setComment('');
                 toast.success('Comment added successfully');
             } else {
                 toast.error('Failed to add comment/reply');
@@ -273,10 +269,10 @@ const ViewPost = () => {
     };
 
 
-    const handleEmojiClick = (emojiData: EmojiClickData) => {
-        setComment(comment + emojiData.emoji);
-        setShowEmoji(false);
-    };
+    // const handleEmojiClick = (emojiData: EmojiClickData) => {
+    //     setComment(comment + emojiData.emoji);
+    //     setShowEmoji(false);
+    // };
 
     const handelDelete = async () => {
         try {
@@ -301,9 +297,7 @@ const ViewPost = () => {
             try {
                 const result = await axiosInstance.put(postEndpoints.reportPost,
                     {
-                        userId: loggeduser?._id,
-                        postId: postData?._id,
-                        reason: reason
+                        userId: loggeduser?._id, postId: postData?._id, reason: reason
                     }
                 )
                 if (result.data.success) {
@@ -321,8 +315,6 @@ const ViewPost = () => {
             // alert('Please provide a reason for reporting the post.');
         }
     };
-
-
 
     const copyToClipboard = () => {
         const currentUrl = window.location.href;
@@ -346,13 +338,9 @@ const ViewPost = () => {
                 {loading ? (
                     <Box sx={{ m: 'auto', width: '50%', height: '100%' }}>
                         <AspectRatio variant="plain">
-                            <Skeleton loading={loading}>
+                            <Skeleton variant="rectangular" width="100%" height="400px">
                                 <img
-                                    src={
-                                        loading
-                                            ? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
-                                            : 'https://images.unsplash.com/photo-1686548812883-9d3777f4c137?h=400&fit=crop&auto=format&dpr=2'
-                                    }
+                                    src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
                                     alt="Loading"
                                 />
                             </Skeleton>
@@ -361,9 +349,9 @@ const ViewPost = () => {
                 ) : (
                     <div className="viewpost-image-section">
                         {postData?.imageUrl && (
-                            <Carousel showThumbs={false} infiniteLoop={true} autoPlay={false} >
+                            <Carousel showThumbs={false} infiniteLoop={true} autoPlay={false}>
                                 {postData.imageUrl.map((image, index) => (
-                                    <div key={index} style={{ height: '100%' }}>
+                                    <div key={index} style={{ height: '100%', objectFit: 'cover' }}>
                                         <img src={image} alt={`Post ${index}`} className="viewpost-image" />
                                     </div>
                                 ))}
@@ -440,7 +428,7 @@ const ViewPost = () => {
                                                     </MenuButton>
                                                     <Menu placement="bottom-end">
 
-                                                        <MenuItem>
+                                                        <MenuItem onClick={() => navigate('/editPost', { state: { data: postData } })}>
                                                             <ListItemDecorator>
                                                                 <Edit />
                                                             </ListItemDecorator>{' '}
@@ -552,6 +540,7 @@ const ViewPost = () => {
                                                     variant='outlined'
                                                     color='danger'
                                                     onClose={(event, reason) => {
+                                                        console.log(event);
                                                         if (reason === 'clickaway') {
                                                             return;
                                                         }
@@ -675,7 +664,7 @@ const ViewPost = () => {
                                                 <IoThumbsUpOutline className="action-icon" title="Like" onClick={handleLikeClick} />
 
                                         }
-                                        <IoShareSocialOutline onClick={()=>copyToClipboard()} className="action-icon" title="Share" />
+                                        <IoShareSocialOutline onClick={() => copyToClipboard()} className="action-icon" title="Share" />
                                         <IoBookmarkOutline className="action-icon" title="Save" />
                                     </div>
                                 </div>

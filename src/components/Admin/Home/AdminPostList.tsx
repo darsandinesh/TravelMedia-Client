@@ -7,22 +7,32 @@ import {
     CardContent,
     Typography,
     Grid,
-    CircularProgress,
     Pagination,
     Box,
     CardMedia,
     Avatar,
-    Skeleton
+    Skeleton,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
 } from '@mui/material';
+import { toast } from 'sonner';
 
 const AdminPostList: React.FC = () => {
-    const [posts, setPosts] = useState<any[]>([]); // State for all posts
-    const [reportedPosts, setReportedPosts] = useState<any[]>([]); // State for reported posts
+    const [posts, setPosts] = useState<any[]>([]);
+    const [reportedPosts, setReportedPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(5);
-    const [totalPosts, setTotalPosts] = useState(0); // Total posts for pagination
-    const [showReported, setShowReported] = useState(false); // Toggling between all and reported posts
+    const [totalPosts, setTotalPosts] = useState(0);
+    const [showReported, setShowReported] = useState(false);
+
+    // State for Modal
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedPostId, setSelectedPostId] = useState<string>('');
+    const [selectedUserId, setSelectedUserId] = useState<string>('');
 
     useEffect(() => {
         fetchPosts();
@@ -31,31 +41,21 @@ const AdminPostList: React.FC = () => {
     const fetchPosts = async () => {
         setLoading(true);
         try {
+            const response = await axiosInstance.get(
+                `${postEndpoints.getAllPosts}?page=${currentPage}`
+            );
+            const data = response.data.data;
+            console.log(data, '-----------------------')
+            setTotalPosts(response.data.total);
             if (showReported) {
-                // Fetch reported posts
-                const response = await axiosInstance.get(
-                    `${postEndpoints.getAllPosts}?page=${currentPage}`
-                );
-
-                const data = response.data.data.filter((val: any) => val.reportPost.length > 0);
-                setReportedPosts(data); // Set reported posts
-                setTotalPosts(response.data.total); // Total number of reported posts
+                setReportedPosts(data.filter((val: any) => val.reportPost.length > 0));
             } else {
-                // Fetch all posts
-                const response = await axiosInstance.get(
-                    `${postEndpoints.getAllPosts}?page=${currentPage}`
-                );
-                const data = response.data.data.filter((val: any) => val.reportPost.length === 0);
-                setPosts(data); // Set all posts
-                setTotalPosts(response.data.total); // Total number of posts
+                setPosts(data.filter((val: any) => val.reportPost.length === 0));
             }
         } catch (error) {
             console.error('Error fetching posts:', error);
         }
-        setTimeout(()=>{
-            setLoading(false);
-        },2000)
-        
+        setLoading(false);
     };
 
     const handlePageChange = (event: React.ChangeEvent<unknown>, pageNumber: number) => {
@@ -64,14 +64,44 @@ const AdminPostList: React.FC = () => {
 
     const toggleShowReported = () => {
         setShowReported(!showReported);
-        setCurrentPage(1); 
+        setCurrentPage(1);
+    };
+
+    const handleDeleteClick = (postId: string, userId: string) => {
+        setSelectedPostId(postId);
+        setSelectedUserId(userId)
+        setOpenModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
+        setSelectedPostId('');
+    };
+
+    const confirmDelete = async () => {
+        if (selectedPostId) {
+            try {
+                const result = await axiosInstance.put(postEndpoints.deletePostAdmin, {
+                    postId: selectedPostId,
+                    userId: selectedUserId
+                });
+                console.log(result);
+                if (result.data.success) {
+                    fetchPosts();
+                    toast.success('Post has been deleted successfull');
+                }
+            } catch (error) {
+                console.error('Error deleting post:', error);
+            }
+        }
+        handleCloseModal();
     };
 
     const displayedPosts = showReported ? reportedPosts : posts;
 
     return (
         <Box sx={{ padding: '30px', minHeight: '100vh', color: '#fff', marginTop: 10 }}>
-            <Typography variant="h4" sx={{ marginBottom: '20px', fontWeight: 'bold', color: '#fff',marginLeft:'40%' }}>
+            <Typography variant="h4" sx={{ marginBottom: '20px', fontWeight: 'bold', color: '#fff', marginLeft: '40%' }}>
                 {showReported ? 'Reported Posts' : 'All User Posts'}
             </Typography>
 
@@ -120,7 +150,7 @@ const AdminPostList: React.FC = () => {
                                     <CardContent sx={{ padding: '20px' }}>
                                         <Box display="flex" alignItems="center" mb={2}>
                                             <Avatar
-                                                src={post.user.profilePicture || 'default_avatar_url'} // User's profile picture
+                                                src={post.user.profilePicture || 'default_avatar_url'}
                                                 alt={post.user.username}
                                                 sx={{ width: 50, height: 50, marginRight: '10px' }}
                                             />
@@ -130,14 +160,14 @@ const AdminPostList: React.FC = () => {
                                         {post.imageUrl?.length > 0 && (
                                             <CardMedia
                                                 component="img"
-                                                image={post.imageUrl[0]} // Display the first image
+                                                image={post.imageUrl[0]}
                                                 alt="Post image"
                                                 sx={{ height: 200, objectFit: 'cover', marginBottom: '10px' }}
                                             />
                                         )}
 
                                         <Typography>Description: {post.description || 'No description'}</Typography>
-                                        <Typography>Location: {post.location || 'Not specified'}</Typography>
+                                        <Typography>Location: {post.location.split(',')[0] || 'Not specified'}</Typography>
                                         <Typography>
                                             Created At: {new Date(post.created_at).toLocaleString()}
                                         </Typography>
@@ -146,22 +176,41 @@ const AdminPostList: React.FC = () => {
                                             <Box
                                                 sx={{
                                                     marginTop: '10px',
-                                                    backgroundColor: '#d32f2f',
+                                                    backgroundColor: '#213547',
                                                     padding: '10px',
                                                     borderRadius: '8px',
+                                                    border: '1px solid #ffebee', // Light red border
                                                 }}
                                             >
-                                                <Typography sx={{ fontWeight: 'bold', color: '#fff' }}>
+                                                <Typography sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
                                                     Reported: {post.reportPost.length} times
                                                 </Typography>
+                                                
                                                 {post.reportPost.map((report: any, index: any) => (
-                                                    <div key={index}>
-                                                        <Typography>Report Reason: {report.reason}</Typography>
-                                                        <Typography>Status: {report.status}</Typography>
-                                                    </div>
+                                                    <>
+                                                    <hr />
+                                                        <div key={index}>
+                                                            <Typography>Report Reason: {report.reason}</Typography>
+                                                            <Typography>Status: {report.status}</Typography>
+
+                                                        </div>
+                                                        
+                                                    </>
+
                                                 ))}
                                             </Box>
                                         )}
+                                        {
+                                            showReported &&
+                                            <Button
+                                                variant="contained"
+                                                color="error"
+                                                sx={{ marginTop: '10px' }}
+                                                onClick={() => handleDeleteClick(post._id, post.user.id)} // Pass only the post ID
+                                            >
+                                                Delete Post
+                                            </Button>
+                                        }
                                     </CardContent>
                                 </Card>
                             </Grid>
@@ -177,8 +226,25 @@ const AdminPostList: React.FC = () => {
                     onChange={handlePageChange}
                     color="primary"
                 />
-                
             </Box>
+
+            {/* Confirmation Dialog */}
+            <Dialog open={openModal} onClose={handleCloseModal}>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this post? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseModal} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={confirmDelete} color="error">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

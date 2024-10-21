@@ -15,25 +15,57 @@ import StatusModal from './StatusModal';
 import axiosInstance from '../../../constraints/axios/adminAxios';
 import Spinner from '../../Spinner/Spinner';
 import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: theme.palette.grey[900],
     color: theme.palette.common.white,
     fontSize: '1rem',
+    fontWeight: 'bold',
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: '0.875rem',
+    color: theme.palette.common.white,
   },
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
+    backgroundColor: theme.palette.grey[800],
   },
   '&:last-child td, &:last-child th': {
     border: 0,
   },
+  '&:hover': {
+    backgroundColor: theme.palette.grey[700],
+  },
+}));
+
+const SearchInput = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: theme.palette.grey[600],
+    },
+    '&:hover fieldset': {
+      borderColor: theme.palette.primary.main,
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: theme.palette.primary.main,
+    },
+    color: theme.palette.common.white, 
+  },
+  '& .MuiInputLabel-root': {
+    color: theme.palette.grey[400], 
+  },
+}));
+
+const ToggleButton = styled(Button)(({ theme }) => ({
+  marginRight: theme.spacing(1),
+  '&:hover': {
+    backgroundColor: theme.palette.secondary,
+  },
+  color: theme.palette.common.white, 
 }));
 
 interface User {
@@ -50,17 +82,15 @@ export default function CustomizedTables() {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [spinner, setSpinner] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(''); // Add search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showBlocked, setShowBlocked] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/admin/userlist');
-        console.log(response)
-        setRows(response.data); // Update rows with fetched data
-        if (response.data) {
-          setSpinner(prev => !prev)
-        }
+        console.log(response);
+        setRows(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -93,13 +123,11 @@ export default function CustomizedTables() {
   const handleStatusUpdated = async (newStatus: boolean) => {
     if (selectedUser) {
       try {
-        // Update status in the backend
         await axiosInstance.post('/admin/changeStatus', {
           email: selectedUser.email,
           isBlocked: newStatus,
         });
 
-        // Update local state
         setRows(rows.map((row) =>
           row.id === selectedUser.id
             ? { ...row, isBlocked: newStatus }
@@ -108,15 +136,14 @@ export default function CustomizedTables() {
         handleCloseModal();
       } catch (error) {
         console.error('Error updating user status:', error);
-        // Optionally show an error message to the user
       }
     }
   };
 
-  // Filter rows based on the search query
   const filteredRows = rows.filter((row) =>
-    row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    row.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (showBlocked ? row.isBlocked : !row.isBlocked) &&
+    (row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      row.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const displayedRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -130,10 +157,10 @@ export default function CustomizedTables() {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          sx={{ width: '100%', overflowX: 'auto', flexDirection: 'column' }}
+          sx={{ width: '100%', overflowX: 'auto', flexDirection: 'column', backgroundColor: '#213547', minHeight: '100vh' }}
         >
           {/* Search Input */}
-          <TextField
+          <SearchInput
             label="Search by Name or Email"
             variant="outlined"
             sx={{ width: '50%', mt: 2 }}
@@ -141,7 +168,17 @@ export default function CustomizedTables() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          <TableContainer component={Paper} sx={{ maxWidth: '100%', mt: 3 }}>
+          {/* Toggle Buttons */}
+          <Box sx={{ mt: 2 }}>
+            <ToggleButton variant="contained" onClick={() => setShowBlocked(false)}>
+              Show Unblocked Users
+            </ToggleButton>
+            <ToggleButton variant="contained" onClick={() => setShowBlocked(true)}>
+              Show Blocked Users
+            </ToggleButton>
+          </Box>
+
+          <TableContainer component={Paper} sx={{ maxWidth: '100%', mt: 3, backgroundColor: '#424242', borderRadius: '8px' }}>
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
               <TableHead>
                 <TableRow>

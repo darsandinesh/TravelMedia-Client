@@ -77,12 +77,20 @@ export default function Navbar() {
       try {
         const result = await axiosInstance.get(`${messageEndpoints.getNotification}?id=${userId}`)
         console.log(result)
-        if(result.data.success && result.data?.data){
+        if (result.data.success && result.data?.data) {
           setNotifications(result.data.data);
-        }else{
+          const count = result.data.data.reduce((acc: number, data: any) => {
+            if (!data.isRead) {
+              acc++;
+            }
+            return acc
+          }, 0);
+          setUnreadNotifications(count)
+          console.log(result.data.data, 'data for notification')
+        } else {
 
         }
-        
+
       } catch (error) {
 
       }
@@ -93,6 +101,7 @@ export default function Navbar() {
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
+
   };
 
   const handleCloseNavMenu = () => {
@@ -142,18 +151,20 @@ export default function Navbar() {
                           <img
                             src={notification.avatar}
                             alt={notification.userName}
-                            style={{ borderRadius: '50%', width: '40px', height: '40px' }} 
+                            style={{ borderRadius: '50%', width: '40px', height: '40px' }}
                           />
                         ) : (
-                          <Avatar>{'U'}</Avatar> 
+                          <Avatar>{'U'}</Avatar>
                         )
                       }
                     </AspectRatio>
                   </ListItemIcon>
                   <ListItemText primary={notification.message}
-                  
+
                   />
-                  <Chip label={'View Profile'} variant="outlined" color="primary" />
+                  <Chip label={'View Profile'} variant="outlined" color="primary" style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/userProfile`, { state: { userId: notification.userId } })}
+                  />
                   <hr />
                 </ListItem>
               ))
@@ -166,7 +177,10 @@ export default function Navbar() {
 
   const handleNotificationsClick = () => {
     setOpen(true);
-    setUnreadNotifications(0); // Reset unread count when opening the drawer
+    if (unreadNotifications > 0) {
+      axiosInstance.get(`${messageEndpoints.readNotification}?id=${userId}`)
+      setUnreadNotifications(0);
+    }
   };
 
   return (

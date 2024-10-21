@@ -1,23 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Typography,
-  Grid,
-  Paper,
-  List,
-  ListItem,
-  Divider,
-  ListItemText,
-  ListItemAvatar,
-  Avatar,
-  Box,
-} from '@mui/material';
+import { Typography, Grid, Paper, List, ListItem, Divider, ListItemText, ListItemAvatar, Avatar, Box, CardContent, Card } from '@mui/material';
 import axiosInstance from '../../../constraints/axios/adminAxios';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { BarChart, PieChart } from '@mui/x-charts';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { adminEndpoints } from '../../../constraints/endpoints/adminEndpoints';
+import { postEndpoints } from '../../../constraints/endpoints/postEndpoints';
 
-// Create a dark theme
+// Dark theme
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',
@@ -28,7 +19,7 @@ const darkTheme = createTheme({
       main: '#f48fb1',
     },
     background: {
-      default: '#121212',
+      default: '#213547',
       paper: '#1d1d1d',
     },
     text: {
@@ -57,22 +48,66 @@ const AdminDashboard = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalPosts, setTotalPosts] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [normalUsers, setNormalUsers] = useState<number>(0);
+  const [primeUsers, setPrimeUsers] = useState<number>(0);
+  const [paymentData, setPaymentData] = useState<{ month: string; amount: number }[]>([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersResponse, postsResponse, totalUsersResponse] = await Promise.all([
-          axiosInstance.get('/admin/getNewUsers'),
-          axiosInstance.get('/post/getNewPosts'),
-          axiosInstance.get('/admin/getTotalUsers'),
+        const [
+          usersResponse,
+          postsResponse,
+          totalUsersResponse,
+          userDataResponse,
+        ] = await Promise.all([
+          axiosInstance.get(`${adminEndpoints.getNewUsers}`),
+          axiosInstance.get(`${postEndpoints.getNewPosts}`),
+          axiosInstance.get(`${adminEndpoints.getTotalUsers}`),
+          axiosInstance.get(`${adminEndpoints.getUserData}`),
         ]);
 
         setUsers(usersResponse.data.data);
         setPosts(postsResponse.data.data);
         setTotalUsers(totalUsersResponse.data.count);
         setTotalPosts(postsResponse.data.count);
+        setTotalRevenue(userDataResponse.data.data.totalRevenue[0].totalRevenue);
+        setNormalUsers(userDataResponse.data.data.normalUsers);
+        setPrimeUsers(userDataResponse.data.data.primeUsers);
+        console.log(userDataResponse.data.data.prime);
+        let data = userDataResponse.data.data.prime;
+
+        if (data.length > 0) {
+          const newPaymentData: { month: string; amount: number }[] = [];
+
+          // Create an object to aggregate amounts by month
+          const monthAggregation: { [key: string]: number } = {};
+
+          data.forEach((val: any) => {
+            const dateString = val.membership.startDate;
+            const date = new Date(dateString);
+            const month = date.getMonth() + 1;
+            const amount = val.membership.amount;
+
+            const monthKey = month.toString();
+
+            // Aggregate the amount for each month
+            if (!monthAggregation[monthKey]) {
+              monthAggregation[monthKey] = 0; // Initialize if not exist
+            }
+            monthAggregation[monthKey] += amount; // Add to the existing amount
+          });
+
+          // Convert aggregated object to array format
+          for (const [month, amount] of Object.entries(monthAggregation)) {
+            newPaymentData.push({ month, amount });
+          }
+
+          setPaymentData(newPaymentData);
+        }
       } catch (error) {
         localStorage.removeItem('adminToken');
         navigate('/admin');
@@ -98,40 +133,127 @@ const AdminDashboard = () => {
           },
         }}
       >
-        {/* Summary Information (Total Users and Posts) */}
+        <Grid container spacing={3} sx={{ marginBottom: '20px' }}>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ backgroundColor: 'background.paper', color: 'text.primary', boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Total Users
+                </Typography>
+                <Typography variant="h4" color="primary">
+                  {totalUsers}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ backgroundColor: 'background.paper', color: 'text.primary', boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Total Posts
+                </Typography>
+                <Typography variant="h4" color="primary">
+                  {totalPosts}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ backgroundColor: 'background.paper', color: 'text.primary', boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Total Revenue
+                </Typography>
+                <Typography variant="h4" color="primary">
+                  Rs. {totalRevenue.toLocaleString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
         <Paper
           elevation={3}
           sx={{
             padding: '20px',
             marginBottom: '20px',
-            display: 'flex',
-            justifyContent: 'space-between',
             backgroundColor: 'background.paper',
             color: 'text.primary',
-            '@media (max-width: 600px)': {
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-            },
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <Typography variant="h6">Total Users</Typography>
-              <Typography variant="h4" color="primary">
-                {totalUsers}
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{
+              textAlign: 'center',
+              marginBottom: '10px',
+            }}
+          >
+            Normal Users vs Prime Users
+          </Typography>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: 400, marginBottom: '10px' }}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="body1" color="#02b2af">
+                Normal Users
               </Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="h6">Total Posts</Typography>
-              <Typography variant="h4" color="primary">
-                {totalPosts}
+              <Typography variant="h6" color="#02b2af">
+                {normalUsers}
               </Typography>
-            </Grid>
-          </Grid>
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="body1" color="#72ccff">
+                Prime Users
+              </Typography>
+              <Typography variant="h6" color="#72ccff">
+                {primeUsers}
+              </Typography>
+            </Box>
+          </Box>
+
+          <PieChart
+            series={[{
+              data: [
+                { id: 0, label: 'Normal Users', value: normalUsers },
+                { id: 1, label: 'Prime Users', value: primeUsers },
+              ],
+            }]}
+            width={400}
+            height={300}
+            sx={{ margin: '0 auto' }}
+          />
         </Paper>
 
-        {/* Bar Chart (User and Post Activity) */}
+        {/* Payment Data Bar Chart */}
+        <Paper
+          elevation={3}
+          sx={{
+            padding: '20px',
+            marginBottom: '20px',
+            backgroundColor: 'background.paper',
+            color: 'text.primary',
+          }}
+        >
+          <Typography variant="h6" gutterBottom sx={{ marginLeft: '40%' }}>
+            Payment Data (Monthly Revenue)
+          </Typography>
+          <Box sx={{ width: '100%', height: '300px' }}>
+            <BarChart
+              sx={{ width: '100%', height: '100%' }} // Set width and height to 100%
+              xAxis={[{ scaleType: 'band', data: paymentData.map((item) => item.month) }]}
+              series={[{
+                data: paymentData.map((item) => item.amount),
+              }]}
+              barLabel="value"
+            />
+          </Box>
+        </Paper>
+
+        {/* Bar Chart for User and Post Activity */}
         <Paper
           elevation={3}
           sx={{
@@ -144,17 +266,17 @@ const AdminDashboard = () => {
           <Typography variant="h6" gutterBottom sx={{ marginLeft: '40%' }}>
             User and Post Activity
           </Typography>
-          <BarChart
-            sx={{ marginLeft: '20%', paddingLeft: '10%' }}
-            xAxis={[{ scaleType: 'band', data: ['Users', 'Posts'] }]}
-            series={[{ data: [totalUsers, totalPosts] }]}
-            width={800}
-            height={300}
-            barLabel="value"
-          />
+          <Box sx={{ width: '100%', height: '300px' }}>
+            <BarChart
+              sx={{ width: '100%', height: '100%' }} // Set width and height to 100%
+              xAxis={[{ scaleType: 'band', data: ['Users', 'Posts'] }]}
+              series={[{ data: [totalUsers, totalPosts] }]}
+              barLabel="value"
+            />
+          </Box>
         </Paper>
 
-        {/* Newly Registered Users and Newly Created Posts */}
+        {/* New Users List */}
         <Grid container spacing={3}>
           {/* Users Section */}
           <Grid item xs={12} md={6}>
@@ -180,13 +302,11 @@ const AdminDashboard = () => {
                       <ListItemText
                         primary={user.name}
                         secondary={
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            sx={{ color: 'text.secondary', display: 'inline' }}
-                          >
-                            {user.email}
-                          </Typography>
+                          <>
+                            <Typography component="span" variant="body2" color="text.secondary">
+                              {user.email}
+                            </Typography>
+                          </>
                         }
                       />
                     </ListItem>
@@ -203,6 +323,7 @@ const AdminDashboard = () => {
               elevation={3}
               sx={{
                 padding: '20px',
+                marginBottom: '20px',
                 backgroundColor: 'background.paper',
                 color: 'text.primary',
               }}
@@ -214,19 +335,17 @@ const AdminDashboard = () => {
                 {posts.map((post) => (
                   <React.Fragment key={post.id}>
                     <ListItem alignItems="flex-start">
-                      <ListItemAvatar sx={{ paddingRight: '20px' }}>
-                        <Avatar variant="square" src={post.imageUrl[0]} sx={{ width: 56, height: 56 }} />
+                      <ListItemAvatar>
+                        <Avatar alt={post.description} src={post.imageUrl} />
                       </ListItemAvatar>
                       <ListItemText
-                        primary={post.location}
+                        primary={post.description}
                         secondary={
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            sx={{ color: 'text.secondary', display: 'inline' }}
-                          >
-                            {post.description}
-                          </Typography>
+                          <>
+                            <Typography component="span" variant="body2" color="text.secondary">
+                              {post.location.split(',')[0]}
+                            </Typography>
+                          </>
                         }
                       />
                     </ListItem>

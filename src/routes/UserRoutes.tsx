@@ -14,6 +14,8 @@ import Chat from "../components/User/Chat/Chat"
 import SearchPage from "../pages/User/SearchPage"
 import ViewPost from "../components/User/Home/ViewPost/ViewPost"
 import EditPost from "../components/User/Post/EditPost"
+import MapComponent from "../components/User/Map/MapComponent"
+import SuccessPage from "../components/User/FindBuddy/SuccessPage"
 
 
 function UserRoutes() {
@@ -34,6 +36,8 @@ function UserRoutes() {
             <Route path="/viewPost" element={<ViewPost />} />
             <Route path="/viewPost/:id/:uId" element={<ViewPost />} />
             <Route path='/editPost' element={<EditPost />} />
+            <Route path='/map' element={<MapComponent />} />
+            <Route path='/success' element={<SuccessPage />} />
             <Route path='*' element={<ErrorPage />} />
         </Routes>
     )
