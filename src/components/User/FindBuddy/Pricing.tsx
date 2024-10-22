@@ -23,12 +23,9 @@ function Pricing() {
             if (!stripe) {
                 throw new Error("Stripe.js failed to load.");
             }
-
             const result = await axiosInstance.get(`${userEndpoints.membership}?id=${userId}`)
             console.log(result.data);
             if (result.data.success && result.data.sessionId) {
-                // Redirect the user to the Stripe checkout page
-
                 const { sessionId } = result.data;
                 const { error } = await stripe.redirectToCheckout({
                     sessionId: sessionId,
@@ -108,7 +105,7 @@ function Pricing() {
                                             size="lg"
                                             sx={{ my: 2 }}
                                             onClick={handleClick}
-                                            disabled={loading}  // Disable button when loading
+                                            disabled={loading} 
                                         >
                                             {loading ? (
                                                 <CircularProgress color='success' />

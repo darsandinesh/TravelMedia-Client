@@ -101,18 +101,34 @@ const MapComponent = (props: any) => {
     fetchData();
   }, [props.start]);
 
-  const handleInputChange = async (event: any, value: string) => {
+  const handleInputChange = (event: any, value: string) => {
+    console.log(event);
     setStartLocation(value);
-    if (value) {
-      const predictions = await fetchCoordinates(value);
-      setStartCoordinates(predictions[0].geometry.location);
-      setSuggestions(predictions || []);
-    } else {
+    if (!value) {
       setSuggestions([]);
+      return;
     }
+
+    debounceFetchCoordinates(value);
   };
 
+  // Debounce function
+  const debounceFetchCoordinates = (() => {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    return (value: string) => {
+      if (timeout) clearTimeout(timeout);
+
+      timeout = setTimeout(async () => {
+        const predictions = await fetchCoordinates(value);
+        setStartCoordinates(predictions[0].geometry.location);
+        setSuggestions(predictions || []);
+      }, 300); // Adjust the delay as needed (300ms in this case)
+    };
+  })();
+
   const handleSuggestionSelect = async (event: any, value: any | null) => {
+    console.log(event)
     if (value) {
       setStartLocation(value.description);
       const coordinates = await fetchCoordinate(value.description);

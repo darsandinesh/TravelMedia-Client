@@ -27,7 +27,7 @@ interface PostData {
 }
 
 export default function AddPost() {
-  const inputRef = useRef(null);
+  const inputRef = useRef<google.maps.places.SearchBox | null>(null);
   const [activeStep, setActiveStep] = useState(0);
   const [suggestions, setSuggestions] = useState([]);
   const [postData, setPostData] = useState<PostData>({
@@ -153,7 +153,7 @@ export default function AddPost() {
     formData.append("userId", userId ?? "");
 
     postData.files.forEach((file) => {
-      formData.append("files", file); // Ensure the field name matches
+      formData.append("files", file); 
     });
 
     try {
@@ -182,12 +182,12 @@ export default function AddPost() {
 
   const handlePlaceChange = () => {
     if (inputRef.current) {
-      console.log(inputRef.current, 'ref content')
-      const places = inputRef.current?.getPlaces();
-      const place = places && places[0] ? places[0].formatted_address : "";
-      setPostData({ ...postData, place });
+        console.log(inputRef.current, 'ref content');
+        const places = inputRef.current.getPlaces();
+        const place = places && places[0] ? places[0].formatted_address || "" : "";
+        setPostData({ ...postData, place });
     }
-  };
+};
 
   return (
     <Box

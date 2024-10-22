@@ -89,7 +89,7 @@ export default function CustomizedTables() {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/admin/userlist');
-        console.log(response);
+        // console.log(response);
         setRows(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -102,6 +102,7 @@ export default function CustomizedTables() {
   }, []);
 
   const handleChangePage = (event: unknown, newPage: number) => {
+    console.log(event);
     setPage(newPage);
   };
 
@@ -127,12 +128,14 @@ export default function CustomizedTables() {
           email: selectedUser.email,
           isBlocked: newStatus,
         });
-
-        setRows(rows.map((row) =>
-          row.id === selectedUser.id
-            ? { ...row, isBlocked: newStatus }
-            : row
-        ));
+        setRows(() => 
+          rows.map((row) => {
+            return row.email === selectedUser.email
+              ? { ...row, isBlocked: newStatus }
+              : row;  
+          })
+        );        
+        
         handleCloseModal();
       } catch (error) {
         console.error('Error updating user status:', error);

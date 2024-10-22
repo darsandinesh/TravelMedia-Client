@@ -49,16 +49,13 @@ const SearchUser = ({ onClose }: fn) => {
     const handleSearch = async () => {
         setLoading(true);
         try {
-            console.log(debouncedSearchTerm, '---------');
             const result = await axiosInstance.post(userEndpoints.searchUser, {
                 search: debouncedSearchTerm
             });
-            console.log(result.data.data)
             if (result.data.success) {
                 if (result.data.data.length === 0) {
                     toast.info("No user found");
                 }
-                console.log(result.data.data, 'data from searched');
                 setFilteredUsers(result.data.data);
             } else {
                 toast.info(result.data.message);
@@ -84,16 +81,12 @@ const SearchUser = ({ onClose }: fn) => {
             if (response.data.success) {
                 const chatId = response.data.data._id;
                 console.log("Chat ID from server:", chatId);
-                // navigate(`/message/?chatId=${chatId}&recieverId=${id}`);
                 navigate('/chats', { state: { userId: id, avatar, name, chat: response.data.data } })
                 onClose()
             }
         } catch (error) {
             console.log("Error occurred while navigating message area", error);
         }
-
-
-
     }
 
     return (
@@ -141,7 +134,7 @@ const SearchUser = ({ onClose }: fn) => {
                 />
                 <Button
                     variant="contained"
-                    onClick={() => setDebouncedSearchTerm(searchTerm)} // Trigger search on button click
+                    onClick={() => setDebouncedSearchTerm(searchTerm)}
                     sx={{
                         bgcolor: '#4a5568',
                         color: 'white',

@@ -1,45 +1,12 @@
-import axios from 'axios';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import {
-  CircularProgress,
-  Typography,
-  Card,
-  CardMedia,
-  Button,
-  Avatar,
-  Divider,
-  Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Tabs,
-  Tab,
-  Box,
-  CardContent,
+import { CircularProgress, Typography, Card, CardMedia, Button, Avatar, Divider, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tabs, Tab, Box, CardContent,
 } from '@mui/material';
 import { IoSettingsOutline } from "react-icons/io5";
-
 // joy component
-import Buttons from '@mui/joy/Button';
 import Modal from '@mui/joy/Modal';
-import ModalClose from '@mui/joy/ModalClose';
 import Typographys from '@mui/joy/Typography';
 import Sheet from '@mui/joy/Sheet';
-import AspectRatio from '@mui/joy/AspectRatio';
-import Avatars from '@mui/joy/Avatar';
-import Boxs from '@mui/joy/Box';
-import Cards from '@mui/joy/Card';
-import CardCover from '@mui/joy/CardCover';
-import Chip from '@mui/joy/Chip';
-import IconButton from '@mui/joy/IconButton';
-import Link from '@mui/joy/Link';
-import Favorite from '@mui/icons-material/Favorite';
-import Visibility from '@mui/icons-material/Visibility';
-import CreateNewFolder from '@mui/icons-material/CreateNewFolder';
-
 // setting imports 
 import List from '@mui/joy/List';
 import ListDivider from '@mui/joy/ListDivider';
@@ -52,10 +19,6 @@ import { RiGitRepositoryPrivateFill } from "react-icons/ri";
 import { MdOutlineDeleteForever } from "react-icons/md";
 import { FaUserEdit } from "react-icons/fa";
 
-
-
-
-
 import Carousel from 'react-material-ui-carousel';
 import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/userAxios';
@@ -65,7 +28,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { updateUser } from '../../../redux/slice/UserSlice';
 import ShowFriends from './ShowFriends';
-import { blue } from '@mui/material/colors';
 import { userEndpoints } from '../../../constraints/endpoints/userEndpoints';
 
 interface User {
@@ -147,27 +109,17 @@ const UserProfile = () => {
         };
 
         setIsPrivate(response.data.userData.data.isPrivate)
-        console.log("1")
         const userPosts = response?.data?.result.data || [];
-        console.log("11", response?.data?.savedPosts[0])
-
-        // const savedPost = response?.data?.savedPosts[0].data
-
-        console.log("2")
-
         setUser(userData);
         setEditedUser(userData);
         if (userPosts.length > 0) {
           setPosts(userPosts);
         }
-        console.log("3")
 
         if (response?.data?.savedPosts[0] == undefined ) {
           setSavedPosts([]);
         }else{
-          // setSavedPosts([]);
           setSavedPosts(response?.data?.savedPosts[0].data);
-
         }
         setLoading(false);
         setIsFollowing(userData.followers.includes(currentUserId));
@@ -177,7 +129,6 @@ const UserProfile = () => {
         toast.error('Unable to fetch the user details');
       }
     };
-
     fetchUserProfile();
   }, [paramUserId, currentUserId]);
 
@@ -251,6 +202,7 @@ const UserProfile = () => {
   };
 
   const handleTabChange = (event: React.ChangeEvent<{}>, newValue: string) => {
+    console.log(event)
     setActiveTab(newValue);
   };
 
@@ -263,11 +215,9 @@ const UserProfile = () => {
         });
         if (response.data.success) {
           setIsFollowing(true);
-          setUser(prev => {
+          setUser((prev:any) => {
             if (prev) {
-              // Create a new array with the new follower added
               const updatedFollowers = [...prev.followers, currentUserId];
-
               return {
                 ...prev,
                 followers: updatedFollowers
@@ -296,7 +246,6 @@ const UserProfile = () => {
           setIsFollowing(false);
           setUser(prev => {
             if (prev) {
-              // Create a new array without the follower
               const updatedFollowers = prev.followers.filter(id => id !== currentUserId);
 
               return {
@@ -361,18 +310,15 @@ const UserProfile = () => {
 
 
   const handleToggle = async () => {
-    // Update the state locally
     const updatedIsPrivate = !isPrivate;
     setIsPrivate(updatedIsPrivate);
 
     try {
-      // Make an API call to update the isPrivate status in the backend
       const result = await axiosInstance.post(userEndpoints.changeVisibility, {
         isPrivate: updatedIsPrivate,
         userId: currentUserId,
       });
 
-      // Optionally show a success message
       console.log(result, 'Status updated successfully');
       if (result.data.success) {
         toast.success(result.data.message);
@@ -380,12 +326,9 @@ const UserProfile = () => {
         toast.error(result.data.message)
       }
     } catch (error) {
-      // Handle the error, e.g., show a toast message
       console.error('Error updating status', error);
     }
   };
-
-
 
   return (
     <Box
@@ -405,8 +348,7 @@ const UserProfile = () => {
             style={{ width: 96, height: 96, marginRight: 16, border: '4px solid #1976d2', borderRadius: '50%' }}
           />
 
-
-          <div style={{ flex: 1 }}>
+         <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <Typography variant="h4" gutterBottom>
                 {user?.name}
@@ -513,13 +455,6 @@ const UserProfile = () => {
                             <ListItem nested>
                               <List
                                 aria-label="Network"
-                                sx={{
-                                  // [`& .${sheetClasses.root}`]: {
-                                  //   p: 0.5,
-                                  //   lineHeight: 0,
-                                  //   borderRadius: 'sm',
-                                  // },
-                                }}
                               >
                                 <ListItem>
                                   <ListItemDecorator>
@@ -528,14 +463,7 @@ const UserProfile = () => {
                                     </Sheet>
                                   </ListItemDecorator>
                                   <ListItemContent htmlFor="airplane-mode" component="label">
-                                    {
-                                      isPrivate
-                                        ?
-                                        'Private Account'
-                                        :
-                                        'Public Account'
-                                    }
-
+                                    {  isPrivate ?  'Private Account'  :  'Public Account'  }
                                   </ListItemContent>
 
                                   <Switch
@@ -699,7 +627,7 @@ const UserProfile = () => {
                         </Grid>
                       )
                   )
-                  : ( // If account is public, show posts to everyone
+                  : ( 
                     posts.map((post, index) => (
                       <Grid item xs={12} sm={6} md={4} key={index}>
                         <Card>
@@ -842,12 +770,7 @@ const UserProfile = () => {
       </Dialog>
 
       {/* post modal */}
-
-      {
-        openFriends && (
-          <ShowFriends onClose={() => setOpenFriends(false)} />
-        )}
-
+      { openFriends && ( <ShowFriends onClose={() => setOpenFriends(false)} />  )}
     </Box>
   );
 };

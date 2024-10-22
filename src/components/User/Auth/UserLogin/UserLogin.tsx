@@ -174,8 +174,6 @@ const UserLogin = () => {
                             }
                         });
 
-                        console.log(otp, '------------------otp');
-
                         if (otp) {
                             const localOtp = otp.trim();
                             const OTP = localStorage.getItem('verifyEmail')?.trim();

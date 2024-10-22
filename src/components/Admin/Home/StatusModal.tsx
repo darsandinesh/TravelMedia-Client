@@ -6,7 +6,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-// import axios from 'axios';
 import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/adminAxios';
 
@@ -16,7 +15,7 @@ interface StatusModalProps {
   userName: string;
   userEmail: string;
   isBlocked: boolean;
-  handleStatusUpdated: (status: boolean) => void; // Callback to update status in the parent component
+  handleStatusUpdated: (status: boolean) => void;
 }
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -62,7 +61,6 @@ const StatusModal: React.FC<StatusModalProps> = ({
       });
       console.log(response, '---------------------response in handel change')
       if (response.data.success) {
-        // Notify parent component of status change
         toast.success(response.data.message)
         handleStatusUpdated(!isBlocked);
         handleClose();
@@ -71,7 +69,6 @@ const StatusModal: React.FC<StatusModalProps> = ({
       }
     } catch (error) {
       console.error('Failed to update user status:', error);
-      // Optionally show an error message to the user
     }
   };
 

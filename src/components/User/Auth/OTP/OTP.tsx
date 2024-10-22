@@ -35,7 +35,6 @@ const OTP = () => {
       newOtp[index] = value;
       setOtp(newOtp);
 
-      // Move to the next input field if the current one is filled
       if (value !== '' && index < otp.length - 1) {
         inputRefs.current[index + 1]?.focus();
       }
@@ -56,7 +55,6 @@ const OTP = () => {
       if (timer > 0) {
         let userData = localStorage.getItem('user');
         const result = await axios.post(userEndpoints.verifyOtp, userData);
-        console.log(result, '-----------------------------------------otp');
         localStorage.removeItem('otp');
         localStorage.removeItem('otp-timer');
         if (result.data.success) {

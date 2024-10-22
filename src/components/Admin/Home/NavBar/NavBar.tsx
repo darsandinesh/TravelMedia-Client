@@ -32,9 +32,9 @@ const NavBar: React.FC = () => {
 
   const handleCloseNavMenu = (page: string) => {
     if (page === 'UserManagement') {
-      navigate('/admin/user-management'); // Adjust the route as needed
+      navigate('/admin/user-management'); 
     } else if (page === 'Dashboard') {
-      navigate('/admin/dashboard'); // Adjust the route as needed
+      navigate('/admin/dashboard'); 
     }else if(page === 'Posts'){
       navigate('/admin/posts');
     }

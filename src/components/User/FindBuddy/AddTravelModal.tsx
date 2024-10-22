@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Button from '@mui/material/Button';
-import './AddTravelModal.css'; // Import the CSS file
+import './AddTravelModal.css';
 import { IoMdClose } from "react-icons/io";
 import { toast } from 'sonner';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -243,7 +242,7 @@ const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose 
                         <ul style={{ listStyleType: 'none', padding: 0, maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#1f2937' }}>
                             {places.length > 0 &&
                                 places.map((place, index) => (
-                                    <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: 'pointer', color: 'white', marginBottom: '5px', padding: '8px', borderBottom: '1px solid #ccc', transition: 'background-color 0.3s', ':hover': { backgroundColor: '#2a2e35' } }}>
+                                    <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: 'pointer', color: 'white', marginBottom: '5px', padding: '8px', borderBottom: '1px solid #ccc', transition: 'background-color 0.3s' }}>
                                         {place.description}
                                     </li>
                                 ))}

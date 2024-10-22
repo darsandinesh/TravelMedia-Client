@@ -15,8 +15,8 @@ import { toast } from 'sonner';
 import socketService from '../../../socket/SocketService';
 import Button from "@mui/material/Button";
 import moment from 'moment';
-// import axios from 'axios';
-// video call 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
 import { useWebRTC } from "../../../context/ProviderWebRTC";
 
 const Chat = () => {
@@ -26,9 +26,9 @@ const Chat = () => {
     const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
 
     // Define the necessary states
-    const [selectedFile, setSelectedFile] = React.useState<File | null>(null); // URL of the selected fill
-    const [selectedFileType, setSelectedFileType] = React.useState<string>(''); // MIME type of the selected file
-    const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState<boolean>(false); // Modal open/close state
+    const [selectedFile, setSelectedFile] = React.useState<File | null>(null); 
+    const [selectedFileType, setSelectedFileType] = React.useState<string>(''); 
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState<boolean>(false); 
 
 
     const location = useLocation();
@@ -37,15 +37,12 @@ const Chat = () => {
     const navigate = useNavigate()
 
     // calling functionla
-
     const { startCall } = useWebRTC();
 
     //socker implementation
-
     const [chats, setChats] = useState<ChatData[]>([]);
     const [, setNewMessageChatIds] = useState<Set<string>>(new Set());
     const [data, setData] = useState<ImageData | null>(null);
-
     const userId = useSelector((store: RootState) => store.userAuth.userData?._id);
 
     const loadConversation = async () => {
@@ -66,12 +63,10 @@ const Chat = () => {
             }
         } catch (error) {
             console.log("Error occurred loading conversation users", error);
-            // toast("Error occurred, try later");
         }
     };
 
     const chat = location.state?.chat;
-    console.log('chat', chat)
 
     useEffect(() => {
         loadConversation();
@@ -82,7 +77,6 @@ const Chat = () => {
         }
 
         socketService.onUserStatusChanged((data) => {
-            console.log('---------------------------------', data, '------------------data online users')
             setChats((prevChats) =>
                 prevChats.map((chat) => {
 
@@ -120,8 +114,6 @@ const Chat = () => {
                 setNewMessageChatIds((prev) => new Set(prev).add(message.chatId));
             }
         });
-
-        // Clean up the socket connection
         return () => {
             socketService.disconnect();
         };
@@ -130,8 +122,6 @@ const Chat = () => {
 
 
     // message area implementation
-
-
     async function getMessages() {
         try {
             console.log('getMessage function called')
@@ -139,15 +129,11 @@ const Chat = () => {
                 console.error("Missing userId or chat data");
                 return;
             }
-
             const receiverId = location.state.userId;
-
             if (!receiverId) {
                 console.error("Could not determine receiverId");
                 return;
             }
-
-
             const response = await axiosInstance.get(`${messageEndpoints.getMessage}?userId=${userId}&receiverId=${receiverId}`);
             console.log('message fetched from the backedn', response.data)
             if (response.data.success) {
@@ -178,6 +164,7 @@ const Chat = () => {
             console.log('user status changed')
             if (data.userId === otherUser?.id) {
                 setIsOtherUserOnline(data.isOnline);
+                console.log(isOtherUserOnline);
             }
         });
 
@@ -198,7 +185,6 @@ const Chat = () => {
             setTimeout(() => {
                 setTyping(false)
             }, 1000)
-
         }
     })
 
@@ -238,31 +224,6 @@ const Chat = () => {
         }
     }, [chat?._id, userId]);
 
-
-    // const getFormattedDate = (date: string) => {
-    //     const today = new Date().toISOString().split('T')[0];
-    //     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-    //     if (date === today) return 'Today';
-    //     if (date === yesterday) return 'Yesterday';
-
-    //     return new Date(date).toLocaleDateString();
-    // };
-
-    const formatMessageDate = (dateString: string) => {
-        const date = moment(dateString);
-        if (moment().isSame(date, 'day')) {
-            return 'Today';
-        } else if (moment().subtract(1, 'days').isSame(date, 'day')) {
-            return 'Yesterday';
-        } else if (moment().subtract(7, 'days').isBefore(date)) {
-            return date.format('dddd'); // Display the day of the week (e.g., Monday, Tuesday)
-        } else {
-            return date.format('MMM D, YYYY'); // Display the full date (e.g., Oct 12, 2023)
-        }
-    };
-
-
     const uploadMedia = async () => {
         const receiverId = location.state?.userId;
         if (!selectedFile) {
@@ -273,7 +234,6 @@ const Chat = () => {
         if (selectedFileType?.includes('image')) {
             const formData = new FormData();
             formData.append('images', selectedFile);
-            console.log(selectedFile, '--------------', formData)
             response = await axiosInstance.post(`${messageEndpoints.sendImages}?chatId=${chat._id}&senderId=${userId}&receiverId=${receiverId}`, formData,
                 {
                     headers: {
@@ -298,7 +258,6 @@ const Chat = () => {
             video = response.data.data
         }
 
-        console.log(response, '------------response after ')
         if (response?.data.success && userId) {
             socketService.sendMedia({
                 chatId: location.state.chat._id,
@@ -313,11 +272,8 @@ const Chat = () => {
 
     const handleSendMessage = async () => {
         try {
-
             const receiverId = location.state.userId
             if ((message.trim()) && chat._id && userId && receiverId) {
-
-
                 socketService.sendMessage({
                     chatId: location.state.chat._id,
                     senderId: userId,
@@ -336,7 +292,6 @@ const Chat = () => {
         }
     };
 
-
     // Function to handle voice messages
     const handleVoiceMessage = () => {
         console.log('Voice message');
@@ -346,21 +301,17 @@ const Chat = () => {
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
             const file = event.target.files[0];
-
-            setSelectedFile(file);  // Store the file URL for preview
-            setSelectedFileType(file.type);  // Store the file MIME type
-            setIsPreviewModalOpen(true);  // Open the preview modal
+            setSelectedFile(file);  
+            setSelectedFileType(file.type);  
+            setIsPreviewModalOpen(true); 
         }
     };
 
-
-
     const closePreviewModal = () => {
-        setSelectedFile(null);  // Clear the file URL
-        setSelectedFileType('');  // Clear the file type
-        setIsPreviewModalOpen(false);  // Close the modal
+        setSelectedFile(null);  
+        setSelectedFileType('');  
+        setIsPreviewModalOpen(false); 
     };
-
 
     // Scroll to the bottom when messages change
     useEffect(() => {
@@ -368,7 +319,6 @@ const Chat = () => {
             endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [data?.messages]);
-
 
     const handelSelectuser = async (id: string, avatar: string, name: string) => {
         try {
@@ -386,7 +336,7 @@ const Chat = () => {
     }
 
     const formatMessageTime = (dateString: string) => {
-        return moment(dateString).format('hh:mm A'); // Format time as hh:mm AM/PM
+        return moment(dateString).format('hh:mm A');
     };
 
     return (
@@ -492,12 +442,20 @@ const Chat = () => {
                                             }}
                                         >
 
-
                                             {/* Display text content if available */}
                                             {message.content && <div style={{ marginBottom: '10px' }}>
                                                 {message.content}
                                                 <span style={{ fontSize: '12px', color: '#a0aec0', marginLeft: '10px' }}>
                                                     {formatMessageTime(message.createdAt)}
+                                                </span>
+                                                <span>
+                                                    {
+                                                        message.senderId === userId &&
+                                                        <FontAwesomeIcon icon={faCheck} style={{ color: '#a0aec0' }} />
+                                                    }
+                                                </span>
+                                                <span style={{ marginLeft: '5px' }}>
+                                                    <FontAwesomeIcon icon={faCheckDouble} style={{ color: 'green' }} />
                                                 </span>
                                             </div>}
 
@@ -518,8 +476,6 @@ const Chat = () => {
                                                         {formatMessageTime(message.createdAt)}
                                                     </span>
                                                 </>
-
-
                                             )}
 
                                             {/* Display video if available */}
@@ -581,12 +537,12 @@ const Chat = () => {
             >
                 <Box
                     sx={{
-                        width: { xs: '80%', sm: '40%' }, // Responsive width
-                        bgcolor: '#1a202c', // Dark background
-                        borderRadius: '8px', // Rounded corners
+                        width: { xs: '80%', sm: '40%' }, 
+                        bgcolor: '#1a202c', 
+                        borderRadius: '8px',
                         p: 2,
-                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)', // Subtle shadow for depth
-                        position: 'relative', // For close button placement
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)', 
+                        position: 'relative',
                     }}
                 >
                     {/* Modal Title */}
@@ -604,15 +560,15 @@ const Chat = () => {
                             position: 'absolute',
                             top: 8,
                             right: 8,
-                            bgcolor: '#ff4757', // Red close button
-                            '&:hover': { bgcolor: '#e84118' }, // Hover effect
-                            borderRadius: '50%', // Circular button
+                            bgcolor: '#ff4757', 
+                            '&:hover': { bgcolor: '#e84118' }, 
+                            borderRadius: '50%',
                             width: 30,
                             height: 30,
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            fontSize: 16, // Adjust font size for 'X'
+                            fontSize: 16, 
                         }}
                         onClick={closePreviewModal}
                     >
@@ -664,8 +620,8 @@ const Chat = () => {
                                 variant="contained"
                                 sx={{
                                     mt: 2,
-                                    bgcolor: '#38a169', // Green button
-                                    '&:hover': { bgcolor: '#2f855a' }, // Hover effect
+                                    bgcolor: '#38a169', 
+                                    '&:hover': { bgcolor: '#2f855a' },
                                     color: 'white',
                                     fontWeight: 'bold',
                                     borderRadius: '8px',

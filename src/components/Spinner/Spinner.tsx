@@ -2,14 +2,12 @@ import { Circles } from 'react-loader-spinner';
 
 function Spinner() {
     return (
-        <div
-            className="spinner-container"
+        <div className="spinner-container"
             style={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '100vh',
-                marginLeft:'700%'
             }}
         >
             <Circles

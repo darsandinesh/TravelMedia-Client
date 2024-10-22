@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../Home/NavBar/NavBar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LinearProgress from '@mui/joy/LinearProgress';
-import Typography from '@mui/joy/Typography';
-import Box from '@mui/joy/Box';
 import Button from '@mui/joy/Button';
 import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/userAxios';
@@ -39,7 +37,6 @@ const EditPost = () => {
         }
     }, [location]);
 
-    const [progress, setProgress] = React.useState(0);
     const [loading, setLoading] = useState<boolean>(false);
     const [saveData, setSave] = useState<boolean>(false);
     const navigate = useNavigate();
@@ -189,7 +186,7 @@ const EditPost = () => {
                         <ul style={{ listStyleType: 'none', padding: 0, maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#1f2937' }}>
                             {places.length > 0 &&
                                 places.map((place, index) => (
-                                    <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: 'pointer', color: 'white', marginBottom: '5px', padding: '8px', borderBottom: '1px solid #ccc', transition: 'background-color 0.3s', ':hover': { backgroundColor: '#2a2e35' } }}>
+                                    <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: 'pointer', color: 'white', marginBottom: '5px', padding: '8px', borderBottom: '1px solid #ccc', transition: 'background-color 0.3s' }}>
                                         {place.description}
                                     </li>
                                 ))}

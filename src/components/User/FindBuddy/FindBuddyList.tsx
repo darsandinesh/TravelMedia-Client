@@ -84,9 +84,7 @@ const TravelPostList: React.FC = () => {
   return (
     <div className="travel-post-list">
       <div className="container">
-        {/* Conditional rendering of the post list or the map */}
         {selectedLocation ? (
-          // When a location is selected, show only the map
           <Box sx={{ marginTop: 4 }}>
             <Typography >Directions to <h4>{selectedLocation.split(',')[0]}</h4></Typography>
             <Button variant="outlined" onClick={handleCloseMap}>
@@ -95,7 +93,6 @@ const TravelPostList: React.FC = () => {
             <MapComponent start={selectedLocation} />
           </Box>
         ) : (
-          // When no location is selected, show the post list
           <>
             <div className="header">
               <h2>Travel Posts</h2>
@@ -106,10 +103,10 @@ const TravelPostList: React.FC = () => {
                 <Card key={post._id} className="travel-post-card">
                   <AspectRatio flex ratio="1" className="aspect-ratio">
                     <img
-                      src={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? post.mediaUrls[0] : 'https://example.com/path/to/user-icon.png'} // User icon URL
+                      src={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? post.mediaUrls[0] : 'https://example.com/path/to/user-icon.png'} 
                       loading="lazy"
-                      alt={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? "Travel" : "User Icon"} // Alt text based on image presence
-                      style={{ objectFit: 'cover' }} // Ensures the image fits nicely within the AspectRatio box
+                      alt={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? "Travel" : "User Icon"} 
+                      style={{ objectFit: 'cover' }} 
                     />
                   </AspectRatio>
 

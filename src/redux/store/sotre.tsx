@@ -10,14 +10,12 @@ const persistConfig = {
   storage,
 };
 
-
 const rootReducer = combineReducers({
   userAuth: userReducer,
   // AdminAuth: adminAuthReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
-
 
 const store = configureStore({
   reducer: persistedReducer,

@@ -5,25 +5,20 @@ import { userEndpoints } from '../../../constraints/endpoints/userEndpoints';
 import { toast } from 'sonner';
 
 const SuccessPage = () => {
-    const [paymentStatus, setPaymentStatus] = useState('');
     const [error, setError] = useState('');
 
     useEffect(() => {
         const query = new URLSearchParams(window.location.search);
         const sessionId = query.get('session_id');
-
         if (sessionId) {
 
             const storedOrderCheck = sessionStorage.getItem("orderCheck");
-
             if (storedOrderCheck && JSON.parse(storedOrderCheck) === true) {
                 console.log("Order already processed. Skipping API call.");
                 return;
             }
-
             try {
                 const saveData = async () => {
-
                     const result = await axiosInstance.post(`${userEndpoints.savePayment}?session_id=${sessionId}`)
                     if (result.data.success) {
                         toast.success('Membership updated')
@@ -33,8 +28,8 @@ const SuccessPage = () => {
                 }
                 saveData()
 
-            } catch (error) {
-
+            } catch (error:any) {
+                setError(error)
             }
         }
     }, []);
@@ -51,7 +46,7 @@ const SuccessPage = () => {
                 ) : (
                     <div style={{ textAlign: 'center', color: '#28a745' }}>
                         <h1>Thank You!</h1>
-                        <p>{paymentStatus || 'Verifying payment...'}</p>
+                        <p>{'Payment Verified......'}</p>
                         <p>Your membership is now active.</p>
                     </div>
                 )}

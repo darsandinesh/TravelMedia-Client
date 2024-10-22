@@ -2,15 +2,13 @@ import React, { useEffect } from 'react';
 import Content from '../../components/User/Home/Content/Content';
 import NavBar from '../../components/User/Home/NavBar/NavBar';
 import { useNavigate } from 'react-router-dom';
-import Footer from '../../components/User/Home/footer/Footer';
 import FriendSuggestion from '../../components/User/Home/FriendSuggestion/FriednSuggestion';
-import { useMediaQuery, Box, ThemeProvider, createTheme } from '@mui/material';
+import { useMediaQuery, Box } from '@mui/material';
 import { useTheme } from '@mui/system';
 
 const HomePage: React.FC = () => {
     const theme = useTheme();
 
-    // Check if the screen is small (sm) or medium (md)
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const isMediumScreen = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
 
@@ -27,7 +25,6 @@ const HomePage: React.FC = () => {
             <div className="flex flex-grow">
                 <main className="flex flex-grow items-center justify-center p-4 ml-[250px]">
                     <Content />
-                    {/* Conditionally show FriendSuggestion component based on screen size */}
                     <Box
                         sx={{
                             position: 'fixed',
@@ -38,9 +35,6 @@ const HomePage: React.FC = () => {
                     </Box>
                 </main>
             </div>
-            {/* <div >
-                <Footer />
-            </div> */}
         </div>
     );
 };

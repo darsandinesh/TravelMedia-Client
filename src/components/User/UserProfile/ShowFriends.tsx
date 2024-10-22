@@ -20,14 +20,8 @@ interface friends {
     profilePicture: string
 }
 
-let followers: friends[] = [
-
-];
-
-let following: friends[] = [
-
-];
-
+let followers: friends[] = [];
+let following: friends[] = [];
 
 // Component for rendering the list of users
 const UserList = ({ users }: { users: { _id: string; name: string; profilePicture: string }[] }) => {
@@ -54,9 +48,9 @@ const UserList = ({ users }: { users: { _id: string; name: string; profilePictur
                                 variant="outlined"
                                 orientation="horizontal"
                                 sx={{
-                                    width: { xs: '100%', sm: '80%', md: 320 }, // Responsive width for card
+                                    width: { xs: '100%', sm: '80%', md: 320 },
                                     '&:hover': { boxShadow: 'md', borderColor: 'neutral.outlinedHoverBorder' },
-                                    transition: 'all 0.3s ease', // Smooth transition for hover effects
+                                    transition: 'all 0.3s ease',
                                 }}
                             >
                                 <AspectRatio ratio="1" sx={{ width: 60, borderRadius: '50%' }}>
@@ -81,7 +75,6 @@ const UserList = ({ users }: { users: { _id: string; name: string; profilePictur
                         ))}
                     </Box>
             }
-
         </>
     );
 };
@@ -125,14 +118,18 @@ const ShowFriends = ({ onClose }: ShowFriendsProps) => {
         }
     }
 
+    const handleChange = (event: any, newValue: any) => {
+        setTabValue(newValue);
+        console.log(event);
+    }
+
     return (
 
         <>
-
             <Tabs
                 aria-label="tabs"
                 value={tabValue}
-                onChange={(event, newValue) => setTabValue(newValue)} // Corrected the onChange
+                onChange={(event, newValue) => handleChange(event, newValue)}
                 sx={{
                     bgcolor: 'transparent',
                     zIndex: 1300,
@@ -161,7 +158,6 @@ const ShowFriends = ({ onClose }: ShowFriendsProps) => {
                         gap: 2,
                         borderRadius: 'xl',
                         bgcolor: '#4262a2',
-                        // bgcolor: 'background.level1',
                         [`& .${tabClasses.root}[aria-selected="true"]`]: {
                             boxShadow: 'sm',
                             bgcolor: 'background.surface',
@@ -177,7 +173,7 @@ const ShowFriends = ({ onClose }: ShowFriendsProps) => {
                     <Tab disableIndicator>Followers</Tab>
                     <Tab disableIndicator>Following</Tab>
                     <IoCloseSharp
-                        onClick={onClose} // Pass onClose correctly
+                        onClick={onClose}
                         size={20}
                         style={{
                             cursor: 'pointer',
@@ -185,8 +181,8 @@ const ShowFriends = ({ onClose }: ShowFriendsProps) => {
                             marginRight: 7,
                             color: isHovered ? 'red' : 'black',
                         }}
-                        onMouseEnter={() => setIsHovered(true)} // Set hover state to true
-                        onMouseLeave={() => setIsHovered(false)} // Reset hover state
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
                     />
                 </TabList>
 

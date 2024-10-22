@@ -69,7 +69,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ localStream, remoteStream, onEndC
                 }}
             />
 
-
             <video
                 ref={localVideoRef}
                 autoPlay
@@ -86,22 +85,21 @@ const VideoCall: React.FC<VideoCallProps> = ({ localStream, remoteStream, onEndC
                 }}
             />
 
-
             <div style={{
                 position: 'absolute',
-                bottom: '16px', // Equivalent to bottom-4
+                bottom: '16px', 
                 left: '50%',
                 transform: 'translateX(-50%)',
                 display: 'flex',
-                gap: '8px', // Equivalent to space-x-2
+                gap: '8px', 
             }}>
                 <button
                     onClick={handleToggleCamera}
                     style={{
-                        backgroundColor: '#3B82F6', // Equivalent to bg-blue-500
+                        backgroundColor: '#3B82F6', 
                         color: 'white',
-                        padding: '8px', // Equivalent to p-2
-                        borderRadius: '9999px' // Equivalent to rounded-full
+                        padding: '8px', 
+                        borderRadius: '9999px' 
                     }}
                 >
                     {isCameraOff ? <MdVideocamOff size={24} /> : <MdVideocam size={24} />}
@@ -109,10 +107,10 @@ const VideoCall: React.FC<VideoCallProps> = ({ localStream, remoteStream, onEndC
                 <button
                     onClick={handleToggleMic}
                     style={{
-                        backgroundColor: '#3B82F6', // Equivalent to bg-blue-500
+                        backgroundColor: '#3B82F6', 
                         color: 'white',
-                        padding: '8px', // Equivalent to p-2
-                        borderRadius: '9999px' // Equivalent to rounded-full
+                        padding: '8px', 
+                        borderRadius: '9999px' 
                     }}
                 >
                     {isMicOff ? <MdMicOff size={24} /> : <MdMic size={24} />}
@@ -120,10 +118,10 @@ const VideoCall: React.FC<VideoCallProps> = ({ localStream, remoteStream, onEndC
                 <button
                     onClick={onEndCall}
                     style={{
-                        backgroundColor: '#EF4444', // Equivalent to bg-red-500
+                        backgroundColor: '#EF4444', 
                         color: 'white',
-                        padding: '8px', // Equivalent to p-2
-                        borderRadius: '9999px' // Equivalent to rounded-full
+                        padding: '8px', 
+                        borderRadius: '9999px' 
                     }}
                 >
                     <MdCallEnd size={24} />

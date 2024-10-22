@@ -30,7 +30,6 @@ import { TextField } from '@mui/material';
 import Stack from '@mui/joy/Stack';
 import Snackbar from '@mui/joy/Snackbar';
 
-
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
@@ -178,7 +177,6 @@ const ViewPost = () => {
         return postData?.likes.some((like: Like) => like.UserId === loggeduser?._id);
     };
 
-
     const toggleRepliesVisibility = (commentId: string) => {
         setVisibleReplies(prev => ({
             ...prev,
@@ -198,12 +196,12 @@ const ViewPost = () => {
         try {
             const payload = {
                 postId,
-                content: comment, // use replyText for replies, comment for normal comment
+                content: comment, 
                 userId: loggeduser?._id,
                 avatar: loggeduser?.avatar,
                 userName: loggeduser?.name,
                 replayText: '',
-                parentCommentId: '', // null if it's a normal comment
+                parentCommentId: '', 
             };
 
             if (replyTo) {
@@ -221,7 +219,7 @@ const ViewPost = () => {
                     createdAt: new Date().toISOString(),
                     avatar: loggeduser?.avatar,
                     userName: loggeduser?.name,
-                    replies: parentCommentId ? [] : [], // Empty replies array for a new comment
+                    replies: parentCommentId ? [] : [],
                 };
 
                 // Update state based on whether it's a reply or a new comment
@@ -306,7 +304,6 @@ const ViewPost = () => {
             setOpen(false);
         } else {
             setSnackbar(true)
-            // alert('Please provide a reason for reporting the post.');
         }
     };
 
@@ -395,10 +392,8 @@ const ViewPost = () => {
                                             }
                                         >
                                             <div>
-                                                <div>{'Success'}</div>
-                                                {/* <Typography level="body-sm" color='success'> */}
+                                                <div>{'Success'}</div>                                         
                                                 The Post is Reported successfully
-                                                {/* </Typography> */}
                                             </div>
                                         </Alert>
 
@@ -412,7 +407,6 @@ const ViewPost = () => {
                                         {
                                             loggeduser?._id == userData?._id
                                                 ?
-
                                                 < Dropdown >
                                                     <MenuButton
                                                         slots={{ root: IconButton }}
@@ -461,7 +455,7 @@ const ViewPost = () => {
                                                                 display: 'flex',
                                                                 justifyContent: 'center',
                                                                 alignItems: 'center',
-                                                                backdropFilter: 'blur(5px)', // Dark theme blur effect
+                                                                backdropFilter: 'blur(5px)', 
                                                             }}
                                                         >
                                                             <Sheet
@@ -472,7 +466,7 @@ const ViewPost = () => {
                                                                     p: 3,
                                                                     boxShadow: 'lg',
                                                                     backgroundColor: '#1c1c1e',
-                                                                    color: '#f5f5f5', // Light text
+                                                                    color: '#f5f5f5', 
                                                                 }}
                                                             >
                                                                 <ModalClose
@@ -522,7 +516,6 @@ const ViewPost = () => {
                                                         </Modal>
                                                     </React.Fragment>
                                                 </>
-
                                         }
                                         {
                                             snackbar &&
@@ -548,9 +541,6 @@ const ViewPost = () => {
 
                                     </div>
                                 </div>
-
-
-
 
                                 <Divider sx={{ marginTop: 2 }} />
                                 <Typography variant="body1" paragraph sx={{ marginTop: 4 }}>{postData?.description}</Typography>
@@ -664,7 +654,6 @@ const ViewPost = () => {
                                 </div>
                             </>
                     }
-
                 </div>
             </div >
         </>

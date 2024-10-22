@@ -70,15 +70,16 @@ const AdminDashboard = () => {
           axiosInstance.get(`${adminEndpoints.getUserData}`),
         ]);
 
-        setUsers(usersResponse.data.data);
-        setPosts(postsResponse.data.data);
-        setTotalUsers(totalUsersResponse.data.count);
-        setTotalPosts(postsResponse.data.count);
-        setTotalRevenue(userDataResponse.data.data.totalRevenue[0].totalRevenue);
-        setNormalUsers(userDataResponse.data.data.normalUsers);
-        setPrimeUsers(userDataResponse.data.data.primeUsers);
-        console.log(userDataResponse.data.data.prime);
-        let data = userDataResponse.data.data.prime;
+        setUsers(usersResponse.data.data || []);
+        setPosts(postsResponse.data.data || []);
+        setTotalUsers(totalUsersResponse.data.count || 0);
+        setTotalPosts(postsResponse.data.count || 0);
+        if(userDataResponse.data.data.totalRevenue.length>0){
+        setTotalRevenue(userDataResponse.data.data.totalRevenue[0].totalRevenue || 0);
+        }
+        setNormalUsers(userDataResponse.data.data.normalUsers || 0);
+        setPrimeUsers(userDataResponse.data.data.primeUsers || 0);
+        let data = userDataResponse.data.data.prime || [];
 
         if (data.length > 0) {
           const newPaymentData: { month: string; amount: number }[] = [];
@@ -102,19 +103,21 @@ const AdminDashboard = () => {
           });
 
           // Convert aggregated object to array format
-          for (const [month, amount] of Object.entries(monthAggregation)) {
-            newPaymentData.push({ month, amount });
+          if (monthAggregation) {
+            for (const [month, amount] of Object.entries(monthAggregation)) {
+              newPaymentData.push({ month, amount });
+            }
+
+            setPaymentData(newPaymentData);
           }
 
-          setPaymentData(newPaymentData);
         }
-      } catch (error) {
+      } catch (error:any) {
         localStorage.removeItem('adminToken');
         navigate('/admin');
-        toast.error('Failed to fetch admin dashboard data');
+        toast.error('Failed to fetch admin dashboard data1');
       }
     };
-
     fetchData();
   }, [navigate]);
 

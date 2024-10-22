@@ -1,22 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { postEndpoints } from '../../../constraints/endpoints/postEndpoints';
 import axiosInstance from '../../../constraints/axios/adminAxios';
-import {
-    Button,
-    Card,
-    CardContent,
-    Typography,
-    Grid,
-    Pagination,
-    Box,
-    CardMedia,
-    Avatar,
-    Skeleton,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
+import { Button, Card, CardContent, Typography, Grid, Pagination, Box, CardMedia, Avatar, Skeleton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
 } from '@mui/material';
 import { toast } from 'sonner';
 
@@ -59,6 +44,7 @@ const AdminPostList: React.FC = () => {
     };
 
     const handlePageChange = (event: React.ChangeEvent<unknown>, pageNumber: number) => {
+        console.log(event.target);
         setCurrentPage(pageNumber);
     };
 
@@ -206,7 +192,7 @@ const AdminPostList: React.FC = () => {
                                                 variant="contained"
                                                 color="error"
                                                 sx={{ marginTop: '10px' }}
-                                                onClick={() => handleDeleteClick(post._id, post.user.id)} // Pass only the post ID
+                                                onClick={() => handleDeleteClick(post._id, post.user.id)} 
                                             >
                                                 Delete Post
                                             </Button>

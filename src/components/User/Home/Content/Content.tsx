@@ -17,19 +17,14 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded';
-
-
 import Dropdown from '@mui/joy/Dropdown';
 import Menu from '@mui/joy/Menu';
 import MenuButton from '@mui/joy/MenuButton';
 import MenuItem from '@mui/joy/MenuItem';
 import MoreVert from '@mui/icons-material/MoreVert';
-
-
 import moment from 'moment';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom'; 
 import { postEndpoints } from '../../../../constraints/endpoints/postEndpoints';
-
 // joy ui
 import Link from '@mui/joy/Link';
 import Box from '@mui/joy/Box';
@@ -41,7 +36,6 @@ import SendOutlined from '@mui/icons-material/SendOutlined';
 import Face from '@mui/icons-material/Face';
 import Input from '@mui/joy/Input';
 import CircularProgress from '@mui/joy/CircularProgress';
-
 // emoji picker
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import axiosInstance from '../../../../constraints/axios/userAxios';
@@ -93,7 +87,6 @@ interface Post {
     comments: Comment[]
 }
 
-// Customizing the locale to show "a week ago" instead of exact days
 moment.updateLocale('en', {
     relativeTime: {
         future: 'in %s',
@@ -124,7 +117,6 @@ moment.updateLocale('en', {
         yy: '%d years'
     }
 });
-
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -177,7 +169,6 @@ const SkeletonPlaceholder = () => (
     </Stack>
 );
 
-
 const CarouselContainer = styled('div')({
     position: 'relative',
     width: '100%',
@@ -226,15 +217,12 @@ export default function Content() {
     const [loadinPage, setLoadingPage] = useState<boolean>(false)
     const [prevHeight, setPrevHeight] = useState<number>(0);
     const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: boolean }>({});
-    const [isCopied, setIsCopied] = useState(false);
 
     const navigate = useNavigate();
-
-
     const toggleRepliesVisibility = (commentId: string) => {
         setVisibleReplies(prev => ({
             ...prev,
-            [commentId]: !prev[commentId], // Toggle visibility for this specific comment
+            [commentId]: !prev[commentId],
         }));
     };
 
@@ -243,8 +231,8 @@ export default function Content() {
     };
 
     const handleEmojiClick = (emojiData: EmojiClickData) => {
-        setSelectedEmoji(selectedEmoji + emojiData.emoji); // Update state with selected emoji
-        setShowEmojiPicker(false); // Close the emoji picker after selection
+        setSelectedEmoji(selectedEmoji + emojiData.emoji); 
+        setShowEmojiPicker(false); 
     };
 
     const handlePrev = (index: number) => {
@@ -267,7 +255,7 @@ export default function Content() {
             console.log('Fetching data from backend to get all the posts');
             setLoadingPage(true);
             try {
-                const result = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${page}`); // Update with your backend URL
+                const result = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${page}`);
                 const posts = result.data.data;
                 console.log(posts);
                 setPostData(posts);
@@ -315,7 +303,6 @@ export default function Content() {
                 postId: post._id
             });
             if (result.data.success) {
-                // Update the post data with the new like status and count
                 setPostData(prevPosts => prevPosts.map((p, i) =>
                     i === index ? {
                         ...p,
@@ -339,7 +326,6 @@ export default function Content() {
                 postId: post._id
             });
             if (result.data.success) {
-                // Remove the like from the post data
                 setPostData(prevPosts => prevPosts.map((p, i) =>
                     i === index ? {
                         ...p,
@@ -360,8 +346,6 @@ export default function Content() {
         navigate(`/userProfile`, { state: { userId: userId } });
     };
 
-
-
     const isUserLikedPost = (post: Post, userId: string | null | undefined): boolean => {
         return post.likes.some(like => like.UserId === userId);
     };
@@ -372,7 +356,7 @@ export default function Content() {
         try {
             const payload = {
                 postId,
-                content: selectedEmoji, // This can be the emoji or any comment content
+                content: selectedEmoji,
                 userId: currentUserId,
                 avatar: loggedUser?.avatar,
                 userName: loggedUser?.name,
@@ -381,15 +365,10 @@ export default function Content() {
             };
 
             if (parentCommentId) {
-                // If replying to a comment, add parentCommentId
                 payload.parentCommentId = parentCommentId;
                 payload.replayText = text;
             }
-
-
-
             const result = await axiosInstance.post('/post/comment', payload);
-
             if (result.data.success) {
                 setPostData((prevPosts) =>
                     prevPosts.map((p) =>
@@ -398,7 +377,6 @@ export default function Content() {
                                 ...p,
                                 comments: p.comments.map((comment) => {
                                     if (comment._id === parentCommentId) {
-                                        // If it's a reply, update the specific comment's replies array
                                         return {
                                             ...comment,
                                             replies: [
@@ -420,8 +398,8 @@ export default function Content() {
                             : p
                     )
                 );
-                setSelectedEmoji(''); // Clear the input after posting
-                toast.success('Reply added successfully');
+                setSelectedEmoji('');
+                toast.success('Comment added successfully');
             } else {
                 toast.error('Failed to add comment/reply');
             }
@@ -430,22 +408,17 @@ export default function Content() {
         }
     };
 
-
-
-
-
     const handleDeleteComment = async (commentId: string, postId: string, parentCommentId?: string) => {
         console.log(postId, '-----------', commentId, parentCommentId);
         try {
             const result = await axiosInstance.put('/post/deleteComment', {
                 postId,
                 commentId,
-                parentCommentId, // Pass parentCommentId if it's a reply
+                parentCommentId,
                 userId: loggedUser?._id
             });
 
             if (result.data.success) {
-                // After successful deletion, update the state
                 setPostData(prevPosts =>
                     prevPosts.map(post =>
                         post._id === postId
@@ -453,14 +426,13 @@ export default function Content() {
                                 ...post,
                                 comments: post.comments.map(comment => {
                                     if (parentCommentId && comment._id === parentCommentId) {
-                                        // If deleting a reply, update the replies array of the parent comment
                                         return {
                                             ...comment,
                                             replies: comment.replies.filter(reply => reply._id !== commentId)
                                         };
                                     }
                                     return comment;
-                                }).filter(comment => !parentCommentId && comment._id !== commentId) // Remove comment if no parentCommentId (top-level comment)
+                                }).filter(comment => !parentCommentId && comment._id !== commentId)
                             }
                             : post
                     )
@@ -473,7 +445,6 @@ export default function Content() {
             toast.error('Something went wrong');
         }
     };
-
 
     // replay comment filed
     const [replyTo, setReplyTo] = useState(null);
@@ -490,13 +461,10 @@ export default function Content() {
         setReplyTo(null);
     };
 
-
     const copyToClipboard = () => {
         const currentUrl = window.location.href;
         navigator.clipboard.writeText(currentUrl)
             .then(() => {
-                // setIsCopied(true); 
-                // setTimeout(() => setIsCopied(false), 2000); 
                 toast.success('URL copied to clipboard')
             })
             .catch(err => {
@@ -536,7 +504,7 @@ export default function Content() {
                                         sx={{ bgcolor: red[500], cursor: 'pointer' }}
                                         aria-label="recipe"
                                         src={post.user?.avatar}
-                                        onClick={() => post.user?.id && handleUserClick(post.user.id)} // Navigate on click
+                                        onClick={() => post.user?.id && handleUserClick(post.user.id)}
                                     >
                                         {post.user?.name?.charAt(0).toUpperCase()}
                                     </Avatar>
@@ -657,8 +625,6 @@ export default function Content() {
                                     </IconButtons>
                                     <IconButtons variant="plain" color="neutral" size="sm">
                                         <SendOutlined onClick={copyToClipboard} />
-
-                                        {isCopied && <p>URL copied to clipboard!</p>}
                                     </IconButtons>
                                     <IconButtons sx={{ marginLeft: "auto" }} variant="plain" color="neutral" size="sm" onClick={() => savePost(post._id)}>
                                         <BookmarkBorderRoundedIcon />

@@ -1,8 +1,4 @@
-// src/pages/UserProfilePage.tsx
-
-// import React from 'react';
 import UserProfile from '../../components/User/UserProfile/UserProfile';
-// import SideBar from '../../components/User/Home/SideBar/SideBar';
 import NavBar from '../../components/User/Home/NavBar/NavBar';
 
 const UserProfilePage = () => {

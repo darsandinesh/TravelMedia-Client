@@ -1,11 +1,7 @@
-// import React from 'react'd
-
 import { useEffect } from "react"
 import Navbar from "../../components/User/Home/NavBar/NavBar"
 import AddPost from "../../components/User/Post/Addpost"
 import { useNavigate } from "react-router-dom"
-
-// import NavBar from '../../components/User/Home/NavBar/NavBar'
 
 const AddNewPost = () => {
     console.log('add post function is called')
