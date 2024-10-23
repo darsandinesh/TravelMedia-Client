@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import Button from '@mui/material/Button';
 import AspectRatio from '@mui/joy/AspectRatio';
 import Box from '@mui/joy/Box';

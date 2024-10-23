@@ -250,6 +250,7 @@ export default function Content() {
             return newIndexes;
         });
     };
+    
     useEffect(() => {
         const fetchData = async () => {
             console.log('Fetching data from backend to get all the posts');

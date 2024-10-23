@@ -71,13 +71,6 @@ const UserProfile = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [open, setOpen] = React.useState<boolean>(false);
-  const [modal, setModal] = useState({
-    description: '',
-    images: [] as string[],
-    likes: 0,
-    comments: 0,
-    location: '',
-  });
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [openFriends, setOpenFriends] = useState<boolean>(false);
   const [isPrivate, setIsPrivate] = useState(false);
@@ -263,24 +256,6 @@ const UserProfile = () => {
       } catch (error) {
         toast.error('Failed to unfollow the user');
       }
-    }
-  };
-
-  const postModal = (i: number) => {
-    try {
-      const post = posts[i];
-      const obj = {
-        comments: post.comments.length,
-        likes: post.likes.length,
-        description: post.description,
-        images: Array.isArray(post.imageUrl) ? post.imageUrl : [post.imageUrl],
-        location: post.location,
-      };
-
-      setModal(obj);
-      setOpen(true);
-    } catch (error) {
-      toast.error('Unable to view the post details');
     }
   };
 
@@ -602,7 +577,6 @@ const UserProfile = () => {
                                     height="200"
                                     image={url}
                                     alt={`post-image-${idx}`}
-                                    onClick={() => postModal(index)}
                                   />
                                 ))}
                               </Carousel>
@@ -612,7 +586,6 @@ const UserProfile = () => {
                                 height="200"
                                 image={post.imageUrl}
                                 alt="post-image"
-                                onClick={() => postModal(index)}
                               />
                             )}
                             <CardContent>

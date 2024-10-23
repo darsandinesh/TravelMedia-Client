@@ -6,15 +6,12 @@ import StepLabel from "@mui/material/StepLabel";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import axiosInstance from "../../../constraints/axios/userAxios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store/sotre";
 import { postEndpoints } from "../../../constraints/endpoints/postEndpoints";
-
-import {  useJsApiLoader, StandaloneSearchBox } from "@react-google-maps/api";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const steps = ["Post Details", "Upload Media", "Preview & Save"];
@@ -27,9 +24,7 @@ interface PostData {
 }
 
 export default function AddPost() {
-  const inputRef = useRef<google.maps.places.SearchBox | null>(null);
   const [activeStep, setActiveStep] = useState(0);
-  const [suggestions, setSuggestions] = useState([]);
   const [postData, setPostData] = useState<PostData>({
     description: "",
     place: "",
@@ -99,35 +94,9 @@ export default function AddPost() {
     });
   };
 
-  const fetchSuggestions = async (input: any) => {
-    try {
-      console.log('fetching data')
-      const response = await axios.get('https://api.olamaps.io/places/v1/autocomplete', {
-        params: {
-          input: input,
-          key: import.meta.env.VITE_OLA_API_KEY, // Make sure to include your API key here
-        },
-        headers: {
-          'X-Request-Id': 'akhsdfj24872fjh3494urncfq39uy', // Replace with your actual request ID
-        },
-      });
-      console.log(response.data, '---------ola data');
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-      // Handle the error appropriately
-    }
-  };
-
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setPostData({ ...postData, [name]: value });
-
-    if (value.length > 2) {
-      fetchSuggestions(e.target.value);
-    } else {
-      setSuggestions([]); // Clear suggestions if input is less than 3 characters
-    }
   };
 
   const handleRemoveImage = (index: number) => {
@@ -153,7 +122,7 @@ export default function AddPost() {
     formData.append("userId", userId ?? "");
 
     postData.files.forEach((file) => {
-      formData.append("files", file); 
+      formData.append("files", file);
     });
 
     try {
@@ -172,22 +141,6 @@ export default function AddPost() {
       toast.error("Failed to upload post.");
     }
   };
-
-  // Google Places API Integration
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: ["places"],
-  });
-
-  const handlePlaceChange = () => {
-    if (inputRef.current) {
-        console.log(inputRef.current, 'ref content');
-        const places = inputRef.current.getPlaces();
-        const place = places && places[0] ? places[0].formatted_address || "" : "";
-        setPostData({ ...postData, place });
-    }
-};
 
   return (
     <Box
@@ -230,25 +183,6 @@ export default function AddPost() {
           <Box sx={{ mt: 2, width: "100%", textAlign: "center" }}>
             {activeStep === 0 && (
               <>
-                {isLoaded && (
-                  <StandaloneSearchBox
-                    onLoad={(ref:any) => (inputRef.current = ref)}
-                    onPlacesChanged={handlePlaceChange}
-                  >
-                    <TextField
-                      label="Place Visited"
-                      name="place"
-                      value={postData.place}
-                      onChange={handleInputChange}
-                      fullWidth
-                      margin="normal"
-                      variant="outlined"
-                      error={errors.place}
-                      helperText={errors.place ? "Place is required" : ""}
-                    />
-                  </StandaloneSearchBox>
-                )}
-
                 <TextField
                   label="Description"
                   name="description"
