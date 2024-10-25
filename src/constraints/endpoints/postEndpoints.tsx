@@ -1,5 +1,5 @@
 
-export const API_GATEWAY_BASE_URL = 'http://localhost:32000/post';
+export const API_GATEWAY_BASE_URL = `${import.meta.env.VITE_FRONTEN_URL}/post`;
 
 
 export const postEndpoints = {

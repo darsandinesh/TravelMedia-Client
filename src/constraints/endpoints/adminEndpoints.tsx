@@ -1,4 +1,4 @@
-export const API_GATEWAY_BASE_URL = 'http://localhost:32000/admin'
+export const API_GATEWAY_BASE_URL = `${import.meta.env.VITE_FRONTEN_URL}/admin`
 
 export const adminEndpoints = {
     login : `${API_GATEWAY_BASE_URL}/login`,
