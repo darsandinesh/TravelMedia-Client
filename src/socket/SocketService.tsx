@@ -4,7 +4,7 @@ class SocketService {
   private socket: Socket;
 
   constructor() {
-    this.socket = io('http://localhost:4000', {
+    this.socket = io('http://localhost:32000', {
       transports: ['websocket'],
       upgrade: false
     });

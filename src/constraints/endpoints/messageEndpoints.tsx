@@ -1,4 +1,4 @@
-export const API_GATEWAY_BASE_URL = 'http://localhost:4000/message';
+export const API_GATEWAY_BASE_URL = 'http://localhost:32000/message';
 
 export const messageEndpoints = {
     getConversationData : `${API_GATEWAY_BASE_URL}/getconversationdata`,

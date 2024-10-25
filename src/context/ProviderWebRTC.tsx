@@ -3,7 +3,7 @@ import { RootState } from "../redux/store/sotre";
 import { useSelector } from "react-redux";
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:4000', { withCredentials: true });
+const socket = io('http://localhost:32000', { withCredentials: true });
 
 interface WebRTCContextProps {
   localStream: MediaStream | null;

@@ -183,6 +183,19 @@ export default function AddPost() {
           <Box sx={{ mt: 2, width: "100%", textAlign: "center" }}>
             {activeStep === 0 && (
               <>
+
+                <TextField
+                  label="Place Visited"
+                  name="place"
+                  value={postData.place}
+                  onChange={handleInputChange}
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  error={errors.place}
+                  helperText={errors.place ? "Place is required" : ""}
+                />
+
                 <TextField
                   label="Description"
                   name="description"
