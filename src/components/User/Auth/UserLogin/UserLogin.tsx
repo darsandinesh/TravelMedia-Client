@@ -266,7 +266,7 @@ const UserLogin = () => {
                         <div className='LoginDiv'>
                             <img src="https://thumbs.dreamstime.com/b/family-travel-lifestyle-father-hiking-child-mountain-adventures-norway-healthy-outdoor-active-vacations-dad-kid-together-307407296.jpg" alt="image" />
                             <div className='LoginForm'>
-                                <h2>Travel Media</h2>
+                                <h2>Travel Media -- for testing</h2>
                                 <form onSubmit={handelSubmit}>
                                     <div className="input-container">
                                         <label htmlFor="email">Email Address</label>
