@@ -108,6 +108,7 @@ export default function CustomizedTables() {
 
   // Handle table pagination
   const handleChangePage = (event: unknown, newPage: number) => {
+    console.log(event);
     setPage(newPage);
   };
 
