@@ -33,6 +33,7 @@ const UserLogin = () => {
     const [password, setPassword] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -258,6 +259,10 @@ const UserLogin = () => {
         }
     };
 
+    const handleTogglePassword = () => {
+        setShowPassword(!showPassword);
+    };
+
 
     return (
 
@@ -280,11 +285,22 @@ const UserLogin = () => {
                                     </div>
                                     <div className="input-container">
                                         <label htmlFor="password">Password</label>
-                                        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" id="password" />
-                                        <i className="icon password-icon"></i>
+                                        <input
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            type={showPassword ? 'text' : 'password'}
+                                            id="password"
+                                        />
+                                        <i
+                                        style={{marginLeft:'90%',marginTop:''}}
+                                            className={` ${showPassword ? 'show' : 'hide'}`}
+                                            onClick={handleTogglePassword}
+                                        >
+                                            {showPassword ? '🙈' : '👁️'} 
+                                        </i>
                                     </div>
                                     <a onClick={forgotPassword}>Forgot Password?</a>
-                                    <button>{ submitting ? 'Logining.......' : 'Login'}</button>
+                                    <button>{submitting ? 'Logining.......' : 'Login'}</button>
                                     <a onClick={singUp}>New user? SignUp</a>
                                 </form>
                                 <hr />

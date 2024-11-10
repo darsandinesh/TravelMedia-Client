@@ -91,7 +91,6 @@ export default function CustomizedTables() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showBlocked, setShowBlocked] = useState(false);
 
-  // Fetch user data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -117,7 +116,6 @@ export default function CustomizedTables() {
     setPage(0);
   };
 
-  // Handle opening and closing the status modal
   const handleOpenModal = (user: User) => {
     setSelectedUser(user);
     setOpen(true);
@@ -128,7 +126,6 @@ export default function CustomizedTables() {
     setSelectedUser(null);
   };
 
-  // Handle updating user status
   const handleStatusUpdated = async (newStatus: boolean) => {
     if (selectedUser) {
       try {
@@ -150,7 +147,6 @@ export default function CustomizedTables() {
     }
   };
 
-  // Filter rows based on search query and block status
   const filteredRows = rows.filter((row) =>
     (showBlocked ? row.isBlocked : !row.isBlocked) &&
     (row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

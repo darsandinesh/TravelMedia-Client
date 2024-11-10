@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
 
         const refreshToken = localStorage.getItem('refreshToken');
         
-        const response = await axios.post('http://localhost:4000/refresh-token', { refreshToken });
+        const response = await axios.post('https://travelmedia.fun/refresh-token', { refreshToken });
         
         console.log(response,'response in refresh token ')
 
