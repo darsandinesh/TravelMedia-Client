@@ -32,6 +32,7 @@ const UserLogin = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
+    const [submitting, setSubmitting] = useState<boolean>(false);
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -95,9 +96,11 @@ const UserLogin = () => {
 
     const handelSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setSubmitting(true)
 
         if (!validateEmail(email)) {
             toast.error('Please enter a valid email address');
+            setSubmitting(false)
             return;
         }
 
@@ -117,16 +120,18 @@ const UserLogin = () => {
                     avatar: result.data.user_data.profilePicture,
                     prime: result.data.user_data.isMember || false,
                 }
-
+                setSubmitting(true)
                 dispatch(userlogin({ token: result.data.token, userData: user }));
                 localStorage.setItem('userToken', result.data.token);
                 localStorage.setItem('refreshToken', result.data.refreshToken)
                 navigate('/home')
             } else {
                 toast.error(result.data.message);
+                setSubmitting(true)
             }
         } catch (error) {
             setLoading(false);
+            setSubmitting(true)
             toast.error('An error occurred during login');
         }
     };
@@ -266,7 +271,7 @@ const UserLogin = () => {
                         <div className='LoginDiv'>
                             <img src="https://thumbs.dreamstime.com/b/family-travel-lifestyle-father-hiking-child-mountain-adventures-norway-healthy-outdoor-active-vacations-dad-kid-together-307407296.jpg" alt="image" />
                             <div className='LoginForm'>
-                                <h2>Travel Media -- for testing</h2>
+                                <h2>Travel Media</h2>
                                 <form onSubmit={handelSubmit}>
                                     <div className="input-container">
                                         <label htmlFor="email">Email Address</label>
@@ -279,7 +284,7 @@ const UserLogin = () => {
                                         <i className="icon password-icon"></i>
                                     </div>
                                     <a onClick={forgotPassword}>Forgot Password?</a>
-                                    <button>Login</button>
+                                    <button>{ submitting ? 'Logining.......' : 'Login'}</button>
                                     <a onClick={singUp}>New user? SignUp</a>
                                 </form>
                                 <hr />

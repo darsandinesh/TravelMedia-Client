@@ -11,7 +11,17 @@ import { toast } from 'sonner';
 
 const OLA_MAPS_API_KEY = import.meta.env.VITE_OLA_API_KEY;
 
-const customIcon = new L.Icon({
+const customIconStart = new L.Icon({
+  iconUrl: markerIconUrl,
+  iconRetinaUrl: markerIconRetinaUrl,
+  shadowUrl: markerShadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+const customIconEnd = new L.Icon({
   iconUrl: markerIconUrl,
   iconRetinaUrl: markerIconRetinaUrl,
   shadowUrl: markerShadowUrl,
@@ -73,7 +83,7 @@ const MapComponent = (props: any) => {
   const fetchCoordinate = async (place: string) => {
     try {
       const response = await axios.get(
-        `https://api.olamaps.io/places/v1/autocomplete?input=${place}&api_key=${OLA_MAPS_API_KEY}`
+        `https://api.olamaps.io/places/v1/autocomplete?input=${place.split(',').slice(0,4).join('')}&api_key=${OLA_MAPS_API_KEY}`
       );
       const location = response.data.predictions[0]?.geometry.location;
       if (location) {
@@ -186,10 +196,10 @@ const MapComponent = (props: any) => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-            <Marker position={[startCoordinates.lat, startCoordinates.lng]} icon={customIcon}>
+            <Marker position={[startCoordinates.lat, startCoordinates.lng]} icon={customIconStart}>
               <Popup>Starting: {startLocation}</Popup>
             </Marker>
-            <Marker position={[endCoordinates.lat, endCoordinates.lng]} icon={customIcon}>
+            <Marker position={[endCoordinates.lat, endCoordinates.lng]} icon={customIconEnd}>
               <Popup>Destination: {endLocation}</Popup>
             </Marker>
 

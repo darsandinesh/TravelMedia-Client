@@ -17,6 +17,7 @@ import Spinner from '../../Spinner/Spinner';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 
+// Styling for the Table
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.grey[900],
@@ -42,6 +43,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
+// Styling for the Search Input
 const SearchInput = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
@@ -60,12 +62,16 @@ const SearchInput = styled(TextField)(({ theme }) => ({
   },
 }));
 
-const ToggleButton = styled(Button)(({ theme }) => ({
+// Styling for the Toggle Button
+const ToggleButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== 'active',
+})<{ active: boolean }>(({ theme, active }) => ({
   marginRight: theme.spacing(1),
+  backgroundColor: active ? theme.palette.primary.main : theme.palette.grey[600],
+  color: active ? theme.palette.common.white : theme.palette.common.black,
   '&:hover': {
-    backgroundColor: theme.palette.secondary,
+    backgroundColor: active ? theme.palette.primary.dark : theme.palette.grey[700],
   },
-  color: theme.palette.common.white, 
 }));
 
 interface User {
@@ -85,11 +91,11 @@ export default function CustomizedTables() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showBlocked, setShowBlocked] = useState(false);
 
+  // Fetch user data
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/admin/userlist');
-        // console.log(response);
         setRows(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -97,12 +103,11 @@ export default function CustomizedTables() {
         setSpinner(false);
       }
     };
-
     fetchData();
   }, []);
 
+  // Handle table pagination
   const handleChangePage = (event: unknown, newPage: number) => {
-    console.log(event);
     setPage(newPage);
   };
 
@@ -111,6 +116,7 @@ export default function CustomizedTables() {
     setPage(0);
   };
 
+  // Handle opening and closing the status modal
   const handleOpenModal = (user: User) => {
     setSelectedUser(user);
     setOpen(true);
@@ -121,6 +127,7 @@ export default function CustomizedTables() {
     setSelectedUser(null);
   };
 
+  // Handle updating user status
   const handleStatusUpdated = async (newStatus: boolean) => {
     if (selectedUser) {
       try {
@@ -132,10 +139,9 @@ export default function CustomizedTables() {
           rows.map((row) => {
             return row.email === selectedUser.email
               ? { ...row, isBlocked: newStatus }
-              : row;  
+              : row;
           })
-        );        
-        
+        );
         handleCloseModal();
       } catch (error) {
         console.error('Error updating user status:', error);
@@ -143,6 +149,7 @@ export default function CustomizedTables() {
     }
   };
 
+  // Filter rows based on search query and block status
   const filteredRows = rows.filter((row) =>
     (showBlocked ? row.isBlocked : !row.isBlocked) &&
     (row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -173,14 +180,23 @@ export default function CustomizedTables() {
 
           {/* Toggle Buttons */}
           <Box sx={{ mt: 2 }}>
-            <ToggleButton variant="contained" onClick={() => setShowBlocked(false)}>
+            <ToggleButton
+              variant="contained"
+              onClick={() => setShowBlocked(false)}
+              active={!showBlocked} // Highlight if showing unblocked users
+            >
               Show Unblocked Users
             </ToggleButton>
-            <ToggleButton variant="contained" onClick={() => setShowBlocked(true)}>
+            <ToggleButton
+              variant="contained"
+              onClick={() => setShowBlocked(true)}
+              active={showBlocked} // Highlight if showing blocked users
+            >
               Show Blocked Users
             </ToggleButton>
           </Box>
 
+          {/* Table */}
           <TableContainer component={Paper} sx={{ maxWidth: '100%', mt: 3, backgroundColor: '#424242', borderRadius: '8px' }}>
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
               <TableHead>
@@ -219,6 +235,7 @@ export default function CustomizedTables() {
             />
           </TableContainer>
 
+          {/* Status Modal */}
           {selectedUser && (
             <StatusModal
               open={open}

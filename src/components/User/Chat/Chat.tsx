@@ -26,9 +26,9 @@ const Chat = () => {
     const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
 
     // Define the necessary states
-    const [selectedFile, setSelectedFile] = React.useState<File | null>(null); 
-    const [selectedFileType, setSelectedFileType] = React.useState<string>(''); 
-    const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState<boolean>(false); 
+    const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+    const [selectedFileType, setSelectedFileType] = React.useState<string>('');
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState<boolean>(false);
 
 
     const location = useLocation();
@@ -52,7 +52,7 @@ const Chat = () => {
             );
             console.log(response.data)
             if (response.data.success) {
-                console.log(response.data.data)
+                console.log(response.data.data, '------------res dat from chat wiht lastmessage')
                 const sortedChats = response.data.data.
                     sort(
                         (a: ChatData, b: ChatData) =>
@@ -301,16 +301,16 @@ const Chat = () => {
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
             const file = event.target.files[0];
-            setSelectedFile(file);  
-            setSelectedFileType(file.type);  
-            setIsPreviewModalOpen(true); 
+            setSelectedFile(file);
+            setSelectedFileType(file.type);
+            setIsPreviewModalOpen(true);
         }
     };
 
     const closePreviewModal = () => {
-        setSelectedFile(null);  
-        setSelectedFileType('');  
-        setIsPreviewModalOpen(false); 
+        setSelectedFile(null);
+        setSelectedFileType('');
+        setIsPreviewModalOpen(false);
     };
 
     // Scroll to the bottom when messages change
@@ -353,33 +353,121 @@ const Chat = () => {
                         <HiUserAdd size={20} />
                     </div>
                 </div>
-
                 {/* User List */}
-                <Box sx={{ width: { xs: '100%', sm: 240 }, bgcolor: '#2d3748', borderRight: { sm: '1px solid #4a5568' }, overflowY: 'auto', color: 'white' }}>
-                    <Typography variant="h6" sx={{ p: 2, marginLeft: '20%' }}>Users</Typography>
-                    <hr />
-                    <List>
+                <Box
+                    sx={{
+                        width: { xs: '100%', sm: 240 },
+                        bgcolor: '#2d3748',
+                        borderRight: { sm: '1px solid #4a5568' },
+                        overflowY: 'auto',
+                        color: 'white',
+                        height: '100vh',
+                        paddingTop: 2,
+                    }}
+                >
+                    <Typography variant="h6" sx={{ p: 2, marginLeft: { xs: '0%', sm: '20%' }, fontWeight: 'bold' }}>
+                        Users
+                    </Typography>
+                    <hr style={{ borderColor: '#4a5568' }} />
+                    <List sx={{ padding: 0 }}>
                         {chats.length === 0 ? (
-                            <div style={{ padding: '60px' }}>No chats</div>
+                            <div style={{ padding: '60px', color: '#A0AEC0' }}>No chats</div>
                         ) : (
-                            chats.map((chat, chatIndex) => (
-                                <div key={chatIndex}>
-                                    {chat.users.map((user, userIndex) => (
-                                        <ListItem key={userIndex} onClick={() => handelSelectuser(user.id, user.avatar, user.name)} sx={{ cursor: 'pointer' }}>
-                                            <ListItemAvatar>
-                                                <Avatar
-                                                    src={user.avatar || 'https://via.placeholder.com/50'}
-                                                    sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
+                            chats.map((chat, chatIndex) => {
+
+                                let unreadCount = 0
+                                if(chat?.lastMessage?.receiverId == userId)
+                                    unreadCount = chat?.unreadCount
+
+                                return (
+                                    <div key={chatIndex}>
+                                        {chat.users.map((user, userIndex) => (
+                                            <ListItem
+                                                key={userIndex}
+                                                onClick={() => handelSelectuser(user.id, user.avatar, user.name)}
+                                                sx={{
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        backgroundColor: '#4a5568',
+                                                    },
+                                                }}
+                                            >
+                                                <ListItemAvatar>
+                                                    <Avatar
+                                                        src={user.avatar || 'https://via.placeholder.com/50'}
+                                                        sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
+                                                    />
+                                                </ListItemAvatar>
+                                                <ListItemText
+                                                    primary={
+                                                        <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                            <span>{user.name}</span>
+                                                            { unreadCount > 0 && (
+                                                                <span
+                                                                    style={{
+                                                                        backgroundColor: '#E53E3E',
+                                                                        color: 'white',
+                                                                        borderRadius: '50%',
+                                                                        padding: '0 6px',
+                                                                        fontSize: '12px',
+                                                                        fontWeight: 'bold',
+                                                                    }}
+                                                                >
+                                                                    {unreadCount}
+                                                                </span>
+                                                            )}
+                                                        </span>
+
+                                                    }
+                                                    sx={{ color: 'white', marginLeft: 1 }}
                                                 />
-                                            </ListItemAvatar>
-                                            <ListItemText primary={user.name} sx={{ color: 'white' }} />
-                                        </ListItem>
-                                    ))}
-                                </div>
-                            ))
+                                            </ListItem>
+                                        ))}
+
+                                        {/* Displaying the Last Message with Truncation */}
+                                        {chat?.lastMessage ? (
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    color: '#A0AEC0',
+                                                    padding: '5px 20px',
+                                                    fontSize: '14px',
+                                                    borderBottom: '1px solid #4a5568',
+                                                }}
+                                            >
+                                                <span>
+                                                    {chat.lastMessage?.content
+                                                        ? chat.lastMessage?.content.split(' ').slice(0, 4).join(' ') + (chat.lastMessage?.content.split(' ').length > 4 ? '...' : '')
+                                                        : ''}
+                                                </span>
+                                                <span style={{ fontSize: '12px', color: '#718096' }}>
+                                                    {new Date(chat.lastMessage?.createdAt).toLocaleTimeString()}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    color: '#A0AEC0',
+                                                    padding: '5px 20px',
+                                                    fontSize: '14px',
+                                                }}
+                                            >
+                                                <span>No messages yet</span>
+                                                <span style={{ fontSize: '12px', color: '#718096' }}> </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })
                         )}
                     </List>
                 </Box>
+
+
 
                 {/* Main Chat Area */}
                 {basepath ? (
@@ -423,7 +511,7 @@ const Chat = () => {
                             {!data || !data?.messages ? (
                                 'No chats'
                             ) : (
-                                data?.messages.map((message, index) => (
+                                data?.messages.map((message: any, index) => (
                                     <Box
                                         key={index}
                                         sx={{
@@ -450,12 +538,17 @@ const Chat = () => {
                                                 </span>
                                                 <span>
                                                     {
-                                                        message.senderId === userId &&
-                                                        <FontAwesomeIcon icon={faCheck} style={{ color: '#a0aec0' }} />
+                                                        message.senderId === userId ?
+                                                            <>
+                                                                {
+                                                                    message.read
+                                                                        ? <FontAwesomeIcon icon={faCheckDouble} style={{ color: 'green' }} />
+                                                                        : <FontAwesomeIcon icon={faCheck} style={{ color: '#a0aec0' }} />
+                                                                }
+                                                            </>
+                                                            :
+                                                            ''
                                                     }
-                                                </span>
-                                                <span style={{ marginLeft: '5px' }}>
-                                                    <FontAwesomeIcon icon={faCheckDouble} style={{ color: 'green' }} />
                                                 </span>
                                             </div>}
 
@@ -537,11 +630,11 @@ const Chat = () => {
             >
                 <Box
                     sx={{
-                        width: { xs: '80%', sm: '40%' }, 
-                        bgcolor: '#1a202c', 
+                        width: { xs: '80%', sm: '40%' },
+                        bgcolor: '#1a202c',
                         borderRadius: '8px',
                         p: 2,
-                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)', 
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
                         position: 'relative',
                     }}
                 >
@@ -560,15 +653,15 @@ const Chat = () => {
                             position: 'absolute',
                             top: 8,
                             right: 8,
-                            bgcolor: '#ff4757', 
-                            '&:hover': { bgcolor: '#e84118' }, 
+                            bgcolor: '#ff4757',
+                            '&:hover': { bgcolor: '#e84118' },
                             borderRadius: '50%',
                             width: 30,
                             height: 30,
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            fontSize: 16, 
+                            fontSize: 16,
                         }}
                         onClick={closePreviewModal}
                     >
@@ -620,7 +713,7 @@ const Chat = () => {
                                 variant="contained"
                                 sx={{
                                     mt: 2,
-                                    bgcolor: '#38a169', 
+                                    bgcolor: '#38a169',
                                     '&:hover': { bgcolor: '#2f855a' },
                                     color: 'white',
                                     fontWeight: 'bold',

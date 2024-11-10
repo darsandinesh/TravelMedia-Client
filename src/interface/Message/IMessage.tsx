@@ -9,6 +9,7 @@ export interface Message {
   recordUrl?: string;
   totalDuriation?: number;
   chatId: string;
+  read?:boolean;
   createdAt: string;
   updatedAt: string;
   recordDuration?: number;
@@ -39,6 +40,7 @@ export interface ChatData {
   lastMessage?: LastMessage | null;
   participants: string[];
   users: User[];
+  unreadCount:number;
 }
 export interface MessageAreaProps {
   chat: ChatData;

@@ -4,7 +4,7 @@ class SocketService {
   private socket: Socket;
 
   constructor() {
-    this.socket = io('http://localhost:32000', {
+    this.socket = io(import.meta.env.VITE_FRONTEN_URL, {
       transports: ['websocket'],
       upgrade: false
     });

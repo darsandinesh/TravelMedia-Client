@@ -50,16 +50,15 @@ interface TravelBuddy {
 const TravelPostList: React.FC = () => {
   const [posts, setPosts] = useState<TravelBuddy[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [visiblePostId, setVisiblePostId] = useState<string | null>(null); // For managing which post details are visible
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const result = await axiosInstance.get(postEndpoints.getfindBuddy);
-        console.log(result.data.data);
-
         if (result.data.success) {
-          const postData = result.data.data;  // Array of posts with user data
+          const postData = result.data.data;
           setPosts(postData);
         } else {
           toast.error('Something went wrong');
@@ -68,16 +67,29 @@ const TravelPostList: React.FC = () => {
         console.error('Error fetching travel posts', error);
       }
     };
-
     fetchPosts();
   }, []);
 
   const handleDirection = (location: string) => {
-    setSelectedLocation(location); // Set the selected location
+    setSelectedLocation(location);
   };
 
   const handleCloseMap = () => {
-    setSelectedLocation(null); // Clear the selected location
+    setSelectedLocation(null);
+  };
+
+  const togglePostDetails = (postId: string) => {
+    setVisiblePostId(visiblePostId === postId ? null : postId);
+  };
+
+  const getTravelStatus = (post: TravelBuddy): 'over' | 'ongoing' | 'upcoming' => {
+    const currentDate = new Date();
+    const endDate = new Date(post.travelDate);
+    endDate.setDate(endDate.getDate() + post.travelDuration);
+
+    if (endDate < currentDate) return 'over';
+    if (currentDate >= post.travelDate && currentDate <= endDate) return 'ongoing';
+    return 'upcoming';
   };
 
   return (
@@ -85,7 +97,7 @@ const TravelPostList: React.FC = () => {
       <div className="container">
         {selectedLocation ? (
           <Box sx={{ marginTop: 4 }}>
-            <Typography >Directions to <h4>{selectedLocation.split(',')[0]}</h4></Typography>
+            <Typography>Directions to <h4>{selectedLocation.split(',')[0]}</h4></Typography>
             <Button variant="outlined" onClick={handleCloseMap}>
               Close Map
             </Button>
@@ -98,62 +110,84 @@ const TravelPostList: React.FC = () => {
             </div>
 
             <div className="card-container">
-              {posts.map((post) => (
-                <Card key={post._id} className="travel-post-card">
-                  <AspectRatio flex ratio="1" className="aspect-ratio">
-                    <img
-                      src={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? post.mediaUrls[0] : 'https://example.com/path/to/user-icon.png'} 
-                      loading="lazy"
-                      alt={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? "Travel" : "User Icon"} 
-                      style={{ objectFit: 'cover' }} 
-                    />
-                  </AspectRatio>
+              {posts.map((post) => {
+                const travelStatus = getTravelStatus(post);
+                return (
+                  <Card
+                    key={post._id}
+                    className={`travel-post-card ${visiblePostId === post._id ? 'highlighted' : ''}`} // Highlight if visible
+                  >
+                    <AspectRatio flex ratio="1" className="aspect-ratio">
+                      <img
+                        src={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? post.mediaUrls[0] : 'https://example.com/path/to/user-icon.png'}
+                        loading="lazy"
+                        alt={post.mediaUrls[0] && post.mediaUrls[0] !== '' ? 'Travel' : 'User Icon'}
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </AspectRatio>
 
-                  <CardContent className="details">
-                    <div className="user-info" style={{ display: 'flex', gap: '1.5rem', padding: 5, marginTop: 4 }}>
-                      <img className="user-avatar" src={post.user.avatar} alt={`${post.user.name}'s avatar`} style={{ borderRadius: '50%', height: '50px' }} />
-                      <Typography className="user-name" sx={{ marginTop: '12px' }}>{post.user.name}</Typography>
-                    </div>
-
-                    <Typography className="location" sx={{ fontWeight: 'bold' }}>
-                      Location: {post.location.split(',')[0]}
-                    </Typography>
-
-                    <Typography className="description" sx={{ fontSize: '500' }}>
-                      Description: {post.description}
-                    </Typography>
-
-                    <Sheet className="info-sheet">
-                      {/* Info Items with Flexbox */}
-                      <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
-                        <Typography className="label">Travel Date</Typography>
-                        <Typography className="value">{new Date(post.travelDate).toDateString()}</Typography>
+                    <CardContent
+                      className="post-summary"
+                      onClick={() => togglePostDetails(post._id)} // Toggle details visibility
+                      style={{
+                        cursor: 'pointer',
+                        backgroundColor: visiblePostId === post._id ? '#f0f0f0' : 'white',
+                      }}
+                    >
+                      <div className="user-info" style={{ display: 'flex', gap: '1.5rem', padding: 5 }}>
+                        <img className="user-avatar" src={post.user.avatar} alt={`${post.user.name}'s avatar`} style={{ borderRadius: '50%', height: '50px' }} />
+                        <Typography className="user-name" sx={{ marginTop: '12px' }}>
+                          {post.user.name}
+                        </Typography>
                       </div>
-                      <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
-                        <Typography className="label">Budget</Typography>
-                        <Typography className="value">{post.preferences.budget}</Typography>
-                      </div>
-                      <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
-                        <Typography className="label">Accommodation</Typography>
-                        <Typography className="value">{post.preferences.accommodation}</Typography>
-                      </div>
-                      <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
-                        <Typography className="label">Transport Mode</Typography>
-                        <Typography className="value">{post.preferences.transportMode}</Typography>
-                      </div>
-                    </Sheet>
+                      <Typography className="location" sx={{ fontWeight: 'bold' }}>
+                        Location: {post.location.split(',')[0]}
+                      </Typography>
+                      <Typography className="status" sx={{ color: '#00796b', fontSize: '14px' }}>
+                        Status: {travelStatus.charAt(0).toUpperCase() + travelStatus.slice(1)}
+                      </Typography>
+                    </CardContent>
 
-                    <Box className="button-group" sx={{ display: 'flex', gap: 1, marginTop: 2 }}>
-                      <Buttons variant="outlined" color="neutral" onClick={() => navigate(`/chats/${post._id}`)}>
-                        Chat
-                      </Buttons>
-                      <Buttons variant="solid" color="primary" onClick={() => handleDirection(post.location)}>
-                        Direction
-                      </Buttons>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
+                    {visiblePostId === post._id && (
+                      <CardContent className="details">
+                        <Typography className="description" sx={{ fontSize: '14px', marginBottom: '12px' }}>
+                          Description: {post.description}
+                        </Typography>
+
+                        <Sheet className="info-sheet">
+                          <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
+                            <Typography className="label">Travel Date</Typography>
+                            <Typography className="value">{new Date(post.travelDate).toDateString()}</Typography>
+                          </div>
+                          <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
+                            <Typography className="label">Budget</Typography>
+                            <Typography className="value">{post.preferences.budget}</Typography>
+                          </div>
+                          <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
+                            <Typography className="label">Accommodation</Typography>
+                            <Typography className="value">{post.preferences.accommodation}</Typography>
+                          </div>
+                          <div className="info-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
+                            <Typography className="label">Transport Mode</Typography>
+                            <Typography className="value">{post.preferences.transportMode}</Typography>
+                          </div>
+                        </Sheet>
+
+                        <Box className="button-group" sx={{ display: 'flex', gap: 1, marginTop: 2 }}>
+                          {travelStatus === 'upcoming' && (
+                            <Buttons variant="outlined" color="neutral" onClick={() => navigate(`/chats/${post._id}`)}>
+                              Chat
+                            </Buttons>
+                          )}
+                          <Buttons variant="solid" color="primary" onClick={() => handleDirection(post.location)}>
+                            Direction
+                          </Buttons>
+                        </Box>
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
             </div>
           </>
         )}

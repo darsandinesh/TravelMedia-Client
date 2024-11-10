@@ -3,7 +3,7 @@ import { RootState } from "../redux/store/sotre";
 import { useSelector } from "react-redux";
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:32000', { withCredentials: true });
+const socket = io(import.meta.env.VITE_FRONTEN_URL, { withCredentials: true });
 
 interface WebRTCContextProps {
   localStream: MediaStream | null;
@@ -41,7 +41,18 @@ export const WebRTCProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       peerConnection.current.close();
     }
     peerConnection.current = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }        
+      ]
     });
 
     peerConnection.current.ontrack = (event) => {
@@ -87,16 +98,16 @@ export const WebRTCProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setGuestId(userId);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
       setLocalStream(stream);
-  
+
       const pc = createPeerConnection();
       isInitiator.current = false;
-  
+
       stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-  
+
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-  
+
       socket.emit('callAccepted', { userId: from, answer, context: 'webRTC', acceptedBy: currentUser });
       setInCall(true);
     } catch (error) {
