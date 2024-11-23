@@ -59,7 +59,7 @@ const OTP = () => {
         localStorage.removeItem('otp-timer');
         if (result.data.success) {
           toast.success(result.data.data.message);
-          navigate('/');
+          navigate('/login');
         } else {
           toast.info(result.data.data.message);
         }

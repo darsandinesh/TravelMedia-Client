@@ -23,7 +23,7 @@ import MenuButton from '@mui/joy/MenuButton';
 import MenuItem from '@mui/joy/MenuItem';
 import MoreVert from '@mui/icons-material/MoreVert';
 import moment from 'moment';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import { postEndpoints } from '../../../../constraints/endpoints/postEndpoints';
 // joy ui
 import Link from '@mui/joy/Link';
@@ -217,6 +217,7 @@ export default function Content() {
     const [loadinPage, setLoadingPage] = useState<boolean>(false)
     const [prevHeight, setPrevHeight] = useState<number>(0);
     const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: boolean }>({});
+    const [count, setCount] = useState<boolean>(true);
 
     const navigate = useNavigate();
     const toggleRepliesVisibility = (commentId: string) => {
@@ -231,8 +232,8 @@ export default function Content() {
     };
 
     const handleEmojiClick = (emojiData: EmojiClickData) => {
-        setSelectedEmoji(selectedEmoji + emojiData.emoji); 
-        setShowEmojiPicker(false); 
+        setSelectedEmoji(selectedEmoji + emojiData.emoji);
+        setShowEmojiPicker(false);
     };
 
     const handlePrev = (index: number) => {
@@ -250,20 +251,24 @@ export default function Content() {
             return newIndexes;
         });
     };
-    
+
     useEffect(() => {
         const fetchData = async () => {
             console.log('Fetching data from backend to get all the posts');
             setLoadingPage(true);
             try {
-                const result = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${page}`);
-                const posts = result.data.data;
-                console.log(posts);
-                setPostData(posts);
-                setCurrentImageIndex(posts.map(() => 0));
-                setTimeout(() => {
-                    setLoadingPage(false);
-                }, 2000);
+                if (count) {
+                    const result = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${page}`);
+                    const posts = result.data.data;
+                    if (6 * page - 1 >= result.data.count.count) setCount(false)
+                    setPostData((prevPosts) => [...prevPosts, ...posts]);
+                    setCurrentImageIndex(posts.map(() => 0));
+                    setTimeout(() => {
+                        setLoadingPage(false);
+                    }, 2000);
+                } else {
+                    setLoadingPage(false)
+                }
             } catch (error) {
                 console.error('Error fetching posts:', error);
                 setLoading(false);
@@ -281,7 +286,7 @@ export default function Content() {
 
     const handleScroll = () => {
         if (window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight) {
-            if (prevHeight < document.documentElement.scrollHeight) {
+            if (prevHeight < document.documentElement.scrollHeight && count) {
                 setPrevHeight(document.documentElement.scrollHeight);
                 setPage(prev => prev + 1);
             }
@@ -481,9 +486,9 @@ export default function Content() {
                     postId: id
                 }
             );
-            if(result.data.success){
+            if (result.data.success) {
                 toast.success('Post saved successful');
-            }else{
+            } else {
                 toast.info('Unable to save the post')
             }
         } catch (error) {
@@ -501,34 +506,23 @@ export default function Content() {
                         <Card key={post.id} sx={{ width: '100%' }}>
                             <CardHeader
                                 avatar={
-                                    <Avatar
-                                        sx={{ bgcolor: red[500], cursor: 'pointer' }}
-                                        aria-label="recipe"
-                                        src={post.user?.avatar}
+                                    <Avatar sx={{ bgcolor: red[500], cursor: 'pointer' }} aria-label="recipe" src={post.user?.avatar}
                                         onClick={() => post.user?.id && handleUserClick(post.user.id)}
-                                    >
-                                        {post.user?.name?.charAt(0).toUpperCase()}
+                                    >  {post.user?.name?.charAt(0).toUpperCase()}
                                     </Avatar>
                                 }
                                 action={
                                     <IconButton aria-label="settings">
                                         {/* <MoreVertIcon /> */}
                                         <Dropdown>
-                                            <MenuButton
-                                                slots={{ root: IconButton }}
-                                                slotProps={{ root: { variant: 'outlined', color: 'neutral' } }}
-                                            >
-                                                <MoreVert />
-                                            </MenuButton>
+                                            <MenuButton slots={{ root: IconButton }}
+                                                slotProps={{ root: { variant: 'outlined', color: 'neutral' } }} >
+                                                <MoreVert /> </MenuButton>
                                             <Menu
                                                 sx={{
-                                                    backgroundColor: '#f0f0f4',
-                                                    color: 'black',
-                                                    borderRadius: '8px',
+                                                    backgroundColor: '#f0f0f4', color: 'black', borderRadius: '8px',
                                                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                                    width: '260px',
-                                                    textAlign: 'center',
-                                                    alignItems: 'center'
+                                                    width: '260px', textAlign: 'center', alignItems: 'center'
                                                 }}
                                             >
 
@@ -540,16 +534,10 @@ export default function Content() {
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
                                                 <MenuItem sx={{ color: '#555' }} onClick={() => navigate('/viewPost', { state: { postId: post._id, userId: post.user?.id } })} >View Post</MenuItem>
                                                 {
-                                                    <>
-                                                        {
-                                                            loggedUser?._id === post.user?.id
-                                                            &&
-                                                            <>
-                                                                <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
-                                                                <MenuItem sx={{ color: '#d32f2f' }} onClick={() => navigate('/editPost', { state: { data: post } })}>Edit Post</MenuItem>
-                                                            </>
-                                                        }
-
+                                                    <> {loggedUser?._id === post.user?.id &&
+                                                        <> <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
+                                                            <MenuItem sx={{ color: '#d32f2f' }} onClick={() => navigate('/editPost', { state: { data: post } })}>Edit Post</MenuItem>
+                                                        </>}
                                                     </>
                                                 }
                                                 <hr style={{ margin: '0 10px', border: 'none', borderTop: '1px solid #ccc' }} />
@@ -559,28 +547,22 @@ export default function Content() {
 
                                             </Menu>
                                         </Dropdown>
-
                                     </IconButton>
                                 }
                                 title={
                                     <Typography
                                         variant="body1"
                                         sx={{ cursor: 'pointer' }}
-                                        onClick={() => post.user?.id && handleUserClick(post.user.id)} // Navigate on click
+                                        onClick={() => post.user?.id && handleUserClick(post.user.id)}
                                     >
                                         {post.user?.name}
                                         <br />
 
-                                        <Link
-                                            component="button"
-                                            underline="none"
-                                            sx={{ fontSize: '10px', color: 'text.tertiary', my: 0.5, marginTop: -10 }}
-                                        >
+                                        <Link component="button" underline="none" sx={{ fontSize: '10px', color: 'text.tertiary', my: 0.5, marginTop: -10 }} >
                                             {moment(post.created_at).fromNow()}
                                         </Link>
                                     </Typography>
                                 }
-                            // subheader={<Subheader date={post.created_at} location={post.location} />}
                             />
                             <CardMedia>
                                 <CarouselContainer>
@@ -591,12 +573,8 @@ export default function Content() {
                                     </CarouselTrack>
                                     {post?.imageUrl?.length > 1 && (
                                         <>
-                                            <LeftArrow onClick={() => handlePrev(index)}>
-                                                <ChevronLeftIcon />
-                                            </LeftArrow>
-                                            <RightArrow onClick={() => handleNext(index)}>
-                                                <ChevronRightIcon />
-                                            </RightArrow>
+                                            <LeftArrow onClick={() => handlePrev(index)}><ChevronLeftIcon /> </LeftArrow>
+                                            <RightArrow onClick={() => handleNext(index)}><ChevronRightIcon /> </RightArrow>
                                         </>
                                     )}
                                 </CarouselContainer>
@@ -631,16 +609,10 @@ export default function Content() {
                                         <BookmarkBorderRoundedIcon />
                                     </IconButtons>
                                 </Box>
-
                             </CardContents>
 
-
-
                             <CardContent >
-                                <Link
-                                    component="button"
-                                    underline="none"
-                                    textColor="text.primary"
+                                <Link component="button" underline="none" textColor="text.primary"
                                     sx={{ fontSize: 'sm', fontWeight: 'lg' }}
                                 >
                                     {post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}
@@ -651,12 +623,9 @@ export default function Content() {
                                 <Typography sx={{ fontSize: 'sm' }}>
                                     {post.description}
                                 </Typography>
-
-
                             </CardContent>
 
                             <CardActions disableSpacing sx={{ padding: 3, marginTop: -5 }}>
-
                             </CardActions>
                             <Collapse in={expanded} timeout="auto" unmountOnExit key={index + 1}>
 
@@ -679,9 +648,7 @@ export default function Content() {
                                                                     </Typography>
                                                                     {/* Comment Content */}
                                                                     <Typography variant="body1" paragraph>
-                                                                        {comment.content}
-                                                                    </Typography>
-
+                                                                        {comment.content} </Typography>
                                                                     {/* Reply Button and Reply Count */}
                                                                     <Box display="flex" alignItems="center">
                                                                         <Typography
@@ -692,7 +659,6 @@ export default function Content() {
                                                                         >
                                                                             Reply
                                                                         </Typography>
-
                                                                         {/* Reply Count */}
                                                                         {comment.replies.length > 0 && (
                                                                             <Typography
@@ -705,7 +671,6 @@ export default function Content() {
                                                                             </Typography>
                                                                         )}
                                                                     </Box>
-
                                                                     {/* Reply Input (conditionally rendered) */}
                                                                     {replyTo === comment._id && (
                                                                         <Box mt={2}>
@@ -738,7 +703,6 @@ export default function Content() {
                                                                         </Box>
                                                                     )}
                                                                 </Box>
-
                                                                 {/* Delete Comment Icon */}
                                                                 {comment.UserId === currentUserId && (
                                                                     <IconButton
@@ -751,7 +715,6 @@ export default function Content() {
                                                                     </IconButton>
                                                                 )}
                                                             </Box>
-
                                                             {/* Display Replies Conditionally */}
                                                             {isRepliesVisible && comment.replies.length > 0 && (
                                                                 <Box ml={4} mt={2}>
@@ -786,13 +749,8 @@ export default function Content() {
                                                     );
                                                 })}
                                         </>
-                                    ) : (
-                                        <Typography paragraph>You can be the first one to comment!</Typography>
-                                    )}
+                                    ) : (<Typography paragraph>You can be the first one to comment!</Typography>)}
                                 </CardContent>
-
-
-
 
                                 <CardActions disableSpacing sx={{ padding: 3, marginTop: -5 }}>
                                     {showEmojiPicker && (
@@ -810,35 +768,20 @@ export default function Content() {
                                         size="sm"
                                         placeholder="Add a comment…"
                                         value={selectedEmoji || ''}
-
                                         onChange={(e) => setSelectedEmoji(e.target.value)}
                                         sx={{ flex: 1, px: 0, '--Input-focusedThickness': '0px', padding: 3 }}
                                     />
-                                    {/* <Link disabled underline="none" role="button"  > */}
+
                                     <button style={{ color: 'white', cursor: 'pointer' }} onClick={() => handelComment(post._id)}>
                                         Post
                                     </button>
-                                    {/* </Link> */}
                                 </CardActions>
                             </Collapse>
                         </Card>
                     ))
-                ) : (
-                    <Typography variant="h6">No posts available</Typography>
-                )
+                ) : (<Typography variant="h6">No posts available</Typography>)
             )}
-
-            {
-                loadinPage &&
-                <CircularProgress
-                    color="primary"
-                    determinate={false}
-                    size="lg"
-                    variant="plain"
-                    sx={{ marginBottom: 10 }}
-                />
-            }
-
+            {loadinPage && <CircularProgress color="primary" determinate={false} size="lg" variant="plain" sx={{ marginBottom: 10 }} />}
         </Container>
     );
 }

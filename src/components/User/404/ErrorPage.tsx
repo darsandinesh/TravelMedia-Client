@@ -1,29 +1,25 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import './ErrorPage.css'; // Import the CSS file
+import { Link } from 'react-router-dom';
+import image from'../../../assets/6324913.jpg'
+import './ErrorPage.css';
 
-const ErrorPage: React.FC = () => {
-  const navigate = useNavigate();
+const ErrorPage = () => {
+    return (
+        <div className="not-found-container">
+            <div className="image-container">
+                <img src={image} alt="Page Not Found" />
+            </div>
+            <div className="text-container not-found">
+                <h1>404</h1>
+                <h2>Oops! Page Not Found</h2>
+                <p>Sorry, the page you are looking for does not exist or was moved.</p>
+                <Link to="/login" className="back-link">
+                    Go to Dashboard
+                </Link>
+            </div>
+        </div>
 
-  const handleGoHome = () => {
-    navigate('/');
-  };
 
-  return (
-    <div className="error-page">
-      <div className="error-content">
-        <h1 className="error-title">404</h1>
-        <p className="error-subtitle">Oops! Page Not Found</p>
-        <p className="error-message">The page you're looking for doesn't exist.</p>
-        <button
-          onClick={handleGoHome}
-          className="error-button"
-        >
-          Go to Home
-        </button>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default ErrorPage;

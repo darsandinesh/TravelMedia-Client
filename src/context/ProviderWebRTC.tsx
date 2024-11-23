@@ -1,7 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { RootState } from "../redux/store/sotre";
 import { useSelector } from "react-redux";
 import io from 'socket.io-client';
+import { RootState } from "../redux/store/sotre";
+import { toast } from "sonner";
 
 const socket = io(import.meta.env.VITE_FRONTEN_URL, { withCredentials: true });
 
@@ -43,15 +44,7 @@ export const WebRTCProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     peerConnection.current = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' },
-        {
-          urls: 'turn:openrelay.metered.ca:80',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        }        
+        { urls: 'stun:global.stun.twilio.com:3478' }
       ]
     });
 
@@ -199,7 +192,9 @@ export const WebRTCProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 export const useWebRTC = (): WebRTCContextProps => {
   const context = useContext(WebRTCContext);
   if (!context) {
+    toast.info('triggered webrtc')
     throw new Error('useWebRTC must be used within a WebRTCProvider');
+
   }
   return context;
 };

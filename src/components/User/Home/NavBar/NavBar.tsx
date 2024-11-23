@@ -101,7 +101,7 @@ export default function Navbar() {
     localStorage.removeItem('userToken');
     localStorage.removeItem('refreshToken');
     dispatch(logout());
-    navigate('/');
+    navigate('/login');
   };
 
   const NotificationDrawer = ({ open, onClose }: any) => (

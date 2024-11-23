@@ -83,7 +83,7 @@ const MapComponent = (props: any) => {
   const fetchCoordinate = async (place: string) => {
     try {
       const response = await axios.get(
-        `https://api.olamaps.io/places/v1/autocomplete?input=${place.split(',').slice(0,4).join('')}&api_key=${OLA_MAPS_API_KEY}`
+        `https://api.olamaps.io/places/v1/autocomplete?input=${place.split(',').slice(0, 4).join('')}&api_key=${OLA_MAPS_API_KEY}`
       );
       const location = response.data.predictions[0]?.geometry.location;
       if (location) {
@@ -227,6 +227,9 @@ const MapComponent = (props: any) => {
           <Typography variant="h6">
             Estimated Time: {readableDuration}
           </Typography>
+          {endCoordinates?.lat}
+          hell
+          {endCoordinates?.lng}
         </Box>
       )}
     </Box>

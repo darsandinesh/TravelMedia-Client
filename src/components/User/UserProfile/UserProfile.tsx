@@ -743,7 +743,7 @@ const UserProfile = () => {
       </Dialog>
 
       {/* post modal */}
-      { openFriends && ( <ShowFriends onClose={() => setOpenFriends(false)} />  )}
+      { openFriends && ( <ShowFriends onClose={() => setOpenFriends(false)} id={paramUserId || currentUserId}  />  )}
     </Box>
   );
 };

@@ -20,9 +20,7 @@ function App() {
   );
 }
 
-
 const GlobalVideoCallHandler: React.FC = () => {
-
   const { localStream, remoteStream, inCall, endCall } = useWebRTC();
 
   if (!inCall) return null;
@@ -33,8 +31,7 @@ const GlobalVideoCallHandler: React.FC = () => {
       remoteStream={remoteStream}
       onEndCall={endCall}
     />
-  )
-
+  );
 }
 
 export default App;

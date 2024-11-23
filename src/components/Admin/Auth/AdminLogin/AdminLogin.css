@@ -1,140 +1,112 @@
-/* Ensure the container takes up the full viewport height and width */
-.AdminLoginContainer {
-    height: 100vh;
-    width: 100vw;
+/* Background and container setup */
+.admin-login-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f0f4f8; /* Light grey background */
-}
-
-/* Style the parent div */
-.AdminLoginDiv {
-    display: flex;
-    flex-direction: column; /* Stack vertically on small screens */
-    width: 90%; /* Adjust width for smaller screens */
-    max-width: 1200px;
-    height: 70%;
-    border: 1px solid #001f3f; /* Navy blue border */
-    border-radius: 10px; /* Rounded corners */
-    background-color: #fff; /* White background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for better visibility */
-    overflow: hidden;
-}
-
-/* Style the image container */
-.AdminLoginImage {
-    display: none; /* Hide on small screens */
-}
-
-.AdminLoginImage img {
-    width: 100%; /* Full width of the container */
-    height: auto; /* Maintain aspect ratio */
-    object-fit: cover; /* Cover the container area */
-}
-
-/* Style the form container */
-.AdminLoginForm {
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-/* Form heading */
-.AdminLoginForm h2 {
-    font-size: 1.5rem; /* Adjust font size for small screens */
-    color: #014385; /* Navy blue */
-    margin-bottom: 1rem;
+    min-height: 100vh;
+    background: url('https://worldinparis.com/wp-content/uploads/2018/06/paris-travel-planning.jpg') no-repeat center center/cover;
+    padding: 20px;
+  }
+  
+  /* Enlarged and styled login form */
+  .admin-login-form {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 15px;
+    padding: 40px 50px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
     text-align: center;
-}
-
-/* Form styling */
-.AdminLoginForm form {
+    max-width: 500px;
     width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.AdminLoginForm label {
+  }
+  
+  .admin-login-form h2 {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    color: #333;
+  }
+  
+  /* Input group styling */
+  .input-group {
+    margin-bottom: 25px;
+    text-align: left;
+  }
+  
+  .input-group label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: #333;
-}
-
-.AdminLoginForm input {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: 500;
+  }
+  
+  /* Shared styling for input fields */
+  .input-field {
     width: 100%;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
+    padding: 12px 15px;
+    font-size: 1rem;
     border: 1px solid #ccc;
-    border-radius: 5px; /* Rounded corners for input fields */
-    font-size: 1rem;
-}
-
-.AdminLoginForm button {
-    width: 100%;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 5px; /* Rounded corners for button */
-    background-color: #001f3f; /* Navy blue */
-    color: #fff;
-    font-size: 1rem;
+    border-radius: 8px;
+    outline: none;
+    position: relative;
+    box-sizing: border-box;
+  }
+  
+  /* Password container with icon inside */
+  .password-container {
+    position: relative;
+  }
+  
+  .password-container .input-field {
+    padding-right: 40px; /* Space for the icon */
+  }
+  
+  .password-container .toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
     cursor: pointer;
-    margin-bottom: 1rem;
-}
-
-.AdminLoginForm button:hover {
-    background-color: #00173a; /* Darker navy blue */
-}
-
-.AdminLoginForm hr {
-    width: 100%;
-    margin: 1rem 0;
-    border: 0;
-    border-top: 1px solid #ccc;
-}
-
-.AdminLoginForm p {
-    margin: 1rem 0;
-    color: #333;
-    font-size: 1rem;
-}
-
-/* Responsive design adjustments */
-@media (min-width: 768px) {
-    .AdminLoginDiv {
-        flex-direction: row; /* Switch to row layout on larger screens */
+    color: #555;
+  }
+  
+  /* Button styling */
+  .button-container {
+    text-align: center;
+  }
+  
+  .button-container button {
+    padding: 12px 25px;
+    font-size: 1.2rem;
+    background-color: #1e88e5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: auto;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button-container button:hover {
+    background-color: #1565c0;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .admin-login-form {
+      padding: 30px 20px;
     }
-
-    .AdminLoginImage {
-        display: flex; /* Show image on larger screens */
-        flex: 1;
+  
+    .admin-login-form h2 {
+      font-size: 1.6rem;
     }
-
-    .AdminLoginForm {
-        flex: 1;
+  
+    .input-field {
+      font-size: 0.9rem;
     }
-}
-
-@media (max-width: 767px) {
-    .AdminLoginContainer {
-        background-image: url('https://worldinparis.com/wp-content/uploads/2018/06/paris-travel-planning.jpg'); /* Add background image */
-        background-size: cover; /* Cover the container */
-        background-position: center; /* Center the image */
-        background-repeat: no-repeat; /* Avoid repeating the image */
+  
+    .button-container button {
+      font-size: 1rem;
+      padding: 10px 20px;
     }
-
-    .AdminLoginDiv {
-        height: auto; /* Allow height to adjust based on content */
-    }
-
-    .AdminLoginForm h2 {
-        font-size: 1.25rem; /* Smaller font size on very small screens */
-    }
-    
-    .AdminLoginForm input,
-    .AdminLoginForm button {
-        font-size: 0.875rem; /* Smaller font size for input and button */
-    }
-}
+  }
+  

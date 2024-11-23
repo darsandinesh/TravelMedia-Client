@@ -5,8 +5,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f0f4f8; /* Light grey background */
+    background-color: #f0f4f8; 
+    background-image: url('../../../../assets/backendimage.jpg');
+    background-size: cover; 
+    background-position: center center; 
+    background-repeat: no-repeat;
 }
+
 
 a {
     cursor: pointer;
@@ -16,24 +21,17 @@ a {
 .LoginDiv {
     display: flex;
     flex-direction: row;
+    justify-content: center; /* Centers the content horizontally */
+    align-items: center; /* Centers the content vertically */
     width: 90%;
     max-width: 900px;
     height: 600px;
-    border: 1px solid #001f3f; /* Navy blue border */
     border-radius: 10px; /* Rounded corners */
-    background-color: #fff; /* White background */
+    background-color: rgba(255, 255, 255, 0.3); /* White background with 80% opacity */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for better visibility */
     overflow: hidden;
 }
 
-/* Left side image */
-.LoginDiv img {
-    width: 50%;
-    height: 100%;
-    object-fit: cover;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
 
 /* Right side form */
 .LoginForm {

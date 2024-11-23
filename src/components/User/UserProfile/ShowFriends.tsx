@@ -6,12 +6,16 @@ import Card from '@mui/joy/Card';
 import CardContent from '@mui/joy/CardContent';
 import Chip from '@mui/joy/Chip';
 import { IoCloseSharp } from "react-icons/io5";
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../redux/store/sotre';
 import { toast } from 'sonner';
 import axiosInstance from '../../../constraints/axios/userAxios';
 import { userEndpoints } from '../../../constraints/endpoints/userEndpoints';
 import LinearProgress from '@mui/joy/LinearProgress';
+import { useNavigate } from 'react-router-dom';
+
+interface UserListProps {
+    users: { _id: string; name: string; profilePicture: string }[];
+    id: string;
+}
 
 interface friends {
     _id: string,
@@ -23,8 +27,13 @@ interface friends {
 let followers: friends[] = [];
 let following: friends[] = [];
 
-// Component for rendering the list of users
-const UserList = ({ users }: { users: { _id: string; name: string; profilePicture: string }[] }) => {
+const UserList: React.FC<UserListProps> = ({ users, id }) => {
+
+    const navigate = useNavigate()
+    const handelClick = () => {
+        navigate(`/userProfile`, { state: { userId: id } });
+    }
+
     return (
         <>
             {
@@ -61,16 +70,18 @@ const UserList = ({ users }: { users: { _id: string; name: string; profilePictur
                                     />
                                 </AspectRatio>
                                 <CardContent sx={{ ml: 3 }}>
-                                    <Typography>{user.name}</Typography>
+                                    <Typography onClick={() => handelClick()}>{user.name}</Typography>
                                     <Chip
                                         variant="outlined"
                                         color="primary"
                                         size="sm"
-                                        sx={{ pointerEvents: 'none', mt: 1 }}
+                                        sx={{ pointerEvents: 'none', mt: 1, cursor: 'pointer' }}
+                                        onClick={() => handelClick()} 
                                     >
                                         View Profile
                                     </Chip>
                                 </CardContent>
+
                             </Card>
                         ))}
                     </Box>
@@ -81,14 +92,14 @@ const UserList = ({ users }: { users: { _id: string; name: string; profilePictur
 
 interface ShowFriendsProps {
     onClose(): void;
+    id: string;
 }
 
-const ShowFriends = ({ onClose }: ShowFriendsProps) => {
+const ShowFriends: React.FC<ShowFriendsProps> = ({ onClose, id }) => {
     const [tabValue, setTabValue] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
     const [loading, setLoading] = useState(false)
 
-    const userId = useSelector((state: RootState) => state.userAuth.userData?._id);
 
     useEffect(() => {
         getFriends();
@@ -97,7 +108,7 @@ const ShowFriends = ({ onClose }: ShowFriendsProps) => {
     const getFriends = async () => {
         try {
             setLoading(true);
-            const result = await axiosInstance.get(`${userEndpoints.getFriends}?userId=${userId}`);
+            const result = await axiosInstance.get(`${userEndpoints.getFriends}?userId=${id}`);
             console.log(result.data.success);
             console.log(result.data.data);
             if (result.data.data) {
@@ -193,10 +204,10 @@ const ShowFriends = ({ onClose }: ShowFriendsProps) => {
                         <>
                             {/* Tab Panels */}
                             < TabPanel value={0}>
-                                <UserList users={followers} />
+                                <UserList users={followers} id={id} />
                             </TabPanel>
                             <TabPanel value={1}>
-                                <UserList users={following} />
+                                <UserList users={following} id={id} />
                             </TabPanel>
                         </>
                 }

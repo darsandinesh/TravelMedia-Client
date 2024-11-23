@@ -46,6 +46,7 @@ import { MdOutlineReportGmailerrorred } from "react-icons/md";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Alert from '@mui/joy/Alert';
+import BottomNav from '../footer/BottomNav';
 
 interface Like {
     UserId?: string | null | undefined;
@@ -324,6 +325,7 @@ const ViewPost = () => {
     return (
         <>
             <Navbar />
+            <BottomNav/>
             <div className="viewpost-container" style={{ backgroundColor: '#213547' }}>
 
                 {loading ? (

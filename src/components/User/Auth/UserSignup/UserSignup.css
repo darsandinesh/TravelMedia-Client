@@ -1,37 +1,42 @@
-/* Ensure the div takes up the full height and width of the viewport */
-.SignupContainer {
-    height: auto;
+/* Container takes up the full height and width of the viewport */
+.SignupContainer, .LoginContainer {
+    height: 100vh;
     width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f0f4f8; /* Light grey background */
+    background-color: #f0f4f8;
+    background-image: url('../../../../assets/backendimage.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 
 /* Center the inner div and apply styles */
 .SignupDiv {
     display: flex;
-    flex-direction: row-reverse; /* Flip the image to the right-hand side */
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
     width: 90%;
     max-width: 900px;
-    height: auto;
-    border: 1px solid #001f3f; /* Navy blue border */
-    border-radius: 10px; /* Rounded corners */
-    background-color: #fff; /* White background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for better visibility */
+    height: 700px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
-/* Right side image */
+/* Left side image for SignupDiv */
 .SignupDiv img {
     width: 50%;
-    height: 11 0%;
+    height: 100%;
     object-fit: cover;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
-/* Left side form */
+/* Right side form */
 .SignupForm {
     display: flex;
     flex-direction: column;
@@ -43,18 +48,12 @@
 
 .SignupForm h2 {
     font-size: 2rem;
-    color: #001f3f; /* Navy blue */
+    color: #014385;
     margin-bottom: 1rem;
 }
 
-.SignupForm form {
+.SignupForm form{
     width: 100%;
-}
-
-.input {
-    position: relative;
-    width: 90%;
-    margin-bottom: 1rem;
 }
 
 .SignupForm label {
@@ -64,31 +63,101 @@
     color: #333;
 }
 
+/* Wrapper around each input and error */
+.input-wrapper {
+    display: flex;
+    flex-direction: column; /* Allows the error message to appear below the input field if there's no space */
+    align-items: flex-start;
+    gap: 0.2rem; /* Space between input and error message */
+    position: relative;
+}
+
+/* Input field styling with fixed width */
 .SignupForm input {
-    width: 100%;
+    width: 100%; /* Fixed width for input fields */
     padding: 0.75rem;
-    padding-left: 2.5rem; /* Add padding to the left to make room for the icon */
     border: 1px solid #ccc;
-    border-radius: 5px; /* Rounded corners for input fields */
+    border-radius: 5px;
     font-size: 1rem;
 }
 
-.icon {
-    position: absolute;
-    top: 50%;
-    left: 0.75rem;
-    transform: translateY(-50%);
-    color: #aaa;
+/* Error message styling */
+.error {
+    color: red;
+    font-size: 0.875rem;
+    margin: 0;
+    white-space: normal; /* Allows wrapping to the next line if needed */
+    max-width: 250px; /* Matches input width for consistent layout */
 }
 
-.user-icon::before {
-    content: '\f007'; /* FontAwesome Unicode for user icon */
-    font-family: 'FontAwesome';
+/* Container for password strength indicator */
+.password-strength-container {
+    width: 100%;
+    margin-top: 0.5rem;
 }
 
-.password-icon::before {
-    content: '\f023'; /* FontAwesome Unicode for lock icon */
-    font-family: 'FontAwesome';
+.password-strength-bar {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e0e0e0; /* Default background color */
+    overflow: hidden;
+}
+
+.password-strength-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.password-strength-weak {
+    background-color: #ff4d4d; /* Red for weak passwords */
+}
+
+.password-strength-medium {
+    background-color: #ffa500; /* Orange for medium passwords */
+}
+
+.password-strength-strong {
+    background-color: #4CAF50; /* Green for strong passwords */
+}
+
+.password-strength-label {
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.password-strength-weak-text {
+    color: #ff4d4d;
+}
+
+.password-strength-medium-text {
+    color: #ffa500;
+}
+
+.password-strength-strong-text {
+    color: #4CAF50;
+}
+
+
+/* Button styles */
+.SignupForm button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #001f3f;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+}
+
+.SignupForm button:hover {
+    background-color: #00173a;
 }
 
 .SignupForm a {
@@ -96,86 +165,11 @@
     text-align: right;
     color: #007bff;
     text-decoration: none;
-    margin-top: 1rem;
-    cursor: pointer;
+    margin-bottom: 1rem;
 }
 
 .SignupForm a:hover {
     text-decoration: underline;
-}
-
-.SignupForm button {
-    width: 100%;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 5px; /* Rounded corners for button */
-    background-color: #001f3f; /* Navy blue */
-    color: #fff;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-bottom: 1rem;
-}
-
-.SignupForm button:hover {
-    background-color: #00173a; /* Darker navy blue */
-}
-
-.SignupForm hr {
-    width: 100%;
-    margin: 1rem 0;
-    border: 0;
-    border-top: 1px solid #ccc;
-}
-
-.SignupForm p {
-    margin: 1rem 0;
-    color: #333;
-    font-size: 1rem;
-}
-
-.google-button {
-    width: 100%;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 5px; /* Rounded corners for button */
-    background-color: #db4437; /* Google red */
-    color: #fff;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-.google-button:hover {
-    background-color: #c53727; /* Darker Google red */
-}
-
-.otp-input {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 24px;
-    letter-spacing: 10px;
-}
-
-.otp-timer {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #555;
-    text-align: center;
-}
-
-.modal-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: space-between;
 }
 
 /* Responsive styles */
@@ -186,31 +180,29 @@
         height: auto;
     }
 
-    .SignupDiv img {
+    .SignupDiv img img {
         width: 100%;
         height: 200px;
         border-top-right-radius: 10px;
-        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
     }
 
-    .SignupForm {
+    .SignupForm, .LoginForm {
         width: 100%;
         padding: 1rem;
     }
 
-    .SignupForm h2 {
+    .SignupForm h2, .LoginForm h2 {
         font-size: 1.5rem;
     }
 }
 
 @media screen and (max-width: 480px) {
-    .SignupForm h2 {
+    .SignupForm h2, .LoginForm h2 {
         font-size: 1.2rem;
     }
 
-    .SignupForm input,
-    .SignupForm button,
-    .google-button {
+    .SignupForm input, .SignupForm button, .LoginForm input, .LoginForm button {
         font-size: 0.9rem;
         padding: 0.5rem;
     }

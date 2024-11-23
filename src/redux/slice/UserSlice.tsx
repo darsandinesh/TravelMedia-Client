@@ -6,6 +6,7 @@ export interface UserData {
     email: string | null;
     name: string | null;
     avatar?: string | null;
+    bio?: string | null;
     prime?: boolean;
 }
 

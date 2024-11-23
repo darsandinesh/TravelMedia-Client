@@ -98,26 +98,36 @@ const SearchUser = ({ onClose }: fn) => {
                 transform: 'translate(-50%, -50%)',
                 bgcolor: '#1a202c',
                 borderRadius: '8px',
-                p: 2,
-                width: '50%',
-                height: '80%',
+                p: { xs: 2, sm: 3 }, // Padding adjusts for smaller screens
+                width: { xs: '90%', sm: '70%', md: '50%' }, // Width adjusts for different screen sizes
+                height: { xs: '70%', sm: '80%' }, // Height adjusts for smaller screens
                 zIndex: 1300,
                 boxShadow: 34,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                overflow: 'hidden', // Prevents overflow issues
             }}
         >
             <IconButton
-                sx={{ alignSelf: 'flex-end' }}
+                sx={{ alignSelf: 'flex-end', mb: 1 }}
                 onClick={onClose}
             >
                 <CloseIcon sx={{ color: 'white' }} />
             </IconButton>
-            <Typography variant="h6" color="white" sx={{ mb: 2 }}>
+
+            <Typography
+                variant="h6"
+                color="white"
+                sx={{
+                    mb: { xs: 1, sm: 2 }, // Adjusts margin for smaller screens
+                    fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' }, // Font size adjusts based on screen size
+                }}
+            >
                 Search User
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 2 }}>
                 <InputBase
                     sx={{
                         bgcolor: '#2d3748',
@@ -126,6 +136,7 @@ const SearchUser = ({ onClose }: fn) => {
                         p: '4px 8px',
                         flex: 1,
                         mr: 1,
+                        fontSize: { xs: '0.9rem', sm: '1rem' }, // Font size adjusts for responsiveness
                     }}
                     placeholder="Search users..."
                     value={searchTerm}
@@ -138,36 +149,69 @@ const SearchUser = ({ onClose }: fn) => {
                     sx={{
                         bgcolor: '#4a5568',
                         color: 'white',
-                        '&:hover': { bgcolor: '#2d3748' }
+                        fontSize: { xs: '0.8rem', sm: '1rem' }, // Button font size adjusts
+                        '&:hover': { bgcolor: '#2d3748' },
                     }}
                 >
                     Search
                 </Button>
             </Box>
-            {
-                loading ? (
-                    <Typography color='white' style={{ marginTop: '20%' }}><CircularProgress /></Typography>
-                ) : (
-                    <List sx={{ width: '100%', maxHeight: 'calc(100% - 100px)', overflowY: 'auto' }}>
-                        {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => (
-                                <ListItem key={user._id} >
-                                    <ListItemAvatar>
-                                        <Avatar
-                                            src={user.profilePicture}
-                                            sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
-                                        />
-                                    </ListItemAvatar>
-                                    <ListItemText primary={user.name} sx={{ color: 'white', cursor: 'pointer' }} onClick={() => handelClick(user._id, user?.profilePicture, user.name)} />
-                                </ListItem>
-                            ))
-                        ) : (
-                            <Typography color="white">No users found</Typography>
-                        )}
-                    </List>
-                )
-            }
+
+            {loading ? (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                    }}
+                >
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <List
+                    sx={{
+                        width: '100%',
+                        maxHeight: { xs: 'calc(100% - 160px)', sm: 'calc(100% - 180px)' },
+                        overflowY: 'auto',
+                        px: { xs: 1, sm: 2 }, // Padding adjusts for responsiveness
+                    }}
+                >
+                    {filteredUsers.length > 0 ? (
+                        filteredUsers.map((user) => (
+                            <ListItem key={user._id} sx={{ px: 0 }}>
+                                <ListItemAvatar>
+                                    <Avatar
+                                        src={user.profilePicture}
+                                        sx={{
+                                            bgcolor: '#4a5568',
+                                            width: { xs: 40, sm: 50 }, // Avatar size adjusts for screen size
+                                            height: { xs: 40, sm: 50 },
+                                        }}
+                                    />
+                                </ListItemAvatar>
+                                <ListItemText
+                                    primary={user.name}
+                                    sx={{
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                                    }}
+                                    onClick={() =>
+                                        handelClick(user._id, user?.profilePicture, user.name)
+                                    }
+                                />
+                            </ListItem>
+                        ))
+                    ) : (
+                        <Typography color="white" sx={{ textAlign: 'center' }}>
+                            No users found
+                        </Typography>
+                    )}
+                </List>
+            )}
         </Box>
+
     );
 };
 

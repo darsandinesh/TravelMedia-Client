@@ -36,7 +36,7 @@ const FriednSuggestion = () => {
         newUsers();
     }, []);
 
-    const handelClick = (userId:string) =>{
+    const handelClick = (userId: string) => {
         navigate(`/userProfile`, { state: { userId: userId } });
     }
 
@@ -49,7 +49,7 @@ const FriednSuggestion = () => {
             borderRadius: '20px',
             padding: '15px',
             boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-            marginTop:'-90%',
+            marginTop: '-90%',
         }}>
             <div style={{
                 display: 'flex',
@@ -67,7 +67,11 @@ const FriednSuggestion = () => {
 
             <h6 style={{ color: 'white', textAlign: 'center', marginTop: '15px' }}>New to TravelMedia</h6>
 
-            <List sx={{ width: '100%', maxWidth: '100%', overflowY: 'auto', marginTop: '10px',height:'63%' }}>
+            <List sx={{
+                width: '100%', maxWidth: '100%', overflowY: 'auto', marginTop: '10px', height: '63%', '&::-webkit-scrollbar': {
+                    display: 'none',  
+                },
+            }}>
                 {users.map((val, index) => (
                     <ListItem key={index} sx={{ gap: 2 }}>
                         <ListItemAvatar>
@@ -78,8 +82,8 @@ const FriednSuggestion = () => {
                             </Avatar>
                         </ListItemAvatar>
                         <ListItemText
-                            onClick={()=>handelClick(val._id)}
-                            sx={{ color: 'white',cursor:'pointer' }}
+                            onClick={() => handelClick(val._id)}
+                            sx={{ color: 'white', cursor: 'pointer' }}
                             primary={val.name}
                             secondary={`${moment(val.created_at).fromNow()} ago`}
                             tabIndex={val._id}

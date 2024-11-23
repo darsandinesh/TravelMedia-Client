@@ -3,6 +3,7 @@ import Navbar from '../Home/NavBar/NavBar';
 import axiosInstance from '../../../constraints/axios/userAxios';
 import { userEndpoints } from '../../../constraints/endpoints/userEndpoints';
 import { toast } from 'sonner';
+import BottomNav from '../Home/footer/BottomNav';
 
 const SuccessPage = () => {
     const [error, setError] = useState('');
@@ -28,7 +29,7 @@ const SuccessPage = () => {
                 }
                 saveData()
 
-            } catch (error:any) {
+            } catch (error: any) {
                 setError(error)
             }
         }
@@ -37,6 +38,7 @@ const SuccessPage = () => {
     return (
         <>
             <Navbar />
+            <BottomNav/>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f8f9fa', padding: '20px' }}>
                 {error ? (
                     <div style={{ textAlign: 'center', color: '#dc3545' }}>
@@ -47,7 +49,9 @@ const SuccessPage = () => {
                     <div style={{ textAlign: 'center', color: '#28a745' }}>
                         <h1>Thank You!</h1>
                         <p>{'Payment Verified......'}</p>
-                        <p>Your membership is now active.</p>
+                        <p>Your membership is now active! 🎉</p>
+                        <p>To start using the "Find Buddy" feature, please log out and log back in.</p>
+
                     </div>
                 )}
                 <a href="/home" style={{ marginTop: '20px', textDecoration: 'none', color: '#007bff' }}>Go back to Home</a>

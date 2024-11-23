@@ -4,6 +4,7 @@ export const API_GATEWAY_BASE_URL = `${import.meta.env.VITE_FRONTEN_URL}/post`;
 
 export const postEndpoints = {
     getAllPosts: `${API_GATEWAY_BASE_URL}/getAllPosts`,
+    reportedPost:`${API_GATEWAY_BASE_URL}/reportedPost`,
     getreportPost: `${API_GATEWAY_BASE_URL}/getreportPost`,
     addPost: `${API_GATEWAY_BASE_URL}/add-post`,
     findBuddy: `${API_GATEWAY_BASE_URL}/findBuddy`,
@@ -16,4 +17,5 @@ export const postEndpoints = {
     reportPost: `${API_GATEWAY_BASE_URL}/reportPost`,
     deleteImage:`${API_GATEWAY_BASE_URL}/deleteImage`,
     getNewPosts:`${API_GATEWAY_BASE_URL}/getNewPosts`,
+    searchPost:`${API_GATEWAY_BASE_URL}/searchPost`,
 }

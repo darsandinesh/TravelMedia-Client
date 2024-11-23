@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { IconButton } from '@mui/material';
 import { MdVideocamOff, MdVideocam, MdMicOff, MdMic, MdCallEnd } from "react-icons/md";
 
 interface VideoCallProps {
@@ -40,35 +41,15 @@ const VideoCall: React.FC<VideoCallProps> = ({ localStream, remoteStream, onEndC
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(31, 41, 55, 0.9)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center'
-        }}>
-
-            {!remoteStream && (
-                <div style={{ color: 'white', fontSize: '24px', marginBottom: '16px',height:'100px',width:'100px' ,marginTop:'50%'}}>
-                    Calling...
-                </div>
-            )}
-
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(31, 41, 55, 0.9)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Remote video (full screen) */}
             <video
                 ref={remoteVideoRef}
                 autoPlay
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
 
+            {/* Local video (picture-in-picture) */}
             <video
                 ref={localVideoRef}
                 autoPlay
@@ -77,58 +58,26 @@ const VideoCall: React.FC<VideoCallProps> = ({ localStream, remoteStream, onEndC
                     position: 'absolute',
                     top: '8px',
                     right: '8px',
-                    width: '33%',
-                    borderWidth: '2px',
-                    borderColor: 'white',
-                    borderRadius: '0.5rem',
-                    zIndex: 10
+                    width: '25%',
+                    border: '2px solid white',
+                    borderRadius: '12px',
+                    zIndex: 10,
                 }}
             />
 
-            <div style={{
-                position: 'absolute',
-                bottom: '16px', 
-                left: '50%',
-                transform: 'translateX(-50%)',
-                display: 'flex',
-                gap: '8px', 
-            }}>
-                <button
-                    onClick={handleToggleCamera}
-                    style={{
-                        backgroundColor: '#3B82F6', 
-                        color: 'white',
-                        padding: '8px', 
-                        borderRadius: '9999px' 
-                    }}
-                >
+            {/* Control buttons */}
+            <div style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '16px' }}>
+                <IconButton onClick={handleToggleCamera} style={{ backgroundColor: '#3b82f6', color: 'white' }}>
                     {isCameraOff ? <MdVideocamOff size={24} /> : <MdVideocam size={24} />}
-                </button>
-                <button
-                    onClick={handleToggleMic}
-                    style={{
-                        backgroundColor: '#3B82F6', 
-                        color: 'white',
-                        padding: '8px', 
-                        borderRadius: '9999px' 
-                    }}
-                >
+                </IconButton>
+                <IconButton onClick={handleToggleMic} style={{ backgroundColor: '#3b82f6', color: 'white' }}>
                     {isMicOff ? <MdMicOff size={24} /> : <MdMic size={24} />}
-                </button>
-                <button
-                    onClick={onEndCall}
-                    style={{
-                        backgroundColor: '#EF4444', 
-                        color: 'white',
-                        padding: '8px', 
-                        borderRadius: '9999px' 
-                    }}
-                >
+                </IconButton>
+                <IconButton onClick={onEndCall} style={{ backgroundColor: '#ef4444', color: 'white' }}>
                     <MdCallEnd size={24} />
-                </button>
+                </IconButton>
             </div>
         </div>
-
     );
 };
 

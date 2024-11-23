@@ -1,104 +1,120 @@
-/* AddTravelModal.css */
-
+/* Modal Overlay Styles */
 .modal-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 50;
-  }
-  
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  position: relative;
+  background-color: #1f2937;
+  color: white;
+  width: 90%;
+  max-width: 600px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.modal-header h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.form-content {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  color: #0d1924;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.media-preview img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:disabled {
+  background-color: #888;
+}
+
+.previous-button {
+  background-color: #ff9800;
+}
+
+.next-button {
+  background-color: #4caf50;
+}
+
+.submit-button {
+  background-color: #2196f3;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
   .modal-container {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    width: 500px;
-    min-height: 500px;
-    height: auto;
-    position: relative;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 95%;
+    padding: 15px;
   }
-  
+
+  .modal-header h2 {
+    font-size: 18px;
+  }
+
+  .media-preview img {
+    width: 60px;
+    height: 60px;
+  }
+
+  button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
   .close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: black;
-    padding: 10px 20px;
+    font-size: 18px;
   }
-
-  .error-message {
-    color: red;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-  
-
-  .close-button:hover{
-    cursor: pointer;
-    color: red;
-  }
-  
-  .modal-header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .step-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .step-content input,
-  .step-content textarea,
-  .step-content select {
-    border: 1px solid #ccc;
-    padding: 10px;
-    width: 100%;
-    border-radius: 4px;
-    margin-bottom: 10px;
-  }
-  
-  .step-content img {
-    height: 80px;
-    width: 80px;
-    object-fit: cover;
-    border-radius: 4px;
-  }
-  
-  .navigation-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .navigation-buttons button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    color: #fff;
-  }
-  
-  .previous-button {
-    background: #757575;
-  }
-  
-  .next-button {
-    background: #2196f3;
-  }
-  
-  .submit-button {
-    background: #4caf50;
-  }
-  .map {
-    height: 400px; /* Adjust as needed */
-    width: 100%;
-    border: 1px solid #ccc; /* Optional styling */
-  }
-  
-  
+}

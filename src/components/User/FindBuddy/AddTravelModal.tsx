@@ -196,196 +196,197 @@ const AddTravelModal: React.FC<AddTravelModalProps> = ({ open, setOpen, onClose 
 
   return (
     <div className="modal-overlay">
-      {
-        loading ?
-          <Box sx={{ display: 'flex' }}>
-            <CircularProgress />
-          </Box>
-          :
-          <div className="modal-container">
-            {/* Close button */}
-            <div className="close-button" onClick={() => {
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <div className="modal-container">
+          {/* Close button */}
+          <div
+            className="close-button"
+            onClick={() => {
               setOpen(false);
               resetForm();
-            }}>
-              <IoMdClose size={25} />
+            }}
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              cursor: "pointer",
+              color: "white",
+            }}
+          >
+            <IoMdClose size={25} />
+          </div>
+
+          {/* Modal Content */}
+          <div className="step-content">
+            <div className="modal-header">
+              {step === 1 && <h2>Travel Info</h2>}
+              {step === 2 && <h2>Preferences</h2>}
+              {step === 3 && <h2>Media Upload</h2>}
+              {step === 4 && <h2>Review and Submit</h2>}
             </div>
 
-            {/* Modal Content */}
-            <div className="step-content">
-              {/* Step Content */}
-              <div className="modal-header">
-                {step === 1 && <h2>Travel Info</h2>}
-                {step === 2 && <h2>Preferences</h2>}
-                {step === 3 && <h2>Media Upload</h2>}
-                {step === 4 && <h2>Review and Submit</h2>}
+            {step === 1 && (
+              <div className="form-content">
+                <hr />
+                <label>Travel Date</label>
+                <input
+                  type="date"
+                  value={formData.travelDate}
+                  onChange={(e) => setFormData({ ...formData, travelDate: e.target.value })}
+                />
+                <label>Location</label>
+                <input
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                />
+                {loading && <p style={{ color: "white" }}>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+
+                <ul style={{ listStyleType: "none", padding: 0, maxHeight: "200px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "4px", backgroundColor: "#1f2937" }}>
+                  {places.length > 0 &&
+                    places.map((place, index) => (
+                      <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: "pointer", color: "white", marginBottom: "5px", padding: "8px", borderBottom: "1px solid #ccc", transition: "background-color 0.3s" }}>
+                        {place.description}
+                      </li>
+                    ))}
+                </ul>
+                <label>Duration</label>
+                <input
+                  type="number"
+                  max={10}
+                  min={1}
+                  value={formData.travelDuration}
+                  onChange={(e) => setFormData({ ...formData, travelDuration: Number(e.target.value) })}
+                />
+                <label>Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                ></textarea>
               </div>
+            )}
 
-              {step === 1 && (
-                <div className="form-content">
-                  <hr />
-                  <label>Travel Date</label>
-                  <input
-                    type="date"
-                    value={formData.travelDate}
-                    onChange={(e) => setFormData({ ...formData, travelDate: e.target.value })}
-                  />
-                  <label>Location</label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  />
-                  {loading && <p style={{ color: 'white' }}>Loading...</p>}
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
-
-                        <ul style={{ listStyleType: 'none', padding: 0, maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#1f2937' }}>
-                            {places.length > 0 &&
-                                places.map((place, index) => (
-                                    <li key={index} onClick={() => handlePlaceSelect(place.description)} style={{ cursor: 'pointer', color: 'white', marginBottom: '5px', padding: '8px', borderBottom: '1px solid #ccc', transition: 'background-color 0.3s' }}>
-                                        {place.description}
-                                    </li>
-                                ))}
-                        </ul>
-                  <label>Duration</label>
-                  <input
-                    type="number"
-                    max={10}
-                    min={1}
-                    value={formData.travelDuration}
-                    onChange={(e) => setFormData({ ...formData, travelDuration: Number(e.target.value) })}
-                  />
-                  <label>Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  ></textarea>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="form-content">
-                  <hr />
-                  <label>Budget</label>
-                  <select
-                    value={formData.preferences.budget}
-                    onChange={(e) => setFormData({
+            {step === 2 && (
+              <div className="form-content">
+                <hr />
+                <label>Budget</label>
+                <select
+                  value={formData.preferences.budget}
+                  onChange={(e) =>
+                    setFormData({
                       ...formData,
                       preferences: { ...formData.preferences, budget: e.target.value },
-                    })}
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                  <label>Travel Type</label>
-                  <select
-                    value={formData.preferences.travelType}
-                    onChange={(e) => setFormData({
+                    })
+                  }
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+                <label>Travel Type</label>
+                <select
+                  value={formData.preferences.travelType}
+                  onChange={(e) =>
+                    setFormData({
                       ...formData,
                       preferences: { ...formData.preferences, travelType: e.target.value },
-                    })}
-                  >
-                    <option value="solo">Solo</option>
-                    <option value="family">Family</option>
-                    <option value="friends">Friends</option>
-                  </select>
-                  <label>Accommodation</label>
-                  <select
-                    value={formData.preferences.accommodation}
-                    onChange={(e) => setFormData({
+                    })
+                  }
+                >
+                  <option value="solo">Solo</option>
+                  <option value="family">Family</option>
+                  <option value="friends">Friends</option>
+                </select>
+                <label>Accommodation</label>
+                <select
+                  value={formData.preferences.accommodation}
+                  onChange={(e) =>
+                    setFormData({
                       ...formData,
                       preferences: { ...formData.preferences, accommodation: e.target.value },
-                    })}
-                  >
-                    <option value="hotel">Hotel</option>
-                    <option value="hostel">Hostel</option>
-                    <option value="airbnb">Airbnb</option>
-                  </select>
-                  <label>Transport Mode</label>
-                  <select
-                    value={formData.preferences.transportMode}
-                    onChange={(e) => setFormData({
+                    })
+                  }
+                >
+                  <option value="hotel">Hotel</option>
+                  <option value="hostel">Hostel</option>
+                  <option value="airbnb">Airbnb</option>
+                </select>
+                <label>Transport Mode</label>
+                <select
+                  value={formData.preferences.transportMode}
+                  onChange={(e) =>
+                    setFormData({
                       ...formData,
                       preferences: { ...formData.preferences, transportMode: e.target.value },
-                    })}
-                  >
-                    <option value="car">Car</option>
-                    <option value="train">Train</option>
-                    <option value="plane">Plane</option>
-                  </select>
-                </div>
-              )}
-
-              {step === 3 && (
-                <div className="form-content">
-                  <hr />
-                  <label>Upload Media</label>
-                  <input
-                    type="file"
-                    multiple
-                    accept='image/*,video/*'
-
-                    onChange={handelFileChange}
-                  />
-                  <div className="media-preview">
-                    {formData.mediaUrls.map((url, index) => (
-                      <img key={index} src={url} alt={`Upload ${index}`} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div className="form-content">
-                  <hr />
-                  <h3>Travel Date: {formData.travelDate}</h3>
-                  <h3>Location: {formData.location}</h3>
-                  <h3>Description: {formData.description}</h3>
-                  <h3>Preferences:</h3>
-                  <p>Budget: {formData.preferences.budget}</p>
-                  <p>Accommodation: {formData.preferences.accommodation}</p>
-                  <p>Transport Mode: {formData.preferences.transportMode}</p>
-                  <h3>Media:</h3>
-                  <div className="media-preview">
-                    {formData.mediaUrls.map((url, index) => (
-                      <img key={index} src={url} alt={`Review ${index}`} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Navigation Buttons */}
-              <div className="navigation-buttons">
-                {step > 1 && (
-                  <button
-                    className="previous-button"
-                    onClick={handlePrevStep}
-                  >
-                    Previous
-                  </button>
-                )}
-                {step < 4 ? (
-                  <button
-                    className="next-button"
-                    onClick={handleNextStep}
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <button
-                    className="submit-button"
-                    onClick={() => handleSubmit()}
-                  >
-                    Submit
-                  </button>
-                )}
+                    })
+                  }
+                >
+                  <option value="car">Car</option>
+                  <option value="train">Train</option>
+                  <option value="plane">Plane</option>
+                </select>
               </div>
+            )}
+
+            {step === 3 && (
+              <div className="form-content">
+                <hr />
+                <label>Upload Media</label>
+                <input type="file" multiple accept="image/*,video/*" onChange={handelFileChange} />
+                <div className="media-preview">
+                  {formData.mediaUrls.map((url, index) => (
+                    <img key={index} src={url} alt={`Upload ${index}`} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="form-content">
+                <hr />
+                <h3>Travel Date: {formData.travelDate}</h3>
+                <h3>Location: {formData.location}</h3>
+                <h3>Description: {formData.description}</h3>
+                <h3>Preferences:</h3>
+                <p>Budget: {formData.preferences.budget}</p>
+                <p>Accommodation: {formData.preferences.accommodation}</p>
+                <p>Transport Mode: {formData.preferences.transportMode}</p>
+                <h3>Media:</h3>
+                <div className="media-preview">
+                  {formData.mediaUrls.map((url, index) => (
+                    <img key={index} src={url} alt={`Review ${index}`} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="navigation-buttons">
+              {step > 1 && (
+                <button className="previous-button" onClick={handlePrevStep}>
+                  Previous
+                </button>
+              )}
+              {step < 4 ? (
+                <button className="next-button" onClick={handleNextStep}>
+                  Next
+                </button>
+              ) : (
+                <button className="submit-button" onClick={() => handleSubmit()}>
+                  Submit
+                </button>
+              )}
             </div>
           </div>
-      }
-
+        </div>
+      )}
     </div>
+
   );
 };
 

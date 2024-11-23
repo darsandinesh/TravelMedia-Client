@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Modal } from '@mui/material';
-import { VideoCall, AttachFile, Mic, Send } from '@mui/icons-material';
+import { Box, Typography, IconButton, InputBase, List, ListItem, ListItemAvatar, ListItemText, Avatar, Modal, useMediaQuery } from '@mui/material';
+import { VideoCall, AttachFile, Mic, Send, ArrowBack } from '@mui/icons-material';
 import Navbar from '../Home/NavBar/NavBar';
 import { HiUserAdd } from "react-icons/hi";
-import { BsChatDots } from "react-icons/bs";
 import { useLocation, useNavigate } from 'react-router-dom';
 import SearchUser from './SearchUser';
 import { ChatData, ImageData, Message } from '../../../interface/Message/IMessage';
@@ -18,6 +17,7 @@ import moment from 'moment';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
 import { useWebRTC } from "../../../context/ProviderWebRTC";
+import BottomNav from '../Home/footer/BottomNav';
 
 const Chat = () => {
     const [message, setMessage] = useState('');
@@ -29,6 +29,7 @@ const Chat = () => {
     const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
     const [selectedFileType, setSelectedFileType] = React.useState<string>('');
     const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState<boolean>(false);
+    const isSmallScreen = useMediaQuery('(max-width:600px)');
 
 
     const location = useLocation();
@@ -44,6 +45,11 @@ const Chat = () => {
     const [, setNewMessageChatIds] = useState<Set<string>>(new Set());
     const [data, setData] = useState<ImageData | null>(null);
     const userId = useSelector((store: RootState) => store.userAuth.userData?._id);
+
+    useEffect(() => {
+        const token = localStorage.getItem('userToken');
+        if (!token) navigate('/login');
+    })
 
     const loadConversation = async () => {
         try {
@@ -118,8 +124,6 @@ const Chat = () => {
             socketService.disconnect();
         };
     }, [userId]);
-
-
 
     // message area implementation
     async function getMessages() {
@@ -342,151 +346,250 @@ const Chat = () => {
     return (
         <div style={{ height: '100vh', backgroundColor: '#2d3748' }}>
             <Navbar />
+            {basepath && <BottomNav />}
             <Box sx={{ display: 'flex', height: '90%', width: '100%', marginTop: '70px', position: 'fixed', flexDirection: { xs: 'column', sm: 'row' } }}>
-                {/* Sidebar */}
-                <div style={{ width: '70px', backgroundColor: '#4a5568', display: 'flex', flexDirection: 'column' }}>
-                    <div title='Chat' style={sidebarIconStyle}>
-                        <BsChatDots size={20} />
-                    </div>
-                    <hr />
-                    <div onClick={() => setOpenSearchUser(true)} title='Add Chat' style={sidebarIconStyle}>
-                        <HiUserAdd size={20} />
-                    </div>
-                </div>
-                {/* User List */}
-                <Box
-                    sx={{
-                        width: { xs: '100%', sm: 240 },
-                        bgcolor: '#2d3748',
-                        borderRight: { sm: '1px solid #4a5568' },
-                        overflowY: 'auto',
-                        color: 'white',
-                        height: '100vh',
-                        paddingTop: 2,
-                    }}
-                >
-                    <Typography variant="h6" sx={{ p: 2, marginLeft: { xs: '0%', sm: '20%' }, fontWeight: 'bold' }}>
-                        Users
-                    </Typography>
-                    <hr style={{ borderColor: '#4a5568' }} />
-                    <List sx={{ padding: 0 }}>
-                        {chats.length === 0 ? (
-                            <div style={{ padding: '60px', color: '#A0AEC0' }}>No chats</div>
-                        ) : (
-                            chats.map((chat, chatIndex) => {
+                {
+                    !basepath && isSmallScreen
+                        ?
+                        ''
+                        :
+                        <Box
+                            sx={{
+                                position: 'relative',
+                                width: { xs: '100%', sm: 240 },
+                                bgcolor: '#2d3748',
+                                borderRight: { sm: '1px solid #4a5568' },
+                                overflowY: 'auto',
+                                color: 'white',
+                                height: '100vh',
+                                paddingTop: 2,
+                                minWidth: '300px',
+                                scrollbarWidth: 'none',
+                                '&::-webkit-scrollbar': {
+                                    display: 'none',
+                                },
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '16px',
+                                }}
+                            >
+                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'white' }}>
+                                    Users
+                                </Typography>
 
-                                let unreadCount = 0
-                                if(chat?.lastMessage?.receiverId == userId)
-                                    unreadCount = chat?.unreadCount
+                                <Box
+                                    sx={{
+                                        width: '40px',
+                                        height: '40px',
+                                        backgroundColor: '#4a5568',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.2)',
+                                        cursor: 'pointer',
+                                    }}
+                                    onClick={() => setOpenSearchUser(true)}
+                                    title="Add Chat"
+                                >
+                                    <HiUserAdd size={20} color="white" />
+                                </Box>
+                            </Box>
 
-                                return (
-                                    <div key={chatIndex}>
-                                        {chat.users.map((user, userIndex) => (
-                                            <ListItem
-                                                key={userIndex}
-                                                onClick={() => handelSelectuser(user.id, user.avatar, user.name)}
-                                                sx={{
-                                                    cursor: 'pointer',
-                                                    '&:hover': {
-                                                        backgroundColor: '#4a5568',
-                                                    },
-                                                }}
-                                            >
-                                                <ListItemAvatar>
-                                                    <Avatar
-                                                        src={user.avatar || 'https://via.placeholder.com/50'}
-                                                        sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
-                                                    />
-                                                </ListItemAvatar>
-                                                <ListItemText
-                                                    primary={
-                                                        <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                                            <span>{user.name}</span>
-                                                            { unreadCount > 0 && (
+                            <hr style={{ borderColor: '#4a5568', margin: 0 }} />
+
+                            {/* Chat List */}
+                            <List sx={{ padding: 0 }}>
+                                {chats.length === 0 ? (
+                                    <div style={{ padding: '60px', color: '#A0AEC0' }}>No chats</div>
+                                ) : (
+                                    chats.map((chat, chatIndex) => {
+                                        let unreadCount = 0;
+                                        if (chat?.lastMessage?.receiverId === userId) unreadCount = chat?.unreadCount;
+
+                                        return (
+                                            <div key={chatIndex}>
+                                                {chat.users.map((user, userIndex) => (
+                                                    <ListItem
+                                                        key={userIndex}
+                                                        onClick={() => handelSelectuser(user.id, user.avatar, user.name)}
+                                                        sx={{
+                                                            cursor: 'pointer',
+                                                            '&:hover': {
+                                                                backgroundColor: '#4a5568',
+                                                            },
+                                                        }}
+                                                    >
+                                                        <ListItemAvatar>
+                                                            <Avatar
+                                                                src={user.avatar || 'https://via.placeholder.com/50'}
+                                                                sx={{ bgcolor: '#4a5568', width: 50, height: 50 }}
+                                                            />
+                                                        </ListItemAvatar>
+                                                        <ListItemText
+                                                            primary={
                                                                 <span
                                                                     style={{
-                                                                        backgroundColor: '#E53E3E',
-                                                                        color: 'white',
-                                                                        borderRadius: '50%',
-                                                                        padding: '0 6px',
-                                                                        fontSize: '12px',
-                                                                        fontWeight: 'bold',
+                                                                        display: 'flex',
+                                                                        justifyContent: 'space-between',
+                                                                        width: '100%',
                                                                     }}
                                                                 >
-                                                                    {unreadCount}
+                                                                    <span>{user.name}</span>
+                                                                    {unreadCount > 0 && (
+                                                                        <span
+                                                                            style={{
+                                                                                backgroundColor: '#E53E3E',
+                                                                                color: 'white',
+                                                                                borderRadius: '50%',
+                                                                                padding: '0 6px',
+                                                                                fontSize: '12px',
+                                                                                fontWeight: 'bold',
+                                                                            }}
+                                                                        >
+                                                                            {unreadCount}
+                                                                        </span>
+                                                                    )}
                                                                 </span>
-                                                            )}
+                                                            }
+                                                            sx={{ color: 'white', marginLeft: 1 }}
+                                                        />
+                                                    </ListItem>
+                                                ))}
+
+                                                {/* Displaying the Last Message with Truncation */}
+                                                {chat?.lastMessage ? (
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            color: '#A0AEC0',
+                                                            padding: '5px 20px',
+                                                            fontSize: '14px',
+                                                            borderBottom: '1px solid #4a5568',
+                                                        }}
+                                                    >
+                                                        <span>
+                                                            {chat.lastMessage?.content
+                                                                ? chat.lastMessage?.content
+                                                                    .split(' ')
+                                                                    .slice(0, 4)
+                                                                    .join(' ') +
+                                                                (chat.lastMessage?.content.split(' ').length > 4 ? '...' : '')
+                                                                : ''}
                                                         </span>
-
-                                                    }
-                                                    sx={{ color: 'white', marginLeft: 1 }}
-                                                />
-                                            </ListItem>
-                                        ))}
-
-                                        {/* Displaying the Last Message with Truncation */}
-                                        {chat?.lastMessage ? (
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    color: '#A0AEC0',
-                                                    padding: '5px 20px',
-                                                    fontSize: '14px',
-                                                    borderBottom: '1px solid #4a5568',
-                                                }}
-                                            >
-                                                <span>
-                                                    {chat.lastMessage?.content
-                                                        ? chat.lastMessage?.content.split(' ').slice(0, 4).join(' ') + (chat.lastMessage?.content.split(' ').length > 4 ? '...' : '')
-                                                        : ''}
-                                                </span>
-                                                <span style={{ fontSize: '12px', color: '#718096' }}>
-                                                    {new Date(chat.lastMessage?.createdAt).toLocaleTimeString()}
-                                                </span>
+                                                        <span style={{ fontSize: '12px', color: '#718096' }}>
+                                                            {new Date(chat.lastMessage?.createdAt).toLocaleTimeString()}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            color: '#A0AEC0',
+                                                            padding: '5px 20px',
+                                                            fontSize: '14px',
+                                                        }}
+                                                    >
+                                                        <span>No messages yet</span>
+                                                        <span style={{ fontSize: '12px', color: '#718096' }}> </span>
+                                                    </div>
+                                                )}
+                                                <hr style={{ borderColor: '#4a5568' }} />
                                             </div>
-                                        ) : (
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    color: '#A0AEC0',
-                                                    padding: '5px 20px',
-                                                    fontSize: '14px',
-                                                }}
-                                            >
-                                                <span>No messages yet</span>
-                                                <span style={{ fontSize: '12px', color: '#718096' }}> </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })
-                        )}
-                    </List>
-                </Box>
+                                        );
+                                    })
+                                )}
+                            </List>
+                        </Box>
+                }
 
 
 
                 {/* Main Chat Area */}
                 {basepath ? (
-                    <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', backgroundColor: '#2d3748' }}>
-                        <Typography variant="h6">Select a chat to start</Typography>
-                    </Box>
+                    <>
+                        {isSmallScreen ? '' :
+                            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', backgroundColor: '#2d3748' }}>
+                                <Typography variant="h6">Select a chat to start</Typography>
+                            </Box>}
+
+                    </>
                 ) : (
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#2d3748' }}>
                         {/* Header */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', p: 2, borderBottom: '1px solid #4a5568', bgcolor: '#2d3748', color: 'white' }}>
-                            <Avatar src={location.state.avatar} sx={{ mr: 2, width: 50, height: 50, bgcolor: '#4a5568' }} />
-                            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                                {location.state?.name}
-                                <br />
-                                <span style={{ fontSize: '0.8em', color: '#a0aec0' }}>
-                                    {typing ? 'typing....' : ''}
-                                </span>
-                            </Typography>
-                            <IconButton sx={{ color: 'white' }} onClick={() => location.state.userId && startCall(location.state.userId)}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                p: 2,
+                                borderBottom: '1px solid #4a5568',
+                                bgcolor: '#2d3748',
+                                color: 'white',
+                            }}
+                        >
+                            {
+                                isSmallScreen &&
+                                <IconButton onClick={() => navigate('/chats')} sx={{ color: 'white', mr: 2 }}>
+                                    <ArrowBack />
+                                </IconButton>
+                            }
+                            {/* Avatar and Name Section */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                                <Avatar
+                                    src={location.state.avatar}
+                                    sx={{
+                                        mr: 2,
+                                        width: 50,
+                                        height: 50,
+                                        bgcolor: '#4a5568',
+                                        border: '2px solid #4a5568',
+                                    }}
+                                />
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        lineHeight: 1.2,
+                                    }}
+                                >
+                                    {location.state?.name}
+                                    <br />
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            fontSize: '0.8em',
+                                            color: '#a0aec0',
+                                            fontStyle: 'italic',
+                                        }}
+                                    >
+                                        {typing ? 'typing....' : ''}
+                                    </Typography>
+                                </Typography>
+                            </Box>
+                            <IconButton
+                                sx={{
+                                    color: 'white',
+                                    backgroundColor: '#4a5568',
+                                    borderRadius: '50%',
+                                    padding: 1,
+                                    '&:hover': {
+                                        backgroundColor: '#718096',
+                                    },
+                                    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.2)',
+                                }}
+                                onClick={() => {location.state.userId && startCall(location.state.userId)
+                                    toast.info('hello ahi')}}
+                                title="Start Video Call"
+                            >
                                 <VideoCall />
                             </IconButton>
                         </Box>
@@ -500,7 +603,7 @@ const Chat = () => {
                                 backgroundColor: '#1a202c',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                maxHeight: '600px',
+                                maxHeight: '500px',
                                 minHeight: '400px',
                                 '&::-webkit-scrollbar': {
                                     display: 'none',
@@ -744,11 +847,11 @@ const Chat = () => {
 
 export default Chat;
 
-const sidebarIconStyle = {
-    height: '50px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    color: 'white'
-};
+// const sidebarIconStyle = {
+//     height: '50px',
+//     display: 'flex',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     cursor: 'pointer',
+//     color: 'white'
+// };

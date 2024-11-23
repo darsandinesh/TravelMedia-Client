@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { postEndpoints } from '../../../constraints/endpoints/postEndpoints';
 import axiosInstance from '../../../constraints/axios/adminAxios';
-import { Button, Card, CardContent, Typography, Grid, Pagination, Box, CardMedia, Avatar, Skeleton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-} from '@mui/material';
+import { Button, Card, CardContent, Typography, Grid, Pagination, Box, CardMedia, Avatar, Skeleton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { toast } from 'sonner';
 
 const AdminPostList: React.FC = () => {
@@ -10,8 +9,8 @@ const AdminPostList: React.FC = () => {
     const [reportedPosts, setReportedPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [postsPerPage] = useState(5);
-    const [totalPosts, setTotalPosts] = useState(0);
+    const [postsPerPage] = useState(5);  // Constant for posts per page
+    const [totalPosts, setTotalPosts] = useState<number>(0);  // Total posts from the server
     const [showReported, setShowReported] = useState(false);
 
     // State for Modal
@@ -26,16 +25,18 @@ const AdminPostList: React.FC = () => {
     const fetchPosts = async () => {
         setLoading(true);
         try {
-            const response = await axiosInstance.get(
-                `${postEndpoints.getAllPosts}?page=${currentPage}`
-            );
-            const data = response.data.data;
-            console.log(data, '-----------------------')
-            setTotalPosts(response.data.total);
             if (showReported) {
-                setReportedPosts(data.filter((val: any) => val.reportPost.length > 0));
+                const repoData = await axiosInstance.get(`${postEndpoints.reportedPost}?page=${currentPage}`);
+                const datas = repoData.data.data;
+                setReportedPosts(datas);
+                console.log(repoData.data)
+                setTotalPosts(repoData.data.count.count || 0);  // Set totalCount for pagination
             } else {
+                const response = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${currentPage}`);
+                const data = response.data.data;
+                console.log(response.data)
                 setPosts(data.filter((val: any) => val.reportPost.length === 0));
+                setTotalPosts(response.data.count.count || 0);  // Set totalCount for pagination
             }
         } catch (error) {
             console.error('Error fetching posts:', error);
@@ -44,18 +45,18 @@ const AdminPostList: React.FC = () => {
     };
 
     const handlePageChange = (event: React.ChangeEvent<unknown>, pageNumber: number) => {
-        console.log(event.target);
-        setCurrentPage(pageNumber);
+        console.log(event);
+        setCurrentPage(pageNumber); // Update current page
     };
 
     const toggleShowReported = () => {
         setShowReported(!showReported);
-        setCurrentPage(1);
+        setCurrentPage(1); // Reset to the first page when toggling
     };
 
     const handleDeleteClick = (postId: string, userId: string) => {
         setSelectedPostId(postId);
-        setSelectedUserId(userId)
+        setSelectedUserId(userId);
         setOpenModal(true);
     };
 
@@ -69,12 +70,11 @@ const AdminPostList: React.FC = () => {
             try {
                 const result = await axiosInstance.put(postEndpoints.deletePostAdmin, {
                     postId: selectedPostId,
-                    userId: selectedUserId
+                    userId: selectedUserId,
                 });
-                console.log(result);
                 if (result.data.success) {
                     fetchPosts();
-                    toast.success('Post has been deleted successfull');
+                    toast.success('Post has been deleted successfully');
                 }
             } catch (error) {
                 console.error('Error deleting post:', error);
@@ -84,10 +84,11 @@ const AdminPostList: React.FC = () => {
     };
 
     const displayedPosts = showReported ? reportedPosts : posts;
+    const totalPages = Math.ceil(totalPosts / postsPerPage); // Calculate total pages
 
     return (
         <Box sx={{ padding: '30px', minHeight: '100vh', color: '#fff', marginTop: 10 }}>
-            <Typography variant="h4" sx={{ marginBottom: '20px', fontWeight: 'bold', color: '#fff', marginLeft: '40%' }}>
+            <Typography variant="h4" sx={{ marginBottom: '20px', fontWeight: 'bold', color: '#fff', textAlign: 'center' }}>
                 {showReported ? 'Reported Posts' : 'All User Posts'}
             </Typography>
 
@@ -171,32 +172,26 @@ const AdminPostList: React.FC = () => {
                                                 <Typography sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
                                                     Reported: {post.reportPost.length} times
                                                 </Typography>
-                                                
                                                 {post.reportPost.map((report: any, index: any) => (
-                                                    <>
-                                                    <hr />
-                                                        <div key={index}>
-                                                            <Typography>Report Reason: {report.reason}</Typography>
-                                                            <Typography>Status: {report.status}</Typography>
-
-                                                        </div>
-                                                        
-                                                    </>
-
+                                                    <div key={index}>
+                                                        <hr />
+                                                        <Typography>Report Reason: {report.reason}</Typography>
+                                                        <Typography>Status: {report.status}</Typography>
+                                                    </div>
                                                 ))}
                                             </Box>
                                         )}
-                                        {
-                                            showReported &&
+
+                                        {showReported && (
                                             <Button
                                                 variant="contained"
                                                 color="error"
                                                 sx={{ marginTop: '10px' }}
-                                                onClick={() => handleDeleteClick(post._id, post.user.id)} 
+                                                onClick={() => handleDeleteClick(post._id, post.user.id)}
                                             >
                                                 Delete Post
                                             </Button>
-                                        }
+                                        )}
                                     </CardContent>
                                 </Card>
                             </Grid>
@@ -205,14 +200,17 @@ const AdminPostList: React.FC = () => {
                 </Grid>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
-                <Pagination
-                    count={Math.ceil(totalPosts / postsPerPage)}
-                    page={currentPage}
-                    onChange={handlePageChange}
-                    color="primary"
-                />
-            </Box>
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
+                    <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={handlePageChange}
+                        color="primary"
+                    />
+                </Box>
+            )}
 
             {/* Confirmation Dialog */}
             <Dialog open={openModal} onClose={handleCloseModal}>

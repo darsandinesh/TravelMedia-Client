@@ -1,10 +1,11 @@
+// GlobalIncomingCallHandler.tsx
 import React, { useEffect, useState } from "react";
 import { useWebRTC } from "../../../context/ProviderWebRTC";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../redux/store/sotre";
 import io from 'socket.io-client';
+import { RootState } from "../../../redux/store/sotre";
 
-const socket = io(import.meta.env.VITE_FRONTEN_URL);
+const socket = io('https://travelmedia.fun');
 
 interface IncomingCallNotificationProps {
     callerId: string;
@@ -20,48 +21,30 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({ cal
             bottom: '16px',
             right: '16px',
             left: '16px',
+            maxWidth: '320px', // equivalent to 'md:w-80'
             backgroundColor: 'white',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            borderRadius: '0.5rem',
+            borderRadius: '8px',
             overflow: 'hidden',
-            width: 'auto',
-            maxWidth: '320px',
-            marginLeft: 'auto',
         }}>
-            <div style={{
-                padding: '16px',
-            }}>
-                <h4 style={{
-                    fontWeight: 'bold',
-                    fontSize: '1.125rem'
-                }}>
-                    {callerName}
-                </h4>
-                <p style={{
-                    fontSize: '0.875rem',
-                    color: '#6B7280'
-                }}>
-                    Incoming video call...
-                </p>
+            <div style={{ padding: '16px' }}>
+                <h4 style={{ fontWeight: 'bold', fontSize: '1.125rem' }}>{callerName}</h4>
+                <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Incoming video call...</p>
             </div>
-
-            <div style={{
-                display: 'flex',
-            }}>
+            <div style={{ display: 'flex' }}>
                 <button
                     onClick={onAccept}
                     style={{
                         flex: 1,
-                        backgroundColor: '#10B981',
+                        backgroundColor: '#10B981', // green-500
                         color: 'white',
                         padding: '12px',
                         fontWeight: '600',
-                        transition: 'background-color 0.2s',
                         cursor: 'pointer',
-                        border: 'none',
+                        transition: 'background-color 0.3s',
                     }}
-                    onMouseEnter={(e: any) => e.target.style.backgroundColor = '#059669'}
-                    onMouseLeave={(e: any) => e.target.style.backgroundColor = '#10B981'}
+                // onMouseOver={(e) => e.target.style.backgroundColor = '#059669'} // green-600
+                // onMouseOut={(e) => e.target.style.backgroundColor = '#10B981'} // green-500
                 >
                     Accept
                 </button>
@@ -69,38 +52,34 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({ cal
                     onClick={onReject}
                     style={{
                         flex: 1,
-                        backgroundColor: '#EF4444',
+                        backgroundColor: '#EF4444', // red-500
                         color: 'white',
                         padding: '12px',
                         fontWeight: '600',
-                        transition: 'background-color 0.2s',
                         cursor: 'pointer',
-                        border: 'none',
+                        transition: 'background-color 0.3s',
                     }}
-                    onMouseEnter={(e: any) => e.target.style.backgroundColor = '#DC2626'}
-                    onMouseLeave={(e: any) => e.target.style.backgroundColor = '#EF4444'}
+                // onMouseOver={(e) => e.target.style = '#DC2626'} // red-600
+                // onMouseOut={(e) => e.target.style.backgroundColor = '#EF4444'} // red-500
                 >
                     Reject
                 </button>
             </div>
         </div>
 
-
     );
 };
 
-
-
 const GlobalIncomingCallHandler: React.FC = () => {
     const { acceptCall, endCall } = useWebRTC();
-    const [incomingCall, setIncomingCall] = useState<{ from: string; callerName: string; offer: RTCSessionDescriptionInit, userToCall: string } | null>(null);
+    const [incomingCall, setIncomingCall] = useState<{ from: string; callerName: string; offer: RTCSessionDescriptionInit } | null>(null);
     const userId = useSelector((store: RootState) => store.userAuth.userData?._id) || '';
 
     useEffect(() => {
-        const handleIncomingCall = (data: { from: string; callerName: string; offer: RTCSessionDescriptionInit, userToCall: string }) => {
-            console.log('Incoming call data:', data);
+        const handleIncomingCall = (data: { from: string; callerName: string; offer: RTCSessionDescriptionInit }) => {
+            console.log('Incoming call data:', data.from);
             console.log('userId:', userId);
-            if (userId == data.userToCall) {
+            if (data.from != userId) {
                 setIncomingCall(data);
             }
         };

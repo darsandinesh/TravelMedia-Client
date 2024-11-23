@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
 import Spinner from '../../../Spinner/Spinner';
+import Button from '@mui/joy/Button';
 import { login as userlogin } from '../../../../redux/slice/UserSlice';
 import { useDispatch } from 'react-redux';
 import Swal from 'sweetalert2'
@@ -71,6 +72,7 @@ const UserLogin = () => {
                         email: result.data.user_data.email,
                         name: result.data.user_data.name,
                         avatar: result.data.user_data.profilePicture,
+                        bio:result.data.user_data.bio || "",
                         prime: result.data.user_data.isMember || false,
                     }
 
@@ -119,20 +121,21 @@ const UserLogin = () => {
                     email: result.data.user_data.email,
                     name: result.data.user_data.name,
                     avatar: result.data.user_data.profilePicture,
+                    bio:result.data.user_data.bio || '',
                     prime: result.data.user_data.isMember || false,
                 }
-                setSubmitting(true)
+                setSubmitting(false)
                 dispatch(userlogin({ token: result.data.token, userData: user }));
                 localStorage.setItem('userToken', result.data.token);
                 localStorage.setItem('refreshToken', result.data.refreshToken)
                 navigate('/home')
             } else {
                 toast.error(result.data.message);
-                setSubmitting(true)
+                setSubmitting(false)
             }
         } catch (error) {
             setLoading(false);
-            setSubmitting(true)
+            setSubmitting(false)
             toast.error('An error occurred during login');
         }
     };
@@ -228,7 +231,7 @@ const UserLogin = () => {
                                             icon: "success",
                                             confirmButtonText: "OK",
                                         });
-                                        navigate('/');
+                                        navigate('/login');
                                     } else {
                                         toast.error(resetResponse.data.message);
                                     }
@@ -274,7 +277,7 @@ const UserLogin = () => {
                     :
                     <div className='LoginContainer'>
                         <div className='LoginDiv'>
-                            <img src="https://thumbs.dreamstime.com/b/family-travel-lifestyle-father-hiking-child-mountain-adventures-norway-healthy-outdoor-active-vacations-dad-kid-together-307407296.jpg" alt="image" />
+                            {/* <img src="https://thumbs.dreamstime.com/b/family-travel-lifestyle-father-hiking-child-mountain-adventures-norway-healthy-outdoor-active-vacations-dad-kid-together-307407296.jpg" alt="image" /> */}
                             <div className='LoginForm'>
                                 <h2>Travel Media</h2>
                                 <form onSubmit={handelSubmit}>
@@ -292,15 +295,19 @@ const UserLogin = () => {
                                             id="password"
                                         />
                                         <i
-                                        style={{marginLeft:'90%',marginTop:''}}
                                             className={` ${showPassword ? 'show' : 'hide'}`}
                                             onClick={handleTogglePassword}
                                         >
-                                            {showPassword ? '🙈' : '👁️'} 
+                                            {showPassword ? '👁️' : '🙈'}
                                         </i>
                                     </div>
                                     <a onClick={forgotPassword}>Forgot Password?</a>
-                                    <button>{submitting ? 'Logining.......' : 'Login'}</button>
+                                    {
+                                        submitting ? <Button loading>Default</Button> :
+                                            <button>Login</button>
+                                    }
+
+
                                     <a onClick={singUp}>New user? SignUp</a>
                                 </form>
                                 <hr />

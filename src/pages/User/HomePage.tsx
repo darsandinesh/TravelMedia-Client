@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import FriendSuggestion from '../../components/User/Home/FriendSuggestion/FriednSuggestion';
 import { useMediaQuery, Box } from '@mui/material';
 import { useTheme } from '@mui/system';
+import VerticalCard from '../../components/User/Home/VerticalCard/VerticalCard';
+import AIAssistant from '../../components/User/Home/AiAssistant/AiAssistant';
+import BottomNav from '../../components/User/Home/footer/BottomNav';
 
 const HomePage: React.FC = () => {
     const theme = useTheme();
@@ -16,7 +19,7 @@ const HomePage: React.FC = () => {
 
     useEffect(() => {
         const userToken = localStorage.getItem('userToken');
-        if (!userToken) navigate('/');
+        if (!userToken) navigate('/login');
     }, [navigate]);
 
     return (
@@ -32,10 +35,24 @@ const HomePage: React.FC = () => {
                         }}
                     >
                         <FriendSuggestion />
+                        <VerticalCard />
                     </Box>
+                    <Box
+                        sx={{
+                            position: 'fixed',
+                            bottom: { xs: '70%', md: '10%' }, 
+                            right: '50px',
+                            zIndex: 1100, 
+                        }}
+                    >
+                        <AIAssistant />
+                    </Box>
+
                 </main>
             </div>
+            <BottomNav />
         </div>
+
     );
 };
 

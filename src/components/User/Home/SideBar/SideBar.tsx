@@ -40,7 +40,7 @@ const SideBar = () => {
                 {showMoreOptions && (
                     <div className="more-options">
                         <a onClick={() => {
-                            navigate('/')
+                            navigate('/login')
                             localStorage.removeItem('userToken');
                         }} className="nav-link">Logout</a>
                     </div>

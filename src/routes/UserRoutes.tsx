@@ -14,29 +14,38 @@ import ViewPost from "../components/User/Home/ViewPost/ViewPost"
 import EditPost from "../components/User/Post/EditPost"
 import MapComponent from "../components/User/Map/MapComponent"
 import SuccessPage from "../components/User/FindBuddy/SuccessPage"
+import SettingsPage from "../components/User/UserProfile/Settings"
+import LandingPage from "../components/User/LandingPage/LandingPage"
+import PublicRoute from "./PublicRouteUser"
+import PrivateRouteUser from "./PrivateRouteUser"
 
 
 function UserRoutes() {
     return (
         <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/Signup" element={<UserSignup />} />
-            <Route path="/otp" element={<OTP />} />
-            <Route path='/home' element={<HomePage />} />
-            <Route path='/spinner' element={<Spinner />} />
-            <Route path='/userProfile' element={<UserProfile />} />
+            {/* public routes */}
+            <Route path="/" element={<PublicRoute><LandingPage /> </PublicRoute>} />
+            <Route path="/login" element={<PublicRoute><LoginPage /> </PublicRoute>} />
+            <Route path="/Signup" element={<PublicRoute><UserSignup /> </PublicRoute>} />
+            <Route path="/otp" element={<PublicRoute><OTP /> </PublicRoute>} />
+            {/* private rotues */}
+            <Route path='/home' element={<PrivateRouteUser><HomePage /></PrivateRouteUser>} />
+            <Route path='/userProfile' element={<PrivateRouteUser><UserProfile /></PrivateRouteUser>} />
             {/* <Route path='/userProfile/:userId' element={<UserProfile />} /> */}
-            <Route path='/search' element={<SearchPage />} />
-            <Route path='/add-post' element={<AddNewPost />} />
-            <Route path='/find-buddy' element={<TravelPage />} />
-            <Route path='/chats' element={<Chat />} />
+            <Route path='/search' element={<PrivateRouteUser><SearchPage /></PrivateRouteUser>} />
+            <Route path='/add-post' element={<PrivateRouteUser><AddNewPost /></PrivateRouteUser>} />
+            <Route path='/find-buddy' element={<PrivateRouteUser><TravelPage /></PrivateRouteUser>} />
+            <Route path='/chats' element={<PrivateRouteUser><Chat /></PrivateRouteUser>} />
             {/* <Route path='/chats/:id' element={<Chat />} /> */}
-            <Route path="/viewPost" element={<ViewPost />} />
-            <Route path="/viewPost/:id/:uId" element={<ViewPost />} />
-            <Route path='/editPost' element={<EditPost />} />
-            <Route path='/map' element={<MapComponent />} />
-            <Route path='/success' element={<SuccessPage />} />
+            <Route path="/viewPost" element={<PrivateRouteUser><ViewPost /></PrivateRouteUser>} />
+            <Route path="/viewPost/:id/:uId" element={<PrivateRouteUser><ViewPost /></PrivateRouteUser>} />
+            <Route path='/editPost' element={<PrivateRouteUser><EditPost /></PrivateRouteUser>} />
+            <Route path='/map' element={<PrivateRouteUser><MapComponent /></PrivateRouteUser>} />
+            <Route path='/success' element={<PrivateRouteUser><SuccessPage /></PrivateRouteUser>} />
+            <Route path='/settings' element={<PrivateRouteUser><SettingsPage /></PrivateRouteUser>} />
+            <Route path='/spinner' element={<Spinner />} />
             <Route path='*' element={<ErrorPage />} />
+
         </Routes>
     )
 }

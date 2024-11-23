@@ -4,6 +4,7 @@ import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Button from "@mui/material/Button";
+import Buttons from '@mui/joy/Button';
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import { useState } from "react";
@@ -37,6 +38,7 @@ export default function AddPost() {
     place: false,
     file: false,
   });
+  const [loading, setLoading] = useState<boolean>(false)
 
   const navigate = useNavigate();
 
@@ -116,6 +118,7 @@ export default function AddPost() {
   };
 
   const handleSubmit = async () => {
+    setLoading(true)
     const formData = new FormData();
     formData.append("description", postData.description);
     formData.append("place", postData.place);
@@ -146,24 +149,24 @@ export default function AddPost() {
     <Box
       sx={{
         width: "100%",
-        maxWidth: "600px",
+        maxWidth: { xs: "90%", sm: "600px" }, // Responsive max width
         margin: "0 auto",
         mt: 6,
-        marginLeft: "30%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         alignItems: "center",
         border: "1px solid #2d3748",
         borderRadius: "8px",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-        backgroundColor: "#fff",
-        p: 3,
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", // Enhanced shadow for better visual appeal
+        backgroundColor: "#ffffff",
+        p: { xs: 2, sm: 3 }, // Padding adjusted for mobile and larger screens
+        overflow: "hidden", // Avoids content overflow
       }}
     >
       {/* Stepper at the top */}
       <Box sx={{ width: "100%", mb: 2 }}>
-        <Stepper activeStep={activeStep} sx={{ width: "100%" }}>
+        <Stepper activeStep={activeStep} alternativeLabel>
           {steps.map((label, index) => (
             <Step key={index}>
               <StepLabel>{label}</StepLabel>
@@ -175,15 +178,18 @@ export default function AddPost() {
       {/* Main content */}
       {activeStep === steps.length ? (
         <React.Fragment>
-          <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you're finished</Typography>
-          <Button onClick={handleReset}>Reset</Button>
+          <Typography sx={{ mt: 2, mb: 1, textAlign: "center", fontWeight: "bold" }}>
+            🎉 All steps completed - you're finished!
+          </Typography>
+          <Button onClick={handleReset} variant="outlined" sx={{ mt: 2 }}>
+            Reset
+          </Button>
         </React.Fragment>
       ) : (
         <React.Fragment>
           <Box sx={{ mt: 2, width: "100%", textAlign: "center" }}>
             {activeStep === 0 && (
               <>
-
                 <TextField
                   label="Place Visited"
                   name="place"
@@ -204,6 +210,8 @@ export default function AddPost() {
                   fullWidth
                   margin="normal"
                   variant="outlined"
+                  multiline
+                  rows={4}
                   error={errors.description}
                   helperText={errors.description ? "Description is required" : ""}
                 />
@@ -211,7 +219,9 @@ export default function AddPost() {
             )}
             {activeStep === 1 && (
               <>
-                <Typography>Upload images or videos:</Typography>
+                <Typography sx={{ mb: 2, fontWeight: "bold" }}>
+                  Upload images or videos:
+                </Typography>
                 <input
                   type="file"
                   accept="image/*,video/*"
@@ -219,9 +229,19 @@ export default function AddPost() {
                   onChange={handleFileChange}
                 />
                 {errors.file && (
-                  <Typography color="error">At least one file is required</Typography>
+                  <Typography color="error" sx={{ mt: 1 }}>
+                    At least one file is required
+                  </Typography>
                 )}
-                <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 2,
+                    justifyContent: "center",
+                  }}
+                >
                   {postData.filePreviews.map((preview, index) => (
                     <Box
                       key={index}
@@ -230,6 +250,8 @@ export default function AddPost() {
                         width: "100px",
                         height: "100px",
                         overflow: "hidden",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                       }}
                     >
                       <img
@@ -247,8 +269,8 @@ export default function AddPost() {
                       <Button
                         sx={{
                           position: "absolute",
-                          top: 0,
-                          right: 0,
+                          top: "-5px",
+                          right: "-5px",
                           backgroundColor: "red",
                           color: "white",
                           borderRadius: "50%",
@@ -256,10 +278,12 @@ export default function AddPost() {
                           minWidth: "0",
                           height: "24px",
                           width: "24px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                          "&:hover": { backgroundColor: "darkred" },
                         }}
                         onClick={() => handleRemoveImage(index)}
                       >
-                        X
+                        ✕
                       </Button>
                     </Box>
                   ))}
@@ -268,19 +292,30 @@ export default function AddPost() {
             )}
             {activeStep === 2 && (
               <>
-                <Typography>Preview:</Typography>
-                <Typography variant="h6">Description: {postData.description}</Typography>
+                <Typography sx={{ fontWeight: "bold", mb: 2 }}>Preview:</Typography>
                 <Typography variant="h6">Place: {postData.place}</Typography>
-                <Typography variant="h6">Media:</Typography>
-                <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                <Typography>Description: {postData.description}</Typography>
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  Media:
+                </Typography>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 2,
+                    justifyContent: "center",
+                  }}
+                >
                   {postData.filePreviews.map((preview, index) => (
                     <Box
                       key={index}
                       sx={{
-                        position: "relative",
                         width: "100px",
                         height: "100px",
                         overflow: "hidden",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                       }}
                     >
                       <img
@@ -299,14 +334,22 @@ export default function AddPost() {
             )}
           </Box>
 
-          <Box sx={{ mt: 2, width: "100%", display: "flex", justifyContent: "space-between" }}>
-            <Button disabled={activeStep === 0} onClick={handleBack}>
+          {/* Navigation Buttons */}
+          <Box
+            sx={{
+              mt: 3,
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
               Back
             </Button>
             {activeStep === steps.length - 1 ? (
-              <Button variant="contained" color="primary" onClick={handleSubmit}>
-                Submit
-              </Button>
+              <>
+                {loading ? <Buttons loading variant="outlined">Loading</Buttons> : <Button variant="contained" color="primary" disabled={loading} onClick={handleSubmit}>  Submit </Button>}
+              </>
             ) : (
               <Button variant="contained" color="primary" onClick={handleNext}>
                 Next
@@ -316,5 +359,6 @@ export default function AddPost() {
         </React.Fragment>
       )}
     </Box>
+
   );
 }

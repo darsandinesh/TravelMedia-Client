@@ -6,6 +6,7 @@ import NavBar from '../../components/User/Home/NavBar/NavBar';
 import Pricing from '../../components/User/FindBuddy/Pricing';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store/sotre';
+import BottomNav from '../../components/User/Home/footer/BottomNav';
 
 const TravelPage: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -27,6 +28,7 @@ const TravelPage: React.FC = () => {
         prime ?
           <div className="relative min-h-screen bg-blue-600">
             <NavBar />
+            <BottomNav />
             <div className="p-4 pt-20" style={{ marginTop: '50px', }}>
               <Button onClick={() => setOpen(true)} variant="contained" color="success" style={{ marginLeft: '85%' }}>
                 Add New Travel
