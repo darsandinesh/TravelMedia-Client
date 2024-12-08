@@ -9,8 +9,8 @@ const AdminPostList: React.FC = () => {
     const [reportedPosts, setReportedPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [postsPerPage] = useState(5);  // Constant for posts per page
-    const [totalPosts, setTotalPosts] = useState<number>(0);  // Total posts from the server
+    const [postsPerPage] = useState(5);  
+    const [totalPosts, setTotalPosts] = useState<number>(0); 
     const [showReported, setShowReported] = useState(false);
 
     // State for Modal
@@ -30,13 +30,13 @@ const AdminPostList: React.FC = () => {
                 const datas = repoData.data.data;
                 setReportedPosts(datas);
                 console.log(repoData.data)
-                setTotalPosts(repoData.data.count.count || 0);  // Set totalCount for pagination
+                setTotalPosts(repoData.data.count.count || 0);  
             } else {
-                const response = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${currentPage}`);
+                const response = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${currentPage}&admin=true`);
                 const data = response.data.data;
                 console.log(response.data)
                 setPosts(data.filter((val: any) => val.reportPost.length === 0));
-                setTotalPosts(response.data.count.count || 0);  // Set totalCount for pagination
+                setTotalPosts(response.data.count.count || 0); 
             }
         } catch (error) {
             console.error('Error fetching posts:', error);
@@ -46,12 +46,12 @@ const AdminPostList: React.FC = () => {
 
     const handlePageChange = (event: React.ChangeEvent<unknown>, pageNumber: number) => {
         console.log(event);
-        setCurrentPage(pageNumber); // Update current page
+        setCurrentPage(pageNumber); 
     };
 
     const toggleShowReported = () => {
         setShowReported(!showReported);
-        setCurrentPage(1); // Reset to the first page when toggling
+        setCurrentPage(1); 
     };
 
     const handleDeleteClick = (postId: string, userId: string) => {
@@ -84,7 +84,7 @@ const AdminPostList: React.FC = () => {
     };
 
     const displayedPosts = showReported ? reportedPosts : posts;
-    const totalPages = Math.ceil(totalPosts / postsPerPage); // Calculate total pages
+    const totalPages = Math.ceil(totalPosts / postsPerPage); 
 
     return (
         <Box sx={{ padding: '30px', minHeight: '100vh', color: '#fff', marginTop: 10 }}>

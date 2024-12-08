@@ -252,13 +252,15 @@ export default function Content() {
         });
     };
 
+    const currentUserId = useSelector((state: RootState) => state.userAuth?.userData?._id);
+
     useEffect(() => {
         const fetchData = async () => {
             console.log('Fetching data from backend to get all the posts');
             setLoadingPage(true);
             try {
                 if (count) {
-                    const result = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${page}`);
+                    const result = await axiosInstance.get(`${postEndpoints.getAllPosts}?page=${page}&id=${currentUserId}`);
                     const posts = result.data.data;
                     if (6 * page - 1 >= result.data.count.count) setCount(false)
                     setPostData((prevPosts) => [...prevPosts, ...posts]);
@@ -298,8 +300,6 @@ export default function Content() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [prevHeight]);
 
-
-    const currentUserId = useSelector((state: RootState) => state.userAuth?.userData?._id);
 
     const handleLikeClick = async (index: number) => {
         try {

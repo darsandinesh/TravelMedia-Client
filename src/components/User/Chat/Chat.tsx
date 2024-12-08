@@ -30,6 +30,7 @@ const Chat = () => {
     const [selectedFileType, setSelectedFileType] = React.useState<string>('');
     const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState<boolean>(false);
     const isSmallScreen = useMediaQuery('(max-width:600px)');
+    const [online, setOnline] = React.useState<boolean>(false);
 
 
     const location = useLocation();
@@ -143,6 +144,7 @@ const Chat = () => {
             if (response.data.success) {
 
                 setData(response.data.data);
+                setOnline(response.data.online);
             } else {
                 console.error("Error fetching messages:", response.data.message);
             }
@@ -201,6 +203,7 @@ const Chat = () => {
             socketService.onNewMessage((message) => {
 
                 console.log(message, '-new message live')
+                if(message.read) setOnline(true);
                 setData(prevData => {
                     const newMessage: Message = {
                         _id: message._id || Date.now().toString(),
@@ -210,6 +213,7 @@ const Chat = () => {
                         imagesUrl: message?.image,
                         videoUrl: message?.video,
                         chatId: message.chatId,
+                        read: message.read || false,
                         createdAt: message.createdAt || new Date().toISOString(),
                         updatedAt: message.updatedAt || new Date().toISOString(),
                         __v: message.__v || 0
@@ -572,6 +576,7 @@ const Chat = () => {
                                         }}
                                     >
                                         {typing ? 'typing....' : ''}
+                                        {online?'Online':'Offline'}
                                     </Typography>
                                 </Typography>
                             </Box>
@@ -586,8 +591,10 @@ const Chat = () => {
                                     },
                                     boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.2)',
                                 }}
-                                onClick={() => {location.state.userId && startCall(location.state.userId)
-                                    toast.info('hello ahi')}}
+                                onClick={() => {
+                                    location.state.userId && startCall(location.state.userId)
+                                    toast.info('hello ahi')
+                                }}
                                 title="Start Video Call"
                             >
                                 <VideoCall />

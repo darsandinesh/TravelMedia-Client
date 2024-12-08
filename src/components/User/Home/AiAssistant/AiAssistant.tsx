@@ -38,7 +38,7 @@ const AIAssistant = () => {
                         {
                             parts: [
                                 {
-                                    text: `You are a TravelBuddy assistant. Please greet the user, introduce yourself as the TravelBuddy assistant, and answer only questions related to TravelBuddy, such as adding posts, reporting posts, finding buddies, or accessing premium features. If a user asks something unrelated to TravelBuddy, respond with: 'Sorry, I can only answer questions related to TravelBuddy.' Here is the user's question: ${question}`
+                                    text: `You are a TravelMedia assistant. Please greet the user, introduce yourself as the TravelMedia assistant, and answer only questions related to TravelMedia, such as adding posts, reporting posts, finding buddies, or accessing premium features. If a user asks something unrelated to TravelMedia, respond with: 'Sorry, I can only answer questions related to TravelMedia.' Here is the user's question: ${question}`
                                 }
                             ]
                         },
@@ -85,7 +85,7 @@ const AIAssistant = () => {
                 onClick={handleOpen}
                 sx={{
                     position: 'fixed',
-                    bottom: 24,
+                    bottom: 55,
                     right: 24,
                     backgroundColor: darkMode ? '#213547' : '#f0e62d',
                     color: darkMode ? 'white' : '#213547',

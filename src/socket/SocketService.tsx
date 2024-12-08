@@ -19,7 +19,6 @@ class SocketService {
       }
     });
 
-
     this.socket.on('connect_error', (error) => {
       console.log('Socket connection error', error);
     });
@@ -75,12 +74,13 @@ class SocketService {
     this.socket.on('newMessage', callback);
   }
 
+
   // video call
 
   joinRoom(userId: string) {
     this.socket.emit('joinRoom', userId);
   }
-  
+
 }
 
 export default new SocketService();

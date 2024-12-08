@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import io from 'socket.io-client';
 import { RootState } from "../../../redux/store/sotre";
 
-const socket = io('https://travelmedia.fun');
+const socket = io(import.meta.env.VITE_FRONTEN_URL);
 
 interface IncomingCallNotificationProps {
     callerId: string;
@@ -21,11 +21,12 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({ cal
             bottom: '16px',
             right: '16px',
             left: '16px',
-            maxWidth: '320px', // equivalent to 'md:w-80'
+            maxWidth: '320px',
             backgroundColor: 'white',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             borderRadius: '8px',
             overflow: 'hidden',
+            zIndex: 9999,
         }}>
             <div style={{ padding: '16px' }}>
                 <h4 style={{ fontWeight: 'bold', fontSize: '1.125rem' }}>{callerName}</h4>
@@ -36,15 +37,13 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({ cal
                     onClick={onAccept}
                     style={{
                         flex: 1,
-                        backgroundColor: '#10B981', // green-500
+                        backgroundColor: '#10B981',
                         color: 'white',
                         padding: '12px',
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'background-color 0.3s',
                     }}
-                // onMouseOver={(e) => e.target.style.backgroundColor = '#059669'} // green-600
-                // onMouseOut={(e) => e.target.style.backgroundColor = '#10B981'} // green-500
                 >
                     Accept
                 </button>
@@ -52,15 +51,13 @@ const IncomingCallNotification: React.FC<IncomingCallNotificationProps> = ({ cal
                     onClick={onReject}
                     style={{
                         flex: 1,
-                        backgroundColor: '#EF4444', // red-500
+                        backgroundColor: '#EF4444',
                         color: 'white',
                         padding: '12px',
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'background-color 0.3s',
                     }}
-                // onMouseOver={(e) => e.target.style = '#DC2626'} // red-600
-                // onMouseOut={(e) => e.target.style.backgroundColor = '#EF4444'} // red-500
                 >
                     Reject
                 </button>
@@ -76,8 +73,8 @@ const GlobalIncomingCallHandler: React.FC = () => {
     const userId = useSelector((store: RootState) => store.userAuth.userData?._id) || '';
 
     useEffect(() => {
-        const handleIncomingCall = (data: { from: string; callerName: string; offer: RTCSessionDescriptionInit }) => {
-            console.log('Incoming call data:', data.from);
+        const handleIncomingCall = (data: { from: string; callerName: string; offer: RTCSessionDescriptionInit, userToCall: string }) => {
+            console.log('Incoming call data:', data);
             console.log('userId:', userId);
             if (data.from != userId) {
                 setIncomingCall(data);
